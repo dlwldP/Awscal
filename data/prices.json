@@ -6,6 +6,9 @@
     "ap-northeast-2": {
       "name": "서울",
       "ec2": {
+        "t4g.nano": {
+          "hourly": 0.0052
+        },
         "t4g.micro": {
           "hourly": 0.0104
         },
@@ -14,6 +17,24 @@
         },
         "t4g.medium": {
           "hourly": 0.0416
+        },
+        "t4g.large": {
+          "hourly": 0.0832
+        },
+        "t4g.xlarge": {
+          "hourly": 0.1664
+        },
+        "t3.micro": {
+          "hourly": 0.013
+        },
+        "t3.small": {
+          "hourly": 0.026
+        },
+        "t3.medium": {
+          "hourly": 0.052
+        },
+        "t3.large": {
+          "hourly": 0.104
         }
       },
       "ebs": {
@@ -33,7 +54,8 @@
         "hourly": 0.005
       },
       "dataTransferOut": {
-        "perGb": 0.126
+        "perGb": 0.126,
+        "perGbUpTo": 10240.0
       },
       "rds": {
         "db.t4g.micro": {
@@ -45,9 +67,28 @@
           "hourly": 0.051,
           "multiAzHourly": 0.102,
           "storagePerGbMonth": 0.131
+        },
+        "db.t4g.medium": {
+          "hourly": 0.102,
+          "multiAzHourly": 0.203,
+          "storagePerGbMonth": 0.131
+        },
+        "db.t4g.large": {
+          "hourly": 0.203,
+          "multiAzHourly": 0.406,
+          "storagePerGbMonth": 0.131
+        },
+        "db.t3.micro": {
+          "hourly": 0.026,
+          "multiAzHourly": 0.052,
+          "storagePerGbMonth": 0.131
         }
       },
       "lightsail": {
+        "0.5GB": {
+          "hourly": 0.00672,
+          "monthly": 5.0
+        },
         "1GB": {
           "hourly": 0.0094,
           "monthly": 7.0
@@ -59,15 +100,21 @@
         "4GB": {
           "hourly": 0.03225,
           "monthly": 24.0
+        },
+        "8GB": {
+          "hourly": 0.05913,
+          "monthly": 44.0
         }
       },
       "s3": {
         "storagePerGbMonth": 0.025,
+        "storagePerGbMonthUpTo": 51200.0,
         "putPerRequest": 4.5e-06,
         "getPerRequest": 3.5e-07
       },
       "cloudfront": {
         "perGb": 0.12,
+        "perGbUpTo": 10240.0,
         "httpsPerRequest": 1.2e-06
       },
       "amplify": {
@@ -77,10 +124,12 @@
       },
       "lambda": {
         "perRequest": 2e-07,
-        "perGbSecondArm": 1.33334e-05
+        "perGbSecondArm": 1.33334e-05,
+        "perGbSecondArmUpTo": 7500000000.0
       },
       "apiGatewayHttp": {
-        "perRequest": 1.23e-06
+        "perRequest": 1.23e-06,
+        "perRequestUpTo": 300000000.0
       },
       "dynamodb": {
         "perReadUnit": 1.355e-07,
@@ -95,6 +144,9 @@
     "us-east-1": {
       "name": "버지니아 북부",
       "ec2": {
+        "t4g.nano": {
+          "hourly": 0.0042
+        },
         "t4g.micro": {
           "hourly": 0.0084
         },
@@ -103,6 +155,24 @@
         },
         "t4g.medium": {
           "hourly": 0.0336
+        },
+        "t4g.large": {
+          "hourly": 0.0672
+        },
+        "t4g.xlarge": {
+          "hourly": 0.1344
+        },
+        "t3.micro": {
+          "hourly": 0.0104
+        },
+        "t3.small": {
+          "hourly": 0.0208
+        },
+        "t3.medium": {
+          "hourly": 0.0416
+        },
+        "t3.large": {
+          "hourly": 0.0832
         }
       },
       "ebs": {
@@ -122,7 +192,8 @@
         "hourly": 0.005
       },
       "dataTransferOut": {
-        "perGb": 0.09
+        "perGb": 0.09,
+        "perGbUpTo": 10240.0
       },
       "rds": {
         "db.t4g.micro": {
@@ -134,9 +205,28 @@
           "hourly": 0.032,
           "multiAzHourly": 0.065,
           "storagePerGbMonth": 0.115
+        },
+        "db.t4g.medium": {
+          "hourly": 0.065,
+          "multiAzHourly": 0.129,
+          "storagePerGbMonth": 0.115
+        },
+        "db.t4g.large": {
+          "hourly": 0.129,
+          "multiAzHourly": 0.258,
+          "storagePerGbMonth": 0.115
+        },
+        "db.t3.micro": {
+          "hourly": 0.017,
+          "multiAzHourly": 0.034,
+          "storagePerGbMonth": 0.115
         }
       },
       "lightsail": {
+        "0.5GB": {
+          "hourly": 0.00672,
+          "monthly": 5.0
+        },
         "1GB": {
           "hourly": 0.0094,
           "monthly": 7.0
@@ -148,15 +238,21 @@
         "4GB": {
           "hourly": 0.03225,
           "monthly": 24.0
+        },
+        "8GB": {
+          "hourly": 0.05913,
+          "monthly": 44.0
         }
       },
       "s3": {
         "storagePerGbMonth": 0.023,
+        "storagePerGbMonthUpTo": 51200.0,
         "putPerRequest": 5e-06,
         "getPerRequest": 4e-07
       },
       "cloudfront": {
         "perGb": 0.085,
+        "perGbUpTo": 10240.0,
         "httpsPerRequest": 1e-06
       },
       "amplify": {
@@ -166,10 +262,12 @@
       },
       "lambda": {
         "perRequest": 2e-07,
-        "perGbSecondArm": 1.33334e-05
+        "perGbSecondArm": 1.33334e-05,
+        "perGbSecondArmUpTo": 7500000000.0
       },
       "apiGatewayHttp": {
-        "perRequest": 1e-06
+        "perRequest": 1e-06,
+        "perRequestUpTo": 300000000.0
       },
       "dynamodb": {
         "perReadUnit": 1.25e-07,

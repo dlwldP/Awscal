@@ -4,6 +4,7 @@
   "type": "module",
   "scripts": {
     "test": "node --test tests/*.test.js",
-    "start": "python3 -m http.server 8000"
+    "start": "python3 -m http.server 8000",
+    "validation": "node scripts/validation-report.js > docs/validation.md"
   }
 }

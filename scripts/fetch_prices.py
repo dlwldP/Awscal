@@ -28,9 +28,11 @@ REGIONS = {
     "us-east-1": {"name": "버지니아 북부", "cloudfrontPrefix": "US", "usagePrefix": "USE1"},
 }
 
-EC2_INSTANCES = ["t4g.micro", "t4g.small", "t4g.medium"]
-RDS_INSTANCES = ["db.t4g.micro", "db.t4g.small"]
-LIGHTSAIL_BUNDLES = ["1GB", "2GB", "4GB"]
+# 직접 계산기에서 고를 수 있는 목록이기도 하다. 늘리면 화면 선택지도 자동으로 늘어난다.
+EC2_INSTANCES = ["t4g.nano", "t4g.micro", "t4g.small", "t4g.medium", "t4g.large", "t4g.xlarge",
+                 "t3.micro", "t3.small", "t3.medium", "t3.large"]
+RDS_INSTANCES = ["db.t4g.micro", "db.t4g.small", "db.t4g.medium", "db.t4g.large", "db.t3.micro"]
+LIGHTSAIL_BUNDLES = ["0.5GB", "1GB", "2GB", "4GB", "8GB"]
 
 LINUX_EC2 = {"operation": "RunInstances", "CapacityStatus": "Used", "Pre Installed S/W": "NA", "Tenancy": "Shared"}
 MYSQL_SINGLE = {"Database Engine": "MySQL", "Deployment Option": "Single-AZ"}
@@ -120,7 +122,8 @@ def collect(region, region_prefix, items):
 
 
 def pick_price(path, rows):
-    """0보다 큰 가격 중 가장 낮은 구간(첫 구간)의 단가. 같은 구간에 값이 여러 개면 실패."""
+    """0보다 큰 가격 중 가장 낮은 구간(첫 구간)의 (단가, 구간 끝). 구간 끝이 없으면 None.
+    같은 구간에 값이 여러 개면 실패."""
     paid = [r for r in rows if float(r["PricePerUnit"]) > 0]
     if not paid:
         raise ValueError(f"{path}: 가격 행을 찾지 못함 ({len(rows)}개 후보)")
@@ -128,7 +131,9 @@ def pick_price(path, rows):
     prices = {float(r["PricePerUnit"]) for r in paid if float(r["StartingRange"] or 0) == first}
     if len(prices) != 1:
         raise ValueError(f"{path}: 첫 구간 단가가 여러 개임 {sorted(prices)}")
-    return prices.pop()
+    ends = {r["EndingRange"] for r in paid if float(r["StartingRange"] or 0) == first}
+    end = None if ends & {"Inf", ""} else min(float(e) for e in ends)
+    return prices.pop(), end
 
 
 def split_path(path):
@@ -161,7 +166,10 @@ def build():
         found = collect(region, meta["usagePrefix"], items)
         data = {"name": meta["name"]}
         for path, *_ in items:
-            set_path(data, path, pick_price(path, found[path]))
+            value, tier_end = pick_price(path, found[path])
+            set_path(data, path, value)
+            if tier_end is not None:  # 첫 구간 한도 (예: dataTransferOut.perGbUpTo = 10240GB)
+                set_path(data, path + "UpTo", tier_end)
         for bundle in data["lightsail"].values():
             # 시간당 단가가 잘려서 공개되므로 센트 단위 올림 (0.0094 x 744 = 6.9936 → $7.00)
             bundle["monthly"] = math.ceil(bundle["hourly"] * HOURS_LIGHTSAIL_MONTH * 100) / 100

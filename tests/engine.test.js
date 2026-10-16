@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import {
   calculateOption,
+  calculateResource,
   calculateTemplate,
   formatKrw,
   formatUsd,
@@ -133,4 +134,51 @@ test("규모가 커지면 비용도 커진다", () => {
       }
     }
   }
+});
+
+test("사용 시간(hours)을 주면 730시간 대신 그 시간으로 계산한다", () => {
+  const r = calculateOption({ resources: [{ type: "ec2", instance: "t4g.small", count: 1, hours: 176 }] }, {}, fake);
+  assert.ok(Math.abs(r.totalUsd - 0.02 * 176) < 1e-9);
+  assert.match(r.lines[0].label, /176시간/);
+});
+
+test("RDS Multi-AZ는 인스턴스는 Multi-AZ 단가, 스토리지는 2배로 계산한다", () => {
+  const r = calculateOption({ resources: [{ type: "rds", instance: "db.t4g.micro", storageGb: 20, multiAz: true }] }, {}, fake);
+  assert.ok(Math.abs(r.totalUsd - (0.06 * 730 + 0.2 * 2 * 20)) < 1e-9);
+  assert.ok(!r.warnings.some((w) => w.id === "rdsMultiAz"));
+});
+
+test("multiplier는 개수에 곱한다 (ALB 1개 = 퍼블릭 IPv4 2개)", () => {
+  const r = calculateOption({ resources: [{ type: "publicIpv4", count: 1, multiplier: 2 }] }, {}, fake);
+  assert.ok(Math.abs(r.totalUsd - 0.005 * 730 * 2) < 1e-9);
+});
+
+test("첫 요금 구간을 넘으면 경고한다", () => {
+  const p = { ...fake, dataTransferOut: { perGb: 0.1, perGbUpTo: 100 } };
+  const under = calculateOption({ resources: [{ type: "dataTransferOut", gb: 100 }] }, {}, p);
+  const over = calculateOption({ resources: [{ type: "dataTransferOut", gb: 101 }] }, {}, p);
+  assert.ok(!under.warnings.some((w) => w.id === "tierExceeded"));
+  assert.ok(over.warnings.some((w) => w.id === "tierExceeded"));
+});
+
+test("음수나 숫자가 아닌 입력은 거부한다", () => {
+  assert.throws(() => calculateResource({ type: "dataTransferOut", gb: -1 }, fake), /gb/);
+  assert.throws(() => calculateResource({ type: "dataTransferOut", gb: NaN }, fake), /gb/);
+});
+
+test("직접 조정(overrides)은 프리셋 값을 덮어쓴다", () => {
+  const t = templates.find((x) => x.id === "dev-server");
+  const base = calculateTemplate(t, "personal", prices, "ap-northeast-2");
+  const half = calculateTemplate(t, "personal", prices, "ap-northeast-2", undefined, { hours: 365 });
+  const ec2 = (r) => r.options.find((o) => o.id === "ec2").lines.find((l) => l.service === "EC2").usd;
+  assert.ok(Math.abs(ec2(half) - ec2(base) / 2) < 1e-9);
+  assert.equal(half.values.hours, 365);
+});
+
+test("모든 프리셋 사용량은 첫 요금 구간 안에 있다 (구간 단순화로 인한 오차 0)", () => {
+  for (const t of templates)
+    for (const p of t.presets)
+      for (const region of Object.keys(prices.regions))
+        for (const o of calculateTemplate(t, p.id, prices, region).options)
+          assert.ok(!o.warnings.some((w) => w.id === "tierExceeded"), `${t.id}/${p.id}/${region}/${o.id}`);
 });

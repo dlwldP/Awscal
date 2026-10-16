@@ -10,22 +10,61 @@
           "id": "personal",
           "name": "개인용",
           "description": "포트폴리오, 지인 정도 방문",
-          "values": { "storageGb": 1, "requests": 100000, "s3GetRequests": 10000, "putRequests": 1000, "egressGb": 5, "buildMinutes": 30 },
-          "assumptions": ["사이트 파일 1GB", "월 요청(페이지·이미지 등) 10만 건", "월 전송량 5GB", "배포 시 파일 업로드 월 1천 건", "Amplify 빌드 월 30분"]
+          "values": {
+            "storageGb": 1,
+            "requests": 100000,
+            "s3GetRequests": 10000,
+            "putRequests": 1000,
+            "egressGb": 5,
+            "buildMinutes": 30
+          },
+          "assumptions": [
+            "사이트 파일 1GB",
+            "월 요청(페이지·이미지 등) 10만 건",
+            "월 전송량 5GB",
+            "배포 시 파일 업로드 월 1천 건",
+            "Amplify 빌드 월 30분"
+          ]
         },
         {
           "id": "small",
           "name": "소규모",
           "description": "일 방문자 1천 명 정도",
-          "values": { "storageGb": 2, "requests": 1000000, "s3GetRequests": 100000, "putRequests": 2000, "egressGb": 30, "buildMinutes": 60 },
-          "assumptions": ["사이트 파일 2GB", "월 요청 100만 건", "월 전송량 30GB", "배포 시 파일 업로드 월 2천 건", "Amplify 빌드 월 60분"]
+          "values": {
+            "storageGb": 2,
+            "requests": 1000000,
+            "s3GetRequests": 100000,
+            "putRequests": 2000,
+            "egressGb": 30,
+            "buildMinutes": 60
+          },
+          "assumptions": [
+            "사이트 파일 2GB",
+            "월 요청 100만 건",
+            "월 전송량 30GB",
+            "배포 시 파일 업로드 월 2천 건",
+            "Amplify 빌드 월 60분"
+          ]
         },
         {
           "id": "medium",
           "name": "중규모",
           "description": "일 방문자 1만 명 정도",
-          "values": { "storageGb": 5, "requests": 10000000, "s3GetRequests": 1000000, "putRequests": 5000, "egressGb": 200, "buildMinutes": 150 },
-          "assumptions": ["사이트 파일 5GB", "월 요청 1,000만 건", "월 전송량 200GB", "배포 시 파일 업로드 월 5천 건", "Amplify 빌드 월 150분"]
+          "values": {
+            "storageGb": 5,
+            "requests": 10000000,
+            "s3GetRequests": 1000000,
+            "putRequests": 5000,
+            "egressGb": 200,
+            "buildMinutes": 150
+          },
+          "assumptions": [
+            "사이트 파일 5GB",
+            "월 요청 1,000만 건",
+            "월 전송량 200GB",
+            "배포 시 파일 업로드 월 5천 건",
+            "Amplify 빌드 월 150분"
+          ]
         }
       ],
       "options": [
@@ -33,21 +72,49 @@
           "id": "s3-cloudfront",
           "name": "S3 + CloudFront",
           "summary": "파일은 S3에 두고, 전 세계 CDN(CloudFront)으로 빠르게 전달",
-          "pros": ["쓴 만큼만 내서 작은 사이트는 거의 0원", "서버 관리가 전혀 없음", "CDN 덕분에 빠르고 트래픽 급증에도 안정적"],
-          "cons": ["처음 설정(버킷 정책, OAC, 인증서)이 조금 번거로움", "배포 자동화는 직접 구성해야 함 (GitHub Actions 등)"],
+          "pros": [
+            "쓴 만큼만 내서 작은 사이트는 거의 0원",
+            "서버 관리가 전혀 없음",
+            "CDN 덕분에 빠르고 트래픽 급증에도 안정적"
+          ],
+          "cons": [
+            "처음 설정(버킷 정책, OAC, 인증서)이 조금 번거로움",
+            "배포 자동화는 직접 구성해야 함 (GitHub Actions 등)"
+          ],
           "resources": [
-            { "type": "s3", "storageGb": "{{preset.storageGb}}", "putRequests": "{{preset.putRequests}}", "getRequests": "{{preset.s3GetRequests}}" },
-            { "type": "cloudfront", "gb": "{{preset.egressGb}}", "requests": "{{preset.requests}}" }
+            {
+              "type": "s3",
+              "storageGb": "{{preset.storageGb}}",
+              "putRequests": "{{preset.putRequests}}",
+              "getRequests": "{{preset.s3GetRequests}}"
+            },
+            {
+              "type": "cloudfront",
+              "gb": "{{preset.egressGb}}",
+              "requests": "{{preset.requests}}"
+            }
           ]
         },
         {
           "id": "amplify",
           "name": "Amplify Hosting",
           "summary": "GitHub 레포를 연결하면 빌드·배포·CDN까지 알아서",
-          "pros": ["Git 푸시만 하면 자동 배포", "HTTPS, 도메인 연결이 클릭 몇 번", "설정이 가장 쉬움"],
-          "cons": ["전송량 단가가 CloudFront 직접 사용보다 비쌈", "빌드 시간만큼 요금이 붙음"],
+          "pros": [
+            "Git 푸시만 하면 자동 배포",
+            "HTTPS, 도메인 연결이 클릭 몇 번",
+            "설정이 가장 쉬움"
+          ],
+          "cons": [
+            "전송량 단가가 CloudFront 직접 사용보다 비쌈",
+            "빌드 시간만큼 요금이 붙음"
+          ],
           "resources": [
-            { "type": "amplify", "buildMinutes": "{{preset.buildMinutes}}", "storageGb": "{{preset.storageGb}}", "servedGb": "{{preset.egressGb}}" }
+            {
+              "type": "amplify",
+              "buildMinutes": "{{preset.buildMinutes}}",
+              "storageGb": "{{preset.storageGb}}",
+              "servedGb": "{{preset.egressGb}}"
+            }
           ]
         }
       ]
@@ -63,30 +130,79 @@
           "name": "개인용",
           "description": "혼자 또는 지인 정도 사용",
           "values": {
-            "instance": "t4g.micro", "count": 1, "ebsGb": 20, "dbInstance": "db.t4g.micro", "dbStorageGb": 20, "egressGb": 5,
-            "albCount": 0, "albIpv4": 0, "albLcu": 0, "lightsailBundle": "1GB", "fargateVcpu": 0.25, "fargateMemoryGb": 0.5, "fargateCount": 1
+            "instance": "t4g.micro",
+            "count": 1,
+            "ebsGb": 20,
+            "dbInstance": "db.t4g.micro",
+            "dbStorageGb": 20,
+            "egressGb": 5,
+            "albCount": 0,
+            "albLcu": 0,
+            "lightsailBundle": "1GB",
+            "fargateVcpu": 0.25,
+            "fargateMemoryGb": 0.5,
+            "fargateCount": 1
           },
-          "assumptions": ["서버 1대 (t4g.micro / Fargate 0.25vCPU·0.5GB)", "DB db.t4g.micro, 스토리지 20GB", "서버 디스크(EBS) 20GB", "월 아웃바운드 전송 5GB", "Lightsail 1GB 번들 (DB를 같은 서버에 설치)"]
+          "assumptions": [
+            "서버 1대 (t4g.micro / Fargate 0.25vCPU·0.5GB)",
+            "DB db.t4g.micro, 스토리지 20GB",
+            "서버 디스크(EBS) 20GB",
+            "월 아웃바운드 전송 5GB",
+            "Lightsail 1GB 번들 (DB를 같은 서버에 설치)"
+          ]
         },
         {
           "id": "small",
           "name": "소규모",
           "description": "일 방문자 1천 명 정도",
           "values": {
-            "instance": "t4g.small", "count": 1, "ebsGb": 20, "dbInstance": "db.t4g.micro", "dbStorageGb": 20, "egressGb": 30,
-            "albCount": 0, "albIpv4": 0, "albLcu": 0, "lightsailBundle": "2GB", "fargateVcpu": 0.5, "fargateMemoryGb": 1, "fargateCount": 1
+            "instance": "t4g.small",
+            "count": 1,
+            "ebsGb": 20,
+            "dbInstance": "db.t4g.micro",
+            "dbStorageGb": 20,
+            "egressGb": 30,
+            "albCount": 0,
+            "albLcu": 0,
+            "lightsailBundle": "2GB",
+            "fargateVcpu": 0.5,
+            "fargateMemoryGb": 1,
+            "fargateCount": 1
           },
-          "assumptions": ["서버 1대 (t4g.small / Fargate 0.5vCPU·1GB)", "DB db.t4g.micro, 스토리지 20GB", "서버 디스크(EBS) 20GB", "월 아웃바운드 전송 30GB", "Lightsail 2GB 번들 (DB를 같은 서버에 설치)"]
+          "assumptions": [
+            "서버 1대 (t4g.small / Fargate 0.5vCPU·1GB)",
+            "DB db.t4g.micro, 스토리지 20GB",
+            "서버 디스크(EBS) 20GB",
+            "월 아웃바운드 전송 30GB",
+            "Lightsail 2GB 번들 (DB를 같은 서버에 설치)"
+          ]
         },
         {
           "id": "medium",
           "name": "중규모",
           "description": "일 방문자 1만 명 정도",
           "values": {
-            "instance": "t4g.small", "count": 2, "ebsGb": 20, "dbInstance": "db.t4g.small", "dbStorageGb": 50, "egressGb": 200,
-            "albCount": 1, "albIpv4": 2, "albLcu": 0.5, "lightsailBundle": "4GB", "fargateVcpu": 0.5, "fargateMemoryGb": 1, "fargateCount": 2
+            "instance": "t4g.small",
+            "count": 2,
+            "ebsGb": 20,
+            "dbInstance": "db.t4g.small",
+            "dbStorageGb": 50,
+            "egressGb": 200,
+            "albCount": 1,
+            "albLcu": 0.5,
+            "lightsailBundle": "4GB",
+            "fargateVcpu": 0.5,
+            "fargateMemoryGb": 1,
+            "fargateCount": 2
           },
-          "assumptions": ["서버 2대 + 로드밸런서(ALB) (t4g.small / Fargate 0.5vCPU·1GB)", "ALB 평균 사용량 0.5 LCU, 퍼블릭 IPv4 2개", "DB db.t4g.small, 스토리지 50GB", "서버 디스크(EBS) 대당 20GB", "월 아웃바운드 전송 200GB", "Lightsail 4GB 번들 1대 (DB를 같은 서버에 설치)"]
+          "assumptions": [
+            "서버 2대 + 로드밸런서(ALB) (t4g.small / Fargate 0.5vCPU·1GB)",
+            "ALB 평균 사용량 0.5 LCU, 퍼블릭 IPv4 2개",
+            "DB db.t4g.small, 스토리지 50GB",
+            "서버 디스크(EBS) 대당 20GB",
+            "월 아웃바운드 전송 200GB",
+            "Lightsail 4GB 번들 1대 (DB를 같은 서버에 설치)"
+          ]
         }
       ],
       "options": [
@@ -94,41 +210,121 @@
           "id": "ec2-rds",
           "name": "EC2 + RDS",
           "summary": "가상 서버(EC2)에 앱을 올리고, DB는 관리형 RDS 사용",
-          "pros": ["가장 일반적인 구성이라 자료가 많음", "DB 백업·패치를 AWS가 관리", "서버 사양을 자유롭게 바꿀 수 있음"],
-          "cons": ["보안 그룹, VPC 등 알아야 할 게 많음", "서버 OS 업데이트는 직접 해야 함", "숨은 비용(IPv4, 전송량)을 놓치기 쉬움"],
+          "pros": [
+            "가장 일반적인 구성이라 자료가 많음",
+            "DB 백업·패치를 AWS가 관리",
+            "서버 사양을 자유롭게 바꿀 수 있음"
+          ],
+          "cons": [
+            "보안 그룹, VPC 등 알아야 할 게 많음",
+            "서버 OS 업데이트는 직접 해야 함",
+            "숨은 비용(IPv4, 전송량)을 놓치기 쉬움"
+          ],
           "resources": [
-            { "type": "ec2", "instance": "{{preset.instance}}", "count": "{{preset.count}}" },
-            { "type": "ebs", "sizeGb": "{{preset.ebsGb}}", "count": "{{preset.count}}" },
-            { "type": "publicIpv4", "count": "{{preset.count}}", "attachedTo": "EC2" },
-            { "type": "alb", "count": "{{preset.albCount}}", "lcu": "{{preset.albLcu}}" },
-            { "type": "publicIpv4", "count": "{{preset.albIpv4}}", "attachedTo": "ALB" },
-            { "type": "rds", "instance": "{{preset.dbInstance}}", "storageGb": "{{preset.dbStorageGb}}" },
-            { "type": "dataTransferOut", "gb": "{{preset.egressGb}}" }
+            {
+              "type": "ec2",
+              "instance": "{{preset.instance}}",
+              "count": "{{preset.count}}"
+            },
+            {
+              "type": "ebs",
+              "sizeGb": "{{preset.ebsGb}}",
+              "count": "{{preset.count}}"
+            },
+            {
+              "type": "publicIpv4",
+              "count": "{{preset.count}}",
+              "attachedTo": "EC2"
+            },
+            {
+              "type": "alb",
+              "count": "{{preset.albCount}}",
+              "lcu": "{{preset.albLcu}}"
+            },
+            {
+              "type": "publicIpv4",
+              "count": "{{preset.albCount}}",
+              "attachedTo": "ALB",
+              "multiplier": 2
+            },
+            {
+              "type": "rds",
+              "instance": "{{preset.dbInstance}}",
+              "storageGb": "{{preset.dbStorageGb}}"
+            },
+            {
+              "type": "dataTransferOut",
+              "gb": "{{preset.egressGb}}"
+            }
           ]
         },
         {
           "id": "lightsail",
           "name": "Lightsail",
           "summary": "서버·디스크·IP·전송량이 묶인 월 정액 서버 1대에 앱과 DB를 같이 설치",
-          "pros": ["월 고정 요금이라 예측이 쉬움", "IPv4·디스크·전송량이 요금에 포함", "콘솔이 단순해서 입문용으로 좋음"],
-          "cons": ["DB를 직접 설치·백업해야 함 (관리형 DB는 월 $15부터 추가)", "서버 1대라 장애 시 서비스 중단", "규모가 커지면 EC2로 옮겨야 할 수 있음"],
+          "pros": [
+            "월 고정 요금이라 예측이 쉬움",
+            "IPv4·디스크·전송량이 요금에 포함",
+            "콘솔이 단순해서 입문용으로 좋음"
+          ],
+          "cons": [
+            "DB를 직접 설치·백업해야 함 (관리형 DB는 월 $15부터 추가)",
+            "서버 1대라 장애 시 서비스 중단",
+            "규모가 커지면 EC2로 옮겨야 할 수 있음"
+          ],
           "resources": [
-            { "type": "lightsail", "bundle": "{{preset.lightsailBundle}}" }
+            {
+              "type": "lightsail",
+              "bundle": "{{preset.lightsailBundle}}"
+            }
           ]
         },
         {
           "id": "fargate-rds",
           "name": "ECS Fargate + RDS",
           "summary": "서버 없이 도커 컨테이너만 실행(Fargate), DB는 RDS",
-          "pros": ["서버(OS) 관리가 필요 없음", "컨테이너 개수로 쉽게 확장", "배포 자동화와 궁합이 좋음"],
-          "cons": ["도커 이미지 빌드·ECR 사용법을 알아야 함", "같은 사양이면 EC2보다 비쌈", "네트워크 설정(서브넷, NAT)이 헷갈리기 쉬움"],
+          "pros": [
+            "서버(OS) 관리가 필요 없음",
+            "컨테이너 개수로 쉽게 확장",
+            "배포 자동화와 궁합이 좋음"
+          ],
+          "cons": [
+            "도커 이미지 빌드·ECR 사용법을 알아야 함",
+            "같은 사양이면 EC2보다 비쌈",
+            "네트워크 설정(서브넷, NAT)이 헷갈리기 쉬움"
+          ],
           "resources": [
-            { "type": "fargate", "vcpu": "{{preset.fargateVcpu}}", "memoryGb": "{{preset.fargateMemoryGb}}", "count": "{{preset.fargateCount}}" },
-            { "type": "publicIpv4", "count": "{{preset.fargateCount}}", "attachedTo": "Fargate 태스크" },
-            { "type": "alb", "count": "{{preset.albCount}}", "lcu": "{{preset.albLcu}}" },
-            { "type": "publicIpv4", "count": "{{preset.albIpv4}}", "attachedTo": "ALB" },
-            { "type": "rds", "instance": "{{preset.dbInstance}}", "storageGb": "{{preset.dbStorageGb}}" },
-            { "type": "dataTransferOut", "gb": "{{preset.egressGb}}" }
+            {
+              "type": "fargate",
+              "vcpu": "{{preset.fargateVcpu}}",
+              "memoryGb": "{{preset.fargateMemoryGb}}",
+              "count": "{{preset.fargateCount}}"
+            },
+            {
+              "type": "publicIpv4",
+              "count": "{{preset.fargateCount}}",
+              "attachedTo": "Fargate 태스크"
+            },
+            {
+              "type": "alb",
+              "count": "{{preset.albCount}}",
+              "lcu": "{{preset.albLcu}}"
+            },
+            {
+              "type": "publicIpv4",
+              "count": "{{preset.albCount}}",
+              "attachedTo": "ALB",
+              "multiplier": 2
+            },
+            {
+              "type": "rds",
+              "instance": "{{preset.dbInstance}}",
+              "storageGb": "{{preset.dbStorageGb}}"
+            },
+            {
+              "type": "dataTransferOut",
+              "gb": "{{preset.egressGb}}"
+            }
           ]
         }
       ]
@@ -143,22 +339,64 @@
           "id": "personal",
           "name": "개인용",
           "description": "토이 프로젝트, 테스트용",
-          "values": { "requests": 100000, "reads": 100000, "writes": 20000, "storageGb": 1, "egressGb": 1, "memoryMb": 256, "durationMs": 100 },
-          "assumptions": ["월 API 요청 10만 건", "Lambda 메모리 256MB(ARM), 평균 실행 100ms", "요청마다 DB 읽기 1회, 쓰기는 요청의 20%", "DB 저장 용량 1GB", "응답 평균 10KB → 월 전송 1GB"]
+          "values": {
+            "requests": 100000,
+            "reads": 100000,
+            "writes": 20000,
+            "storageGb": 1,
+            "egressGb": 1,
+            "memoryMb": 256,
+            "durationMs": 100
+          },
+          "assumptions": [
+            "월 API 요청 10만 건",
+            "Lambda 메모리 256MB(ARM), 평균 실행 100ms",
+            "요청마다 DB 읽기 1회, 쓰기는 요청의 20%",
+            "DB 저장 용량 1GB",
+            "응답 평균 10KB → 월 전송 1GB"
+          ]
         },
         {
           "id": "small",
           "name": "소규모",
           "description": "일 방문자 1천 명 정도의 앱 백엔드",
-          "values": { "requests": 1000000, "reads": 1000000, "writes": 200000, "storageGb": 1, "egressGb": 10, "memoryMb": 256, "durationMs": 100 },
-          "assumptions": ["월 API 요청 100만 건", "Lambda 메모리 256MB(ARM), 평균 실행 100ms", "요청마다 DB 읽기 1회, 쓰기는 요청의 20%", "DB 저장 용량 1GB", "응답 평균 10KB → 월 전송 10GB"]
+          "values": {
+            "requests": 1000000,
+            "reads": 1000000,
+            "writes": 200000,
+            "storageGb": 1,
+            "egressGb": 10,
+            "memoryMb": 256,
+            "durationMs": 100
+          },
+          "assumptions": [
+            "월 API 요청 100만 건",
+            "Lambda 메모리 256MB(ARM), 평균 실행 100ms",
+            "요청마다 DB 읽기 1회, 쓰기는 요청의 20%",
+            "DB 저장 용량 1GB",
+            "응답 평균 10KB → 월 전송 10GB"
+          ]
         },
         {
           "id": "medium",
           "name": "중규모",
           "description": "일 방문자 1만 명 정도의 앱 백엔드",
-          "values": { "requests": 10000000, "reads": 10000000, "writes": 2000000, "storageGb": 5, "egressGb": 100, "memoryMb": 256, "durationMs": 100 },
-          "assumptions": ["월 API 요청 1,000만 건", "Lambda 메모리 256MB(ARM), 평균 실행 100ms", "요청마다 DB 읽기 1회, 쓰기는 요청의 20%", "DB 저장 용량 5GB", "응답 평균 10KB → 월 전송 100GB"]
+          "values": {
+            "requests": 10000000,
+            "reads": 10000000,
+            "writes": 2000000,
+            "storageGb": 5,
+            "egressGb": 100,
+            "memoryMb": 256,
+            "durationMs": 100
+          },
+          "assumptions": [
+            "월 API 요청 1,000만 건",
+            "Lambda 메모리 256MB(ARM), 평균 실행 100ms",
+            "요청마다 DB 읽기 1회, 쓰기는 요청의 20%",
+            "DB 저장 용량 5GB",
+            "응답 평균 10KB → 월 전송 100GB"
+          ]
         }
       ],
       "options": [
@@ -166,13 +404,37 @@
           "id": "apigw-lambda-dynamodb",
           "name": "API Gateway + Lambda + DynamoDB",
           "summary": "HTTP API가 요청을 받아 Lambda 함수를 실행하고, 데이터는 DynamoDB에 저장",
-          "pros": ["요청이 없으면 비용도 거의 0원", "서버·스케일링 관리가 전혀 없음", "트래픽이 늘어도 자동으로 버팀"],
-          "cons": ["DynamoDB는 SQL이 아니라 설계 방식이 다름", "첫 요청이 느린 콜드 스타트가 있음", "로컬 개발·디버깅이 조금 불편함"],
+          "pros": [
+            "요청이 없으면 비용도 거의 0원",
+            "서버·스케일링 관리가 전혀 없음",
+            "트래픽이 늘어도 자동으로 버팀"
+          ],
+          "cons": [
+            "DynamoDB는 SQL이 아니라 설계 방식이 다름",
+            "첫 요청이 느린 콜드 스타트가 있음",
+            "로컬 개발·디버깅이 조금 불편함"
+          ],
           "resources": [
-            { "type": "apiGatewayHttp", "requests": "{{preset.requests}}" },
-            { "type": "lambda", "requests": "{{preset.requests}}", "memoryMb": "{{preset.memoryMb}}", "durationMs": "{{preset.durationMs}}" },
-            { "type": "dynamodb", "reads": "{{preset.reads}}", "writes": "{{preset.writes}}", "storageGb": "{{preset.storageGb}}" },
-            { "type": "dataTransferOut", "gb": "{{preset.egressGb}}" }
+            {
+              "type": "apiGatewayHttp",
+              "requests": "{{preset.requests}}"
+            },
+            {
+              "type": "lambda",
+              "requests": "{{preset.requests}}",
+              "memoryMb": "{{preset.memoryMb}}",
+              "durationMs": "{{preset.durationMs}}"
+            },
+            {
+              "type": "dynamodb",
+              "reads": "{{preset.reads}}",
+              "writes": "{{preset.writes}}",
+              "storageGb": "{{preset.storageGb}}"
+            },
+            {
+              "type": "dataTransferOut",
+              "gb": "{{preset.egressGb}}"
+            }
           ]
         }
       ]
@@ -187,22 +449,55 @@
           "id": "personal",
           "name": "개인용",
           "description": "혼자 실습·공부용",
-          "values": { "instance": "t4g.micro", "ebsGb": 20, "egressGb": 5, "lightsailBundle": "1GB" },
-          "assumptions": ["24시간 켜둠", "EC2 t4g.micro, 디스크 20GB", "월 아웃바운드 전송 5GB", "Lightsail 1GB 번들"]
+          "values": {
+            "instance": "t4g.micro",
+            "ebsGb": 20,
+            "egressGb": 5,
+            "lightsailBundle": "1GB",
+            "hours": 730
+          },
+          "assumptions": [
+            "24시간 켜둠 (월 730시간)",
+            "EC2 t4g.micro, 디스크 20GB",
+            "월 아웃바운드 전송 5GB",
+            "Lightsail 1GB 번들"
+          ]
         },
         {
           "id": "small",
           "name": "소규모",
           "description": "2~3명이 같이 쓰는 개발 서버",
-          "values": { "instance": "t4g.small", "ebsGb": 30, "egressGb": 10, "lightsailBundle": "2GB" },
-          "assumptions": ["24시간 켜둠", "EC2 t4g.small, 디스크 30GB", "월 아웃바운드 전송 10GB", "Lightsail 2GB 번들"]
+          "values": {
+            "instance": "t4g.small",
+            "ebsGb": 30,
+            "egressGb": 10,
+            "lightsailBundle": "2GB",
+            "hours": 730
+          },
+          "assumptions": [
+            "24시간 켜둠 (월 730시간)",
+            "EC2 t4g.small, 디스크 30GB",
+            "월 아웃바운드 전송 10GB",
+            "Lightsail 2GB 번들"
+          ]
         },
         {
           "id": "medium",
           "name": "중규모",
           "description": "도커 컨테이너 여러 개, 빌드 서버",
-          "values": { "instance": "t4g.medium", "ebsGb": 50, "egressGb": 30, "lightsailBundle": "4GB" },
-          "assumptions": ["24시간 켜둠", "EC2 t4g.medium, 디스크 50GB", "월 아웃바운드 전송 30GB", "Lightsail 4GB 번들"]
+          "values": {
+            "instance": "t4g.medium",
+            "ebsGb": 50,
+            "egressGb": 30,
+            "lightsailBundle": "4GB",
+            "hours": 730
+          },
+          "assumptions": [
+            "24시간 켜둠 (월 730시간)",
+            "EC2 t4g.medium, 디스크 50GB",
+            "월 아웃바운드 전송 30GB",
+            "Lightsail 4GB 번들"
+          ]
         }
       ],
       "options": [
@@ -210,23 +505,56 @@
           "id": "ec2",
           "name": "EC2 단독",
           "summary": "가상 서버 한 대를 직접 구성",
-          "pros": ["안 쓸 때 중지하면 서버 요금이 멈춤", "사양 변경이 자유로움", "실무에서 쓰는 방식 그대로 연습 가능"],
-          "cons": ["디스크(EBS)·IPv4·전송량이 따로 청구됨", "보안 그룹 등 네트워크 설정을 알아야 함"],
+          "pros": [
+            "안 쓸 때 중지하면 서버 요금이 멈춤",
+            "사양 변경이 자유로움",
+            "실무에서 쓰는 방식 그대로 연습 가능"
+          ],
+          "cons": [
+            "디스크(EBS)·IPv4·전송량이 따로 청구됨",
+            "보안 그룹 등 네트워크 설정을 알아야 함"
+          ],
           "resources": [
-            { "type": "ec2", "instance": "{{preset.instance}}", "count": 1 },
-            { "type": "ebs", "sizeGb": "{{preset.ebsGb}}", "count": 1 },
-            { "type": "publicIpv4", "count": 1, "attachedTo": "EC2" },
-            { "type": "dataTransferOut", "gb": "{{preset.egressGb}}" }
+            {
+              "type": "ec2",
+              "instance": "{{preset.instance}}",
+              "count": 1,
+              "hours": "{{preset.hours}}"
+            },
+            {
+              "type": "ebs",
+              "sizeGb": "{{preset.ebsGb}}",
+              "count": 1
+            },
+            {
+              "type": "publicIpv4",
+              "count": 1,
+              "attachedTo": "EC2",
+              "hours": "{{preset.hours}}"
+            },
+            {
+              "type": "dataTransferOut",
+              "gb": "{{preset.egressGb}}"
+            }
           ]
         },
         {
           "id": "lightsail",
           "name": "Lightsail",
           "summary": "디스크·IP·전송량이 포함된 월 정액 서버",
-          "pros": ["월 고정 요금이라 요금 폭탄 걱정이 적음", "만들기가 가장 간단함"],
-          "cons": ["중지해도 요금이 나감 (삭제해야 멈춤)", "세밀한 사양 선택은 어려움"],
+          "pros": [
+            "월 고정 요금이라 요금 폭탄 걱정이 적음",
+            "만들기가 가장 간단함"
+          ],
+          "cons": [
+            "중지해도 요금이 나감 (삭제해야 멈춤)",
+            "세밀한 사양 선택은 어려움"
+          ],
           "resources": [
-            { "type": "lightsail", "bundle": "{{preset.lightsailBundle}}" }
+            {
+              "type": "lightsail",
+              "bundle": "{{preset.lightsailBundle}}"
+            }
           ]
         }
       ]
