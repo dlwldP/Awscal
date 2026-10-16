@@ -1,0 +1,9 @@
+{
+  "exchangeRate": {
+    "krwPerUsd": 1400,
+    "updatedAt": "2026-10-16",
+    "note": "고정 환율 (자동 갱신 아님)"
+  },
+  "defaultRegion": "ap-northeast-2",
+  "compareRegion": "us-east-1"
+}
