@@ -91,14 +91,15 @@ export function renderGlossary(app) {
         if (!items.length) return "";
         return `<section class="card">
             <h2 class="card-title">${escHtml(c)}</h2>
-            <dl class="glossary">${items
+            <div class="glossary">${items
               .map(
-                (e) => `<div class="glossary-item" id="term-${escHtml(e.term)}">
-                  <dt>${escHtml(e.term)}${e.aliases?.length ? ` <span class="alias">${e.aliases.map(escHtml).join(" · ")}</span>` : ""}</dt>
-                  <dd>${escHtml(e.desc)}</dd>
-                </div>`
+                // 처음엔 용어 이름만 보이고 누르면 뜻이 펼쳐진다. 검색 중이면 찾은 용어를 펼쳐서 보여준다.
+                (e) => `<details class="glossary-item" id="term-${escHtml(e.term)}" ${query ? "open" : ""}>
+                  <summary><span>${escHtml(e.term)}${e.aliases?.length ? ` <span class="alias">${e.aliases.map(escHtml).join(" · ")}</span>` : ""}</span></summary>
+                  <p>${escHtml(e.desc)}</p>
+                </details>`
               )
-              .join("")}</dl>
+              .join("")}</div>
           </section>`;
       })
       .join("");
@@ -109,7 +110,7 @@ export function renderGlossary(app) {
       <a class="back" href="#/">‹ 처음으로</a>
       <p class="step">📖 용어 사전</p>
       <h1 class="page-title">AWS 용어, 쉽게 풀어봤어요</h1>
-      <p class="page-sub">설명 속 <span class="term-sample">밑줄 친 단어</span>를 누르면 어디서든 뜻을 볼 수 있어요.</p>
+      <p class="page-sub">용어를 누르면 뜻이 펼쳐져요. 설명 속 <span class="term-sample">밑줄 친 단어</span>도 누르면 어디서든 뜻을 볼 수 있어요.</p>
     </div>
     <div class="field" style="margin-bottom:12px">
       <label for="glossary-q" class="sr-only">용어 검색</label>

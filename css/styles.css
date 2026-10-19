@@ -481,10 +481,21 @@ main { padding-bottom: 48px; }
 
 .glossary { margin: 0; }
 .glossary-item + .glossary-item { border-top: 1px solid var(--line); }
-.glossary-item { padding: 12px 0; }
-.glossary dt { font-weight: 700; }
+.glossary-item > summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 0;
+  font-weight: 700;
+  cursor: pointer;
+  list-style: none;
+}
+.glossary-item > summary::-webkit-details-marker { display: none; }
+.glossary-item > summary::after { content: "⌄"; color: var(--muted); font-weight: 400; }
+.glossary-item[open] > summary::after { content: "⌃"; }
 .glossary .alias { color: var(--muted); font-weight: 500; font-size: 0.88rem; }
-.glossary dd { margin: 4px 0 0; color: var(--sub); font-size: 0.95rem; }
+.glossary-item > p { margin: 0 0 12px; color: var(--sub); font-size: 0.95rem; }
 .field input[type="search"] { padding-right: 14px; }
 
 /* ---- 가격 변동 ---- */
