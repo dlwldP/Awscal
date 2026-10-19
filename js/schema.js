@@ -11,6 +11,8 @@ export const FIELDS = {
   count: { label: "대수", type: "number", unit: "대", min: 0, step: 1 },
   hours: { label: "월 켜두는 시간", type: "number", unit: "시간", min: 0, max: 744, step: 1, help: "한 달 내내 = 730시간. 평일 낮(하루 8시간 × 22일)만 쓰면 176시간이에요." },
   ebsGb: { label: "서버 디스크(EBS)", type: "number", unit: "GB", min: 1, step: 1 },
+  webInstance: { label: "웹 서버 사양", type: "select", source: "ec2" },
+  webCount: { label: "웹 서버 대수", type: "number", unit: "대", min: 1, step: 1 },
   sizeGb: { label: "디스크 용량", type: "number", unit: "GB", min: 1, step: 1 },
   bundle: { label: "번들", type: "select", source: "lightsail", help: "메모리 크기로 나뉘어요. 디스크·IPv4·전송량이 포함된 월 정액이에요." },
   lightsailBundle: { label: "Lightsail 번들", type: "select", source: "lightsail", help: "메모리 크기로 나뉘어요. 디스크·IPv4·전송량이 포함된 월 정액이에요." },

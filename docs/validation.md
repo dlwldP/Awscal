@@ -5,7 +5,7 @@
 
 MVP 완료 조건: 모든 결과가 [AWS Pricing Calculator](https://calculator.aws/) 대비 **±10% 이내**.
 
-**진행 상황: 48개 중 0개 확인, 0개 통과**
+**진행 상황: 66개 중 0개 확인, 0개 통과**
 
 ## 검증 방법
 
@@ -72,6 +72,29 @@ MVP 완료 조건: 모든 결과가 [AWS Pricing Calculator](https://calculator.
 | `backend-webapp/medium/us-east-1/ec2-rds` | $108.78 |  |  | ☐ | EC2: t4g.small, Linux, On-Demand, 2대 (EBS는 0GB로 두고 아래 EBS 줄로 따로)<br>EBS: gp3 20GB × 2개 (IOPS 3000, 처리량 125MB/s 기본값)<br>VPC → Public IPv4 Address: In-use 2개<br>Elastic Load Balancing → ALB 1개 (LCU가 0.5이 되도록 처리량 입력, 예: 처리 데이터 월 365GB)<br>VPC → Public IPv4 Address: In-use 2개<br>RDS for MySQL: db.t4g.small, Single-AZ, On-Demand, gp3 50GB<br>Data Transfer: 인터넷으로 아웃바운드 200GB (같은 리전) |
 | `backend-webapp/medium/us-east-1/lightsail` | $24.00 |  |  | ☐ | Lightsail: Linux 4GB 번들 × 1 |
 | `backend-webapp/medium/us-east-1/fargate-rds` | $117.10 |  |  | ☐ | ECS Fargate: Linux/x86, 태스크 2개, 0.5vCPU, 1GB, 하루 24시간<br>VPC → Public IPv4 Address: In-use 2개<br>Elastic Load Balancing → ALB 1개 (LCU가 0.5이 되도록 처리량 입력, 예: 처리 데이터 월 365GB)<br>VPC → Public IPv4 Address: In-use 2개<br>RDS for MySQL: db.t4g.small, Single-AZ, On-Demand, gp3 50GB<br>Data Transfer: 인터넷으로 아웃바운드 200GB (같은 리전) |
+
+### 📝 WordPress 블로그
+
+| 키 | 우리 계산 | 공식 계산기 | 차이 | 결과 | 입력값 |
+|---|---:|---:|---:|:---:|---|
+| `wordpress/personal/ap-northeast-2/lightsail-wp` | $7.00 |  |  | ☐ | Lightsail: Linux 1GB 번들 × 1 |
+| `wordpress/personal/ap-northeast-2/ec2-solo` | $13.70 |  |  | ☐ | EC2: t4g.micro, Linux, On-Demand, 1대 (EBS는 0GB로 두고 아래 EBS 줄로 따로)<br>EBS: gp3 20GB × 1개 (IOPS 3000, 처리량 125MB/s 기본값)<br>VPC → Public IPv4 Address: In-use 1개<br>Data Transfer: 인터넷으로 아웃바운드 5GB (같은 리전) |
+| `wordpress/personal/ap-northeast-2/ec2-rds` | $34.57 |  |  | ☐ | EC2: t4g.micro, Linux, On-Demand, 1대 (EBS는 0GB로 두고 아래 EBS 줄로 따로)<br>EBS: gp3 20GB × 1개 (IOPS 3000, 처리량 125MB/s 기본값)<br>VPC → Public IPv4 Address: In-use 1개<br>RDS for MySQL: db.t4g.micro, Single-AZ, On-Demand, gp3 20GB<br>Data Transfer: 인터넷으로 아웃바운드 5GB (같은 리전) |
+| `wordpress/personal/us-east-1/lightsail-wp` | $7.00 |  |  | ☐ | Lightsail: Linux 1GB 번들 × 1 |
+| `wordpress/personal/us-east-1/ec2-solo` | $11.83 |  |  | ☐ | EC2: t4g.micro, Linux, On-Demand, 1대 (EBS는 0GB로 두고 아래 EBS 줄로 따로)<br>EBS: gp3 20GB × 1개 (IOPS 3000, 처리량 125MB/s 기본값)<br>VPC → Public IPv4 Address: In-use 1개<br>Data Transfer: 인터넷으로 아웃바운드 5GB (같은 리전) |
+| `wordpress/personal/us-east-1/ec2-rds` | $25.81 |  |  | ☐ | EC2: t4g.micro, Linux, On-Demand, 1대 (EBS는 0GB로 두고 아래 EBS 줄로 따로)<br>EBS: gp3 20GB × 1개 (IOPS 3000, 처리량 125MB/s 기본값)<br>VPC → Public IPv4 Address: In-use 1개<br>RDS for MySQL: db.t4g.micro, Single-AZ, On-Demand, gp3 20GB<br>Data Transfer: 인터넷으로 아웃바운드 5GB (같은 리전) |
+| `wordpress/small/ap-northeast-2/lightsail-wp` | $12.00 |  |  | ☐ | Lightsail: Linux 2GB 번들 × 1 |
+| `wordpress/small/ap-northeast-2/ec2-solo` | $25.35 |  |  | ☐ | EC2: t4g.small, Linux, On-Demand, 1대 (EBS는 0GB로 두고 아래 EBS 줄로 따로)<br>EBS: gp3 30GB × 1개 (IOPS 3000, 처리량 125MB/s 기본값)<br>VPC → Public IPv4 Address: In-use 1개<br>Data Transfer: 인터넷으로 아웃바운드 30GB (같은 리전) |
+| `wordpress/small/ap-northeast-2/ec2-rds` | $46.22 |  |  | ☐ | EC2: t4g.small, Linux, On-Demand, 1대 (EBS는 0GB로 두고 아래 EBS 줄로 따로)<br>EBS: gp3 30GB × 1개 (IOPS 3000, 처리량 125MB/s 기본값)<br>VPC → Public IPv4 Address: In-use 1개<br>RDS for MySQL: db.t4g.micro, Single-AZ, On-Demand, gp3 20GB<br>Data Transfer: 인터넷으로 아웃바운드 30GB (같은 리전) |
+| `wordpress/small/us-east-1/lightsail-wp` | $12.00 |  |  | ☐ | Lightsail: Linux 2GB 번들 × 1 |
+| `wordpress/small/us-east-1/ec2-solo` | $21.01 |  |  | ☐ | EC2: t4g.small, Linux, On-Demand, 1대 (EBS는 0GB로 두고 아래 EBS 줄로 따로)<br>EBS: gp3 30GB × 1개 (IOPS 3000, 처리량 125MB/s 기본값)<br>VPC → Public IPv4 Address: In-use 1개<br>Data Transfer: 인터넷으로 아웃바운드 30GB (같은 리전) |
+| `wordpress/small/us-east-1/ec2-rds` | $34.99 |  |  | ☐ | EC2: t4g.small, Linux, On-Demand, 1대 (EBS는 0GB로 두고 아래 EBS 줄로 따로)<br>EBS: gp3 30GB × 1개 (IOPS 3000, 처리량 125MB/s 기본값)<br>VPC → Public IPv4 Address: In-use 1개<br>RDS for MySQL: db.t4g.micro, Single-AZ, On-Demand, gp3 20GB<br>Data Transfer: 인터넷으로 아웃바운드 30GB (같은 리전) |
+| `wordpress/medium/ap-northeast-2/lightsail-wp` | $24.00 |  |  | ☐ | Lightsail: Linux 4GB 번들 × 1 |
+| `wordpress/medium/ap-northeast-2/ec2-solo` | $63.78 |  |  | ☐ | EC2: t4g.medium, Linux, On-Demand, 1대 (EBS는 0GB로 두고 아래 EBS 줄로 따로)<br>EBS: gp3 50GB × 1개 (IOPS 3000, 처리량 125MB/s 기본값)<br>VPC → Public IPv4 Address: In-use 1개<br>Data Transfer: 인터넷으로 아웃바운드 200GB (같은 리전) |
+| `wordpress/medium/ap-northeast-2/ec2-rds` | $139.79 |  |  | ☐ | EC2: t4g.small, Linux, On-Demand, 2대 (EBS는 0GB로 두고 아래 EBS 줄로 따로)<br>EBS: gp3 50GB × 2개 (IOPS 3000, 처리량 125MB/s 기본값)<br>VPC → Public IPv4 Address: In-use 2개<br>Elastic Load Balancing → ALB 1개 (LCU가 0.5이 되도록 처리량 입력, 예: 처리 데이터 월 365GB)<br>VPC → Public IPv4 Address: In-use 2개<br>RDS for MySQL: db.t4g.small, Single-AZ, On-Demand, gp3 30GB<br>Data Transfer: 인터넷으로 아웃바운드 200GB (같은 리전) |
+| `wordpress/medium/us-east-1/lightsail-wp` | $24.00 |  |  | ☐ | Lightsail: Linux 4GB 번들 × 1 |
+| `wordpress/medium/us-east-1/ec2-solo` | $50.18 |  |  | ☐ | EC2: t4g.medium, Linux, On-Demand, 1대 (EBS는 0GB로 두고 아래 EBS 줄로 따로)<br>EBS: gp3 50GB × 1개 (IOPS 3000, 처리량 125MB/s 기본값)<br>VPC → Public IPv4 Address: In-use 1개<br>Data Transfer: 인터넷으로 아웃바운드 200GB (같은 리전) |
+| `wordpress/medium/us-east-1/ec2-rds` | $111.28 |  |  | ☐ | EC2: t4g.small, Linux, On-Demand, 2대 (EBS는 0GB로 두고 아래 EBS 줄로 따로)<br>EBS: gp3 50GB × 2개 (IOPS 3000, 처리량 125MB/s 기본값)<br>VPC → Public IPv4 Address: In-use 2개<br>Elastic Load Balancing → ALB 1개 (LCU가 0.5이 되도록 처리량 입력, 예: 처리 데이터 월 365GB)<br>VPC → Public IPv4 Address: In-use 2개<br>RDS for MySQL: db.t4g.small, Single-AZ, On-Demand, gp3 30GB<br>Data Transfer: 인터넷으로 아웃바운드 200GB (같은 리전) |
 
 ### ⚡ 서버리스 API
 

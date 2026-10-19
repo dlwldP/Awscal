@@ -387,6 +387,239 @@
       ]
     },
     {
+      "id": "wordpress",
+      "icon": "📝",
+      "name": "WordPress 블로그",
+      "summary": "워드프레스로 만드는 블로그·홈페이지·작은 쇼핑몰",
+      "defaultDomain": true,
+      "fieldLabels": {
+        "instance": "서버 사양 (EC2 단독)",
+        "webInstance": "웹 서버 사양 (EC2 + RDS)",
+        "webCount": "웹 서버 대수 (EC2 + RDS)",
+        "ebsGb": "서버 디스크(EBS, 대당)"
+      },
+      "presets": [
+        {
+          "id": "personal",
+          "name": "개인 블로그",
+          "description": "일 방문자 100명 정도",
+          "values": {
+            "lightsailBundle": "1GB",
+            "instance": "t4g.micro",
+            "ebsGb": 20,
+            "webInstance": "t4g.micro",
+            "webCount": 1,
+            "dbInstance": "db.t4g.micro",
+            "dbStorageGb": 20,
+            "egressGb": 5,
+            "albCount": 0,
+            "albLcu": 0,
+            "domain": 0
+          },
+          "assumptions": [
+            "Lightsail 1GB 번들 (WordPress 설치형)",
+            "EC2 t4g.micro, 디스크 20GB",
+            "DB db.t4g.micro, 저장 공간 20GB (EC2 + RDS)",
+            "월 아웃바운드 전송 5GB",
+            "도메인 연결 포함 (기본값, 위에서 끌 수 있어요)"
+          ]
+        },
+        {
+          "id": "small",
+          "name": "소규모",
+          "description": "일 방문자 1천 명 정도",
+          "values": {
+            "lightsailBundle": "2GB",
+            "instance": "t4g.small",
+            "ebsGb": 30,
+            "webInstance": "t4g.small",
+            "webCount": 1,
+            "dbInstance": "db.t4g.micro",
+            "dbStorageGb": 20,
+            "egressGb": 30,
+            "albCount": 0,
+            "albLcu": 0,
+            "domain": 0
+          },
+          "assumptions": [
+            "Lightsail 2GB 번들 (WordPress 설치형)",
+            "EC2 t4g.small, 디스크 30GB",
+            "DB db.t4g.micro, 저장 공간 20GB (EC2 + RDS)",
+            "월 아웃바운드 전송 30GB",
+            "도메인 연결 포함 (기본값, 위에서 끌 수 있어요)"
+          ]
+        },
+        {
+          "id": "medium",
+          "name": "중규모",
+          "description": "일 방문자 1만 명 정도",
+          "values": {
+            "lightsailBundle": "4GB",
+            "instance": "t4g.medium",
+            "ebsGb": 50,
+            "webInstance": "t4g.small",
+            "webCount": 2,
+            "dbInstance": "db.t4g.small",
+            "dbStorageGb": 30,
+            "egressGb": 200,
+            "albCount": 1,
+            "albLcu": 0.5,
+            "domain": 0
+          },
+          "assumptions": [
+            "Lightsail 4GB 번들 (WordPress 설치형)",
+            "EC2 단독: t4g.medium, 디스크 50GB",
+            "EC2 + RDS: 웹 서버 t4g.small 2대 + 로드밸런서(ALB, 평균 0.5 LCU), 대당 디스크 50GB",
+            "DB db.t4g.small, 저장 공간 30GB",
+            "월 아웃바운드 전송 200GB",
+            "도메인 연결 포함 (기본값, 위에서 끌 수 있어요)"
+          ]
+        }
+      ],
+      "options": [
+        {
+          "id": "lightsail-wp",
+          "name": "Lightsail WordPress",
+          "summary": "WordPress가 미리 설치된 Lightsail 서버. 디스크·IP·전송량이 포함된 월 정액",
+          "difficulty": "쉬움",
+          "recommended": "클릭 몇 번이면 WordPress가 설치되고, 요금이 고정이라 부담이 적어요",
+          "pros": [
+            "만들자마자 WordPress 관리자 화면에 들어갈 수 있음",
+            "월 고정 요금이라 요금 폭탄 걱정이 적음",
+            "IPv4·디스크·전송량이 요금에 포함"
+          ],
+          "cons": [
+            "DB가 같은 서버에 있어서 백업·업데이트는 직접 챙겨야 함",
+            "중지해도 요금이 나감 (삭제해야 멈춤)",
+            "방문자가 크게 늘면 더 큰 번들이나 EC2로 옮겨야 함"
+          ],
+          "excluded": [
+            "스냅샷(백업) 저장 요금",
+            "번들 데이터 전송 허용량을 넘는 전송 요금",
+            "유료 테마·플러그인 비용"
+          ],
+          "resources": [
+            {
+              "type": "lightsail",
+              "bundle": "{{preset.lightsailBundle}}"
+            },
+            {
+              "type": "domain",
+              "count": "{{preset.domain}}"
+            }
+          ]
+        },
+        {
+          "id": "ec2-solo",
+          "name": "EC2 단독",
+          "summary": "서버 한 대에 WordPress와 MySQL을 직접 설치",
+          "difficulty": "보통",
+          "pros": [
+            "사양을 자유롭게 고를 수 있음",
+            "안 쓸 때 중지하면 서버 요금이 멈춤",
+            "리눅스·웹 서버 공부를 겸할 수 있음"
+          ],
+          "cons": [
+            "WordPress·MySQL·웹 서버를 직접 설치하고 관리해야 함",
+            "디스크(EBS)·IPv4·전송량이 따로 청구됨",
+            "서버 1대라 장애 시 사이트가 멈춤"
+          ],
+          "excluded": [
+            "EBS 스냅샷(서버 백업) 저장 요금",
+            "CloudWatch 상세 모니터링",
+            "유료 테마·플러그인 비용"
+          ],
+          "resources": [
+            {
+              "type": "ec2",
+              "instance": "{{preset.instance}}",
+              "count": 1
+            },
+            {
+              "type": "ebs",
+              "sizeGb": "{{preset.ebsGb}}",
+              "count": 1
+            },
+            {
+              "type": "publicIpv4",
+              "count": 1,
+              "attachedTo": "EC2"
+            },
+            {
+              "type": "dataTransferOut",
+              "gb": "{{preset.egressGb}}"
+            },
+            {
+              "type": "domain",
+              "count": "{{preset.domain}}"
+            }
+          ]
+        },
+        {
+          "id": "ec2-rds",
+          "name": "EC2 + RDS",
+          "summary": "WordPress는 EC2, DB는 관리형 RDS. 중규모는 웹 서버 2대 + 로드밸런서",
+          "difficulty": "어려움",
+          "pros": [
+            "DB 백업·패치를 AWS가 관리",
+            "웹 서버를 늘려 트래픽 증가에 대비할 수 있음",
+            "실무에서 많이 쓰는 구조"
+          ],
+          "cons": [
+            "설정할 게 가장 많음 (보안 그룹, DB 연결, 로드밸런서)",
+            "서버가 2대 이상이면 업로드 파일을 공유 저장소에 둬야 함",
+            "같은 규모에서 가장 비쌈"
+          ],
+          "excluded": [
+            "웹 서버 2대 이상일 때 업로드 파일 공유 저장소(EFS 또는 S3) 비용",
+            "RDS 자동 백업 초과분",
+            "CloudWatch 로그·상세 모니터링"
+          ],
+          "resources": [
+            {
+              "type": "ec2",
+              "instance": "{{preset.webInstance}}",
+              "count": "{{preset.webCount}}"
+            },
+            {
+              "type": "ebs",
+              "sizeGb": "{{preset.ebsGb}}",
+              "count": "{{preset.webCount}}"
+            },
+            {
+              "type": "publicIpv4",
+              "count": "{{preset.webCount}}",
+              "attachedTo": "EC2"
+            },
+            {
+              "type": "alb",
+              "count": "{{preset.albCount}}",
+              "lcu": "{{preset.albLcu}}"
+            },
+            {
+              "type": "publicIpv4",
+              "count": "{{preset.albCount}}",
+              "multiplier": 2,
+              "attachedTo": "ALB"
+            },
+            {
+              "type": "rds",
+              "instance": "{{preset.dbInstance}}",
+              "storageGb": "{{preset.dbStorageGb}}"
+            },
+            {
+              "type": "dataTransferOut",
+              "gb": "{{preset.egressGb}}"
+            },
+            {
+              "type": "domain",
+              "count": "{{preset.domain}}"
+            }
+          ]
+        }
+      ]
+    },
+    {
       "id": "serverless-api",
       "icon": "⚡",
       "name": "서버리스 API",

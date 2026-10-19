@@ -241,8 +241,10 @@ function optionHtml(o, compareRegionId) {
     </article>`;
 }
 
-function adjustHtml(preset, values, regionPrices) {
+function adjustHtml(template, preset, values, regionPrices) {
   const keys = Object.keys(preset.values).filter((k) => FIELDS[k] && !HIDDEN_ADJUST_FIELDS.has(k));
+  // 같은 화면에 비슷한 칸이 여럿이면 템플릿이 이름을 따로 붙인다 (예: "서버 사양 (EC2 단독)")
+  const def = (k) => fieldDef(k, template.fieldLabels?.[k] ? { label: template.fieldLabels[k] } : {});
   const changed = Object.keys(adjust.overrides).length;
   return `
     <details class="card adjust" data-key="adjust" ${changed ? "open" : ""}>
@@ -250,7 +252,7 @@ function adjustHtml(preset, values, regionPrices) {
         <span><span class="card-title" style="display:block">값 직접 바꿔보기</span>
         <span class="card-sub" style="display:block;margin:0">서버 사양, 트래픽 같은 값을 바꾸면 바로 다시 계산해요</span></span>
       </summary>
-      <div class="fields">${keys.map((k) => fieldHtml(fieldDef(k), values[k], regionPrices, "adj")).join("")}</div>
+      <div class="fields">${keys.map((k) => fieldHtml(def(k), values[k], regionPrices, "adj")).join("")}</div>
       <div class="adjust-foot">
         <span id="adjust-status">${adjustStatus(preset)}</span>
         <button type="button" class="btn btn-ghost btn-sm" id="adjust-reset" ${changed ? "" : "hidden"}>기본값으로</button>
@@ -314,7 +316,7 @@ function renderResult(template, presetId, regionId, params = new URLSearchParams
       ${chipsHtml("도메인 (example.com 같은 주소)", domainChoices, domainOn ? "on" : "off").replace(/data-value/g, "data-domain")}
     </div>
     <section class="card" id="summary">${summaryHtml(options)}${barsHtml(options)}</section>
-    ${adjustHtml(preset, values, regionPrices)}
+    ${adjustHtml(template, preset, values, regionPrices)}
     <div id="options">${options.map((o) => optionHtml(o, compareRegionId)).join("")}</div>
     ${notesHtml(preset, regionId)}`;
 

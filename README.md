@@ -9,7 +9,7 @@ AWS 계정 연동이나 API 키 없이 누구나 무료로 쓸 수 있습니다.
 ## 기능
 
 **구성 추천** — 목적을 고르면 구성 2~3가지를 비교
-- 템플릿 4종: 정적 웹사이트 / 백엔드 웹앱 / 서버리스 API / 개발용 단일 서버
+- 템플릿 5종: 정적 웹사이트 / 백엔드 웹앱 / WordPress 블로그 / 서버리스 API / 개발용 단일 서버
 - 규모 프리셋 3종(개인용 · 소규모 · 중규모), 리전 6곳(서울 · 도쿄 · 싱가포르 · 버지니아 북부 · 오레곤 · 프랑크푸르트)
 - "처음이라면 추천", "가장 저렴", 난이도(쉬움·보통·어려움) 배지
 - 항목별 금액과 "이 비용은 왜 나오나요?" 설명, 서울(또는 버지니아)이었을 때 금액
@@ -111,7 +111,7 @@ GitHub Actions(`update-prices.yml`)가 **매주 월요일 09:00(KST)** 에 이 �
 npm run validation   # docs/validation.md 다시 만들기
 ```
 
-[docs/validation.md](docs/validation.md)에 MVP 기준 리전(서울·버지니아)의 모든 템플릿 × 프리셋 × 구성안(48개)의 우리 계산값과 calculator.aws에 넣을 입력값이 있습니다. 공식 계산기 금액을 `docs/validation-results.json`에 적고 다시 생성하면 차이(%)와 ±10% 통과 여부가 채워집니다.
+[docs/validation.md](docs/validation.md)에 MVP 기준 리전(서울·버지니아)의 모든 템플릿 × 프리셋 × 구성안의 우리 계산값과 calculator.aws에 넣을 입력값이 있습니다. 공식 계산기 금액을 `docs/validation-results.json`에 적고 다시 생성하면 차이(%)와 ±10% 통과 여부가 채워집니다.
 
 ## 배포
 
