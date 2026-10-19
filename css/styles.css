@@ -479,23 +479,25 @@ main { padding-bottom: 48px; }
 .term-sheet p { margin: 8px 0 12px; color: var(--sub); }
 .term-sheet a { font-weight: 700; font-size: 0.92rem; }
 
-.glossary { margin: 0; }
-.glossary-item + .glossary-item { border-top: 1px solid var(--line); }
-.glossary-item > summary {
+.glossary-cat > summary {
   display: flex;
-  justify-content: space-between;
   align-items: center;
   gap: 8px;
-  padding: 12px 0;
-  font-weight: 700;
   cursor: pointer;
   list-style: none;
 }
-.glossary-item > summary::-webkit-details-marker { display: none; }
-.glossary-item > summary::after { content: "⌄"; color: var(--muted); font-weight: 400; }
-.glossary-item[open] > summary::after { content: "⌃"; }
+.glossary-cat > summary::-webkit-details-marker { display: none; }
+.glossary-cat > summary .card-title { margin: 0; }
+.glossary-cat .cat-count { color: var(--muted); font-size: 0.9rem; font-weight: 600; }
+.glossary-cat > summary::after { content: "⌄"; margin-left: auto; color: var(--muted); font-size: 1.2rem; }
+.glossary-cat[open] > summary::after { content: "⌃"; }
+.glossary-cat .glossary { margin-top: 8px; }
+.glossary { margin: 0; }
+.glossary-item + .glossary-item { border-top: 1px solid var(--line); }
+.glossary-item { padding: 12px 0; }
+.glossary dt { font-weight: 700; }
 .glossary .alias { color: var(--muted); font-weight: 500; font-size: 0.88rem; }
-.glossary-item > p { margin: 0 0 12px; color: var(--sub); font-size: 0.95rem; }
+.glossary dd { margin: 4px 0 0; color: var(--sub); font-size: 0.95rem; }
 .field input[type="search"] { padding-right: 14px; }
 
 /* ---- 가격 변동 ---- */
