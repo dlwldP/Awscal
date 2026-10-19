@@ -106,3 +106,32 @@ test("직접 계산 공유: 인코딩 → 디코딩하면 같은 목록, 깨진 
   assert.equal(decodeCalc("not-base64!!", ["ec2"]), null);
   assert.equal(decodeCalc(encodeCalc("x", [{ type: "evil", values: {} }]), ["ec2"]), null);
 });
+
+// ---- 구성 다이어그램 ----
+import { diagramModel } from "../js/diagram.js";
+import { resolveResource } from "../js/engine.js";
+
+test("다이어그램: 모든 구성안에서 사용자부터 그려지고, 꼬리표·상자 비용 합이 구성안 합계와 같다", () => {
+  const region = settings.defaultRegion;
+  for (const t of templates)
+    for (const p of t.presets) {
+      const values = { ...p.values, domain: 1 };
+      const { options } = calculateTemplate(t, p.id, prices, region, undefined, { domain: 1 });
+      for (const o of options) {
+        const cols = diagramModel(o.resources.map((r) => resolveResource(r, values)), prices.regions[region]);
+        assert.equal(cols[0].id, "user", `${t.id}/${o.id}`);
+        assert.ok(cols.length >= 2, `${t.id}/${o.id}: 사용자 말고도 상자가 있어야`);
+        const sum = cols.flatMap((c) => c.nodes).reduce((s, n) => s + (n.usd ?? 0) + n.notes.reduce((a, x) => a + x.usd, 0), 0);
+        assert.ok(Math.abs(sum - o.totalUsd) < 1e-9, `${t.id}/${p.id}/${o.id}: 그림 ${sum} ≠ 합계 ${o.totalUsd}`);
+      }
+    }
+});
+
+test("다이어그램: 퍼블릭 IPv4는 주의 꼬리표, ALB에 붙은 IPv4는 ALB 상자에", () => {
+  const t = templates.find((x) => x.id === "backend-webapp");
+  const p = t.presets.find((x) => x.id === "medium");
+  const o = t.options.find((x) => x.id === "ec2-rds");
+  const cols = diagramModel(o.resources.map((r) => resolveResource(r, p.values)), prices.regions[settings.defaultRegion]);
+  const alb = cols.flatMap((c) => c.nodes).find((n) => n.type === "alb");
+  assert.ok(alb.notes.some((x) => x.warn && x.text.includes("× 2")));
+});

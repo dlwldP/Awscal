@@ -10,6 +10,7 @@ import { FIELDS, HIDDEN_ADJUST_FIELDS, fieldDef } from "./schema.js";
 import { chipsHtml, esc, fieldHtml, fullUrl, keepOpen, linesHtml, readField, regionList, shareLink, warningsHtml } from "./ui.js";
 import { parseDomain, parseOverrides, resultHash } from "./share.js";
 import { importResources, renderCalculator } from "./calculator.js";
+import { diagramHtml } from "./diagram.js";
 import { installGlossaryHandlers, renderGlossary, setGlossary } from "./glossary.js";
 
 const app = document.getElementById("app");
@@ -205,7 +206,7 @@ function barsHtml(options) {
 
 const DIFFICULTY_CLASS = { 쉬움: "tag-easy", 보통: "tag-mid", 어려움: "tag-hard" };
 
-function optionHtml(o, compareRegionId) {
+function optionHtml(o, compareRegionId, values, regionPrices) {
   const excluded = domainOn ? o.excluded : [...o.excluded, "도메인 주소 (위 '도메인'에서 켜면 포함돼요)"];
   return `
     <article class="card">
@@ -223,6 +224,7 @@ function optionHtml(o, compareRegionId) {
           ? `<div class="amount-compare num">${esc(regionName(compareRegionId))}에 만들면 ${formatUsd(o.compareTotalUsd)}</div>`
           : ""
       }
+      ${diagramHtml(o.resources.map((r) => resolveResource(r, values)), regionPrices)}
       ${warningsHtml(o.warnings)}
       <details class="more" data-key="more-${o.id}">
         <summary>비용 내역 · 장단점</summary>
@@ -317,7 +319,7 @@ function renderResult(template, presetId, regionId, params = new URLSearchParams
     </div>
     <section class="card" id="summary">${summaryHtml(options)}${barsHtml(options)}</section>
     ${adjustHtml(template, preset, values, regionPrices)}
-    <div id="options">${options.map((o) => optionHtml(o, compareRegionId)).join("")}</div>
+    <div id="options">${options.map((o) => optionHtml(o, compareRegionId, values, regionPrices)).join("")}</div>
     ${notesHtml(preset, regionId)}`;
 
   app.querySelectorAll("[data-preset]").forEach((b) =>
@@ -332,7 +334,7 @@ function renderResult(template, presetId, regionId, params = new URLSearchParams
   const refresh = () => {
     const result = calc();
     app.querySelector("#summary").innerHTML = summaryHtml(result.options) + barsHtml(result.options);
-    keepOpen(optionsEl, () => (optionsEl.innerHTML = result.options.map((o) => optionHtml(o, compareRegionId)).join("")));
+    keepOpen(optionsEl, () => (optionsEl.innerHTML = result.options.map((o) => optionHtml(o, compareRegionId, result.values, regionPrices)).join("")));
     app.querySelector("#adjust-status").innerHTML = adjustStatus(preset);
     app.querySelector("#adjust-reset").hidden = !Object.keys(adjust.overrides).length;
   };
