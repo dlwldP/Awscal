@@ -2,7 +2,7 @@
 // 담은 목록은 이 브라우저에만 저장된다 (localStorage, 실패해도 동작에는 지장 없음).
 import { calculateOption, formatKrw, formatUsd } from "./engine.js";
 import { SERVICES, fieldDef } from "./schema.js";
-import { chipsHtml, esc, fieldHtml, fullUrl, keepOpen, linesHtml, readField, regionList, shareLink, toast, warningsHtml } from "./ui.js";
+import { afterLaunchHtml, esc, fieldHtml, fullUrl, keepOpen, linesHtml, readField, regionChipsHtml, shareLink, toast, warningsHtml } from "./ui.js";
 import { decodeCalc, encodeCalc } from "./share.js";
 
 const STORAGE_KEY = "aws-eolmaya:calculator";
@@ -150,7 +150,7 @@ export function renderCalculator(app, data, params) {
       <p class="page-sub">사양과 사용량을 입력하면 월 비용을 바로 계산해요.</p>
     </div>
     ${state.items.length ? `<div class="share-row"><button type="button" class="btn btn-soft btn-sm" id="share-calc">🔗 이 계산 공유하기</button></div>` : ""}
-    <div class="controls">${chipsHtml("리전", regionList(data.prices), state.region)}</div>
+    <div class="controls">${regionChipsHtml(data.prices, state.region, [data.settings.defaultRegion, data.settings.compareRegion])}</div>
     <div id="items">${state.items.map((i) => itemHtml(i, regionPrices)).join("")}</div>
     <section class="card">
       ${
@@ -161,6 +161,7 @@ export function renderCalculator(app, data, params) {
       <div style="margin-top:12px">${servicePickerHtml()}</div>
       ${state.items.length ? `<div style="margin-top:14px;text-align:right"><button type="button" class="btn btn-ghost btn-sm" data-clear>모두 비우기</button></div>` : ""}
     </section>
+    ${state.items.length ? afterLaunchHtml() : ""}
     <section class="card notes">
       <h2 class="card-title">계산 기준</h2>
       <ul>

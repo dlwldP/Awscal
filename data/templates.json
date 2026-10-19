@@ -139,6 +139,11 @@
             "서버 렌더링(SSR)을 쓰면 컴퓨팅 요금 추가"
           ]
         }
+      ],
+      "mainFields": [
+        "requests",
+        "egressGb",
+        "storageGb"
       ]
     },
     {
@@ -384,6 +389,11 @@
             "프라이빗 서브넷 구성 시 NAT Gateway"
           ]
         }
+      ],
+      "mainFields": [
+        "instance",
+        "count",
+        "egressGb"
       ]
     },
     {
@@ -617,6 +627,11 @@
             }
           ]
         }
+      ],
+      "mainFields": [
+        "lightsailBundle",
+        "instance",
+        "egressGb"
       ]
     },
     {
@@ -740,6 +755,11 @@
             "API 사용자 지정 도메인을 쓰면 도메인 요금"
           ]
         }
+      ],
+      "mainFields": [
+        "requests",
+        "memoryMb",
+        "egressGb"
       ]
     },
     {
@@ -882,6 +902,11 @@
             "스냅샷(백업) 저장 요금"
           ]
         }
+      ],
+      "mainFields": [
+        "instance",
+        "hours",
+        "egressGb"
       ]
     }
   ]

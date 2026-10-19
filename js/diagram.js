@@ -75,10 +75,23 @@ function nodeHtml(n) {
     </div>`;
 }
 
-export function diagramHtml(resources, regionPrices) {
+/** 한 줄 요약: 👤 → ⚖️ 로드밸런서 → 🖥️ EC2 × 2 → 🗄️ RDS MySQL */
+export function diagramSummary(cols) {
+  return cols.map((c) => c.nodes.map((n) => `${n.icon} ${n.title}`).join(" + ")).join(" → ");
+}
+
+/**
+ * 넓은 화면에서는 그림을 바로 펼쳐 보여주고, 휴대폰에서는 한 줄 요약만 보여준 뒤 누르면 펼친다.
+ * key는 다시 그려도 펼친 상태를 기억하기 위한 이름이다 (ui.js keepOpen).
+ */
+export function diagramHtml(resources, regionPrices, key) {
   const cols = diagramModel(resources, regionPrices);
-  const label = cols.map((c) => c.nodes.map((n) => n.title).join("·")).join(" → ");
-  return `<div class="diagram" role="img" aria-label="구성도: ${esc(label)}">
-      ${cols.map((c) => `<div class="dg-col">${c.nodes.map(nodeHtml).join("")}</div>`).join('<div class="dg-arrow" aria-hidden="true"></div>')}
-    </div>`;
+  const summary = diagramSummary(cols);
+  const wide = typeof matchMedia === "function" && matchMedia("(min-width: 561px)").matches;
+  return `<details class="dg-wrap" data-key="dg-${esc(key)}" ${wide ? "open" : ""}>
+      <summary><span class="dg-line">${esc(summary)}</span><span class="dg-toggle"><span class="t-open">구성 보기 ⌄</span><span class="t-close">접기 ⌃</span></span></summary>
+      <div class="diagram" role="img" aria-label="구성도: ${esc(summary)}">
+        ${cols.map((c) => `<div class="dg-col">${c.nodes.map(nodeHtml).join("")}</div>`).join('<div class="dg-arrow" aria-hidden="true"></div>')}
+      </div>
+    </details>`;
 }

@@ -7,7 +7,10 @@
 //   #/prices                        가격 변동 내역
 import { calculateTemplate, formatKrw, formatUsd, HOURS_PER_MONTH, resolveResource } from "./engine.js";
 import { FIELDS, HIDDEN_ADJUST_FIELDS, fieldDef } from "./schema.js";
-import { chipsHtml, esc, fieldHtml, fullUrl, keepOpen, linesHtml, readField, regionList, shareLink, warningsHtml } from "./ui.js";
+import {
+  afterLaunchHtml, chipsHtml, esc, fieldHtml, fullUrl, installExpandHandlers, keepOpen, linesHtml, readField, regionChipsHtml, regionList, shareLink,
+  warningsHtml,
+} from "./ui.js";
 import { parseDomain, parseOverrides, resultHash } from "./share.js";
 import { importResources, renderCalculator } from "./calculator.js";
 import { diagramHtml } from "./diagram.js";
@@ -38,6 +41,9 @@ const krw = (usd) => `${formatKrw(usd, ex().krwPerUsd, ex().vatRate)} <small cla
 /** 비교 리전: 기본 리전(서울)을 보고 있으면 버지니아, 그 외에는 서울과 비교한다. */
 const compareRegionOf = (regionId) =>
   regionId === data.settings.defaultRegion ? data.settings.compareRegion : data.settings.defaultRegion;
+
+/** 처음부터 보여줄 리전 (나머지는 "다른 리전"으로 접는다) */
+const primaryRegions = () => [data.settings.defaultRegion, data.settings.compareRegion];
 
 const REGION_HINTS = {
   "ap-northeast-2": "한국 사용자 대상이라면 여기",
@@ -154,8 +160,12 @@ function renderSetup(template) {
         <fieldset class="choice-list">
           <legend class="card-title" style="margin-bottom:12px">어디에 만들까요?</legend>
           ${regionList(data.prices)
-            .map((r) => choice("region", r.id, `${r.name} (${r.id})`, REGION_HINTS[r.id] ?? "", r.id === data.settings.defaultRegion))
+            .map((r) => {
+              const html = choice("region", r.id, `${r.name} (${r.id})`, REGION_HINTS[r.id] ?? "", r.id === data.settings.defaultRegion);
+              return primaryRegions().includes(r.id) ? html : html.replace('<label class="choice">', '<label class="choice" hidden>');
+            })
             .join("")}
+          <button type="button" class="btn btn-ghost btn-sm" data-expand>다른 리전 보기 ▾</button>
         </fieldset>
       </section>
       <div class="bottom-cta"><button class="btn btn-primary btn-block" type="submit">비용 확인하기</button></div>
@@ -224,7 +234,7 @@ function optionHtml(o, compareRegionId, values, regionPrices) {
           ? `<div class="amount-compare num">${esc(regionName(compareRegionId))}에 만들면 ${formatUsd(o.compareTotalUsd)}</div>`
           : ""
       }
-      ${diagramHtml(o.resources.map((r) => resolveResource(r, values)), regionPrices)}
+      ${diagramHtml(o.resources.map((r) => resolveResource(r, values)), regionPrices, o.id)}
       ${warningsHtml(o.warnings)}
       <details class="more" data-key="more-${o.id}">
         <summary>비용 내역 · 장단점</summary>
@@ -248,13 +258,26 @@ function adjustHtml(template, preset, values, regionPrices) {
   // 같은 화면에 비슷한 칸이 여럿이면 템플릿이 이름을 따로 붙인다 (예: "서버 사양 (EC2 단독)")
   const def = (k) => fieldDef(k, template.fieldLabels?.[k] ? { label: template.fieldLabels[k] } : {});
   const changed = Object.keys(adjust.overrides).length;
+  // 처음엔 핵심 칸(mainFields)만 보이고 나머지는 "더 보기"로 접는다. 숨은 칸을 바꿔둔 상태면 펼쳐서 보여준다.
+  const main = keys.filter((k) => (template.mainFields ?? keys).includes(k));
+  const more = keys.filter((k) => !main.includes(k));
+  const moreOpen = more.some((k) => k in adjust.overrides);
+  const fields = (list) => list.map((k) => fieldHtml(def(k), values[k], regionPrices, "adj")).join("");
   return `
     <details class="card adjust" data-key="adjust" ${changed ? "open" : ""}>
       <summary>
         <span><span class="card-title" style="display:block">값 직접 바꿔보기</span>
         <span class="card-sub" style="display:block;margin:0">서버 사양, 트래픽 같은 값을 바꾸면 바로 다시 계산해요</span></span>
       </summary>
-      <div class="fields">${keys.map((k) => fieldHtml(def(k), values[k], regionPrices, "adj")).join("")}</div>
+      <div class="fields">${fields(main)}</div>
+      ${
+        more.length
+          ? `<details class="adjust-more" data-key="adjust-more" ${moreOpen ? "open" : ""}>
+              <summary>값 ${more.length}개 더 보기</summary>
+              <div class="fields">${fields(more)}</div>
+            </details>`
+          : ""
+      }
       <div class="adjust-foot">
         <span id="adjust-status">${adjustStatus(preset)}</span>
         <button type="button" class="btn btn-ghost btn-sm" id="adjust-reset" ${changed ? "" : "hidden"}>기본값으로</button>
@@ -311,15 +334,18 @@ function renderResult(template, presetId, regionId, params = new URLSearchParams
       <p class="step">${template.icon} ${esc(template.name)}</p>
       <h1 class="page-title">예상 월 비용이에요</h1>
     </div>
-    <div class="share-row"><button type="button" class="btn btn-soft btn-sm" id="share">🔗 이 결과 공유하기</button></div>
     <div class="controls">
       ${chipsHtml("규모", template.presets, presetId).replace(/data-value/g, "data-preset")}
-      ${chipsHtml("리전", regionList(data.prices), regionId).replace(/data-value/g, "data-region")}
+      ${regionChipsHtml(data.prices, regionId, primaryRegions()).replace(/data-value/g, "data-region")}
       ${chipsHtml("도메인 (example.com 같은 주소)", domainChoices, domainOn ? "on" : "off").replace(/data-value/g, "data-domain")}
     </div>
-    <section class="card" id="summary">${summaryHtml(options)}${barsHtml(options)}</section>
+    <section class="card">
+      <div id="summary">${summaryHtml(options)}${barsHtml(options)}</div>
+      <div class="summary-foot"><button type="button" class="btn btn-soft btn-sm" id="share">🔗 이 결과 공유하기</button></div>
+    </section>
     ${adjustHtml(template, preset, values, regionPrices)}
     <div id="options">${options.map((o) => optionHtml(o, compareRegionId, values, regionPrices)).join("")}</div>
+    ${afterLaunchHtml()}
     ${notesHtml(preset, regionId)}`;
 
   app.querySelectorAll("[data-preset]").forEach((b) =>
@@ -490,6 +516,7 @@ function route() {
 
 async function main() {
   installThemeToggle();
+  installExpandHandlers();
   try {
     const [prices, templates, settings, glossary, priceChanges] = await Promise.all([
       loadJson("data/prices.json"),

@@ -57,11 +57,21 @@ export function linesHtml(lines) {
     .join("")}</ul>`;
 }
 
-export function warningsHtml(warnings) {
+// 경고는 돈이 많이 새는 순서로 보여준다. 처음엔 앞의 몇 개만 보이고 나머지는 접어둔다.
+const WARNING_PRIORITY = [
+  "natGateway", "natGatewayOn", "publicIpv4", "alb", "lightsailStop", "dataTransfer",
+  "alwaysOn", "trafficSpike", "rdsMultiAz", "tierExceeded",
+];
+
+export function warningsHtml(warnings, limit = 2) {
   if (!warnings.length) return "";
-  return `<div class="warn-chips">${warnings
-    .map((w) => `<details class="warn"><summary>${esc(w.title)}</summary><p>${glossarize(esc(w.text))}</p></details>`)
-    .join("")}</div>`;
+  const rank = (w) => (WARNING_PRIORITY.includes(w.id) ? WARNING_PRIORITY.indexOf(w.id) : 99);
+  const sorted = [...warnings].sort((a, b) => rank(a) - rank(b));
+  const chip = (w) => `<details class="warn"><summary>${esc(w.title)}</summary><p>${glossarize(esc(w.text))}</p></details>`;
+  const rest = sorted.slice(limit);
+  return `<div class="warn-chips">${sorted.slice(0, limit).map(chip).join("")}${
+    rest.length ? `<span class="warn-extra" hidden>${rest.map(chip).join("")}</span><button type="button" class="chip-more" data-expand>+${rest.length}개 더</button>` : ""
+  }</div>`;
 }
 
 export function chipsHtml(label, items, current) {
@@ -84,6 +94,32 @@ export function keepOpen(container, render) {
 
 export function regionList(prices) {
   return Object.entries(prices.regions).map(([id, r]) => ({ id, name: r.name }));
+}
+
+/**
+ * 리전 칩: 자주 쓰는 리전(primary)만 보이고 나머지는 "다른 리전"으로 접는다.
+ * 지금 고른 리전은 항상 보인다. 펼치기는 installExpandHandlers()가 처리한다.
+ */
+export function regionChipsHtml(prices, current, primary) {
+  const items = regionList(prices);
+  const extra = items.filter((it) => !primary.includes(it.id) && it.id !== current);
+  const chip = (it, hidden) =>
+    `<button type="button" class="chip" data-value="${esc(it.id)}" aria-pressed="${it.id === current}" ${hidden ? "hidden" : ""}>${esc(it.name)}</button>`;
+  return `<div class="chips" role="group" aria-label="리전">
+      <span class="chips-label">리전</span>
+      ${items.map((it) => chip(it, extra.includes(it))).join("")}
+      ${extra.length ? `<button type="button" class="chip chip-more" data-expand>다른 리전 ${extra.length}곳 ▾</button>` : ""}
+    </div>`;
+}
+
+/** data-expand 버튼: 같은 묶음 안에 숨겨둔 항목([hidden])을 펼치고 버튼은 사라진다. 페이지에 한 번만 건다. */
+export function installExpandHandlers() {
+  document.addEventListener("click", (ev) => {
+    const btn = ev.target.closest("[data-expand]");
+    if (!btn) return;
+    btn.parentElement.querySelectorAll(":scope > [hidden]").forEach((el) => (el.hidden = false));
+    btn.remove();
+  });
 }
 
 // ---- 공유 ----
@@ -125,4 +161,20 @@ export async function shareLink(url, title) {
   } catch {
     window.prompt("아래 링크를 복사하세요", url); // 클립보드를 못 쓰는 환경
   }
+}
+
+// ---- 만든 다음 꼭 할 일 ----
+const AFTER_LAUNCH = [
+  ["예산 알림부터 켜기", "결제 대시보드의 AWS Budgets에서 '월 예상 금액보다 조금 높은 금액'을 넘으면 메일이 오도록 해두세요."],
+  ["안 쓰면 '중지'보다 '삭제'", "Lightsail·NAT Gateway·로드밸런서는 중지해도, 켜두기만 해도 요금이 나가요. EC2는 중지해도 디스크(EBS) 요금이 나가요."],
+  ["다 쓴 뒤 남은 것 정리", "서버를 지워도 퍼블릭 IPv4 주소, 스냅샷, EBS 디스크가 남아서 계속 과금되는 경우가 많아요."],
+  ["첫 달 청구서 확인", "결제 대시보드의 서비스별 요금에서 이 계산과 크게 다른 항목이 없는지 한 번 봐주세요."],
+];
+
+export function afterLaunchHtml() {
+  return `<section class="card after-launch">
+      <h2 class="card-title">만든 다음 꼭 할 일</h2>
+      <p class="card-sub">요금 폭탄은 대부분 이 네 가지를 놓쳐서 생겨요</p>
+      <ol>${AFTER_LAUNCH.map(([title, text]) => `<li><strong>${esc(title)}</strong><span>${glossarize(esc(text))}</span></li>`).join("")}</ol>
+    </section>`;
 }
