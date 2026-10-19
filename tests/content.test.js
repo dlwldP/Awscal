@@ -71,3 +71,38 @@ test("메인 페이지 바닥글에 모든 템플릿 소개 페이지 링크가 
   for (const t of templates) assert.ok(html.includes(`href="pages/${t.id}.html"`), t.id);
   assert.ok(html.includes('property="og:image"'));
 });
+
+// ---- 공유 링크 ----
+import { decodeCalc, encodeCalc, parseDomain, parseOverrides, resultHash } from "../js/share.js";
+
+test("결과 공유 주소는 바꾼 값만 담고, 다시 읽으면 같은 값이 나온다", () => {
+  const t = templates.find((x) => x.id === "backend-webapp");
+  const preset = t.presets[0];
+  const overrides = { instance: "t4g.medium", egressGb: 100 };
+  const hash = resultHash(t, preset.id, "ap-northeast-2", overrides, true);
+  assert.equal(hash, "#/t/backend-webapp/personal/ap-northeast-2?instance=t4g.medium&egressGb=100&domain=1");
+  const params = new URLSearchParams(hash.split("?")[1]);
+  assert.deepEqual(parseOverrides(preset, prices.regions["ap-northeast-2"], params), overrides);
+  assert.equal(parseDomain(params), true);
+  assert.equal(resultHash(t, preset.id, "us-east-1"), "#/t/backend-webapp/personal/us-east-1");
+});
+
+test("이상한 공유 주소 값은 버린다", () => {
+  const t = templates.find((x) => x.id === "backend-webapp");
+  const params = new URLSearchParams("instance=m9.huge&egressGb=-3&count=abc&hacker=1&dbStorageGb=5&ebsGb=30");
+  assert.deepEqual(parseOverrides(t.presets[0], prices.regions["ap-northeast-2"], params), { ebsGb: 30 });
+  assert.equal(parseDomain(new URLSearchParams("")), undefined);
+});
+
+test("직접 계산 공유: 인코딩 → 디코딩하면 같은 목록, 깨진 값은 null", () => {
+  const items = [
+    { type: "ec2", values: { instance: "t4g.small", count: 2, hours: 176 } },
+    { type: "rds", values: { instance: "db.t4g.micro", storageGb: 20, multiAz: true, hours: 730 } },
+  ];
+  const s = encodeCalc("ap-northeast-1", items);
+  assert.match(s, /^[A-Za-z0-9_-]+$/, "주소에 그대로 넣을 수 있는 문자만");
+  assert.deepEqual(decodeCalc(s, ["ec2", "rds"]), { region: "ap-northeast-1", items });
+  assert.deepEqual(decodeCalc(s, ["ec2"]).items.length, 1, "모르는 서비스는 버림");
+  assert.equal(decodeCalc("not-base64!!", ["ec2"]), null);
+  assert.equal(decodeCalc(encodeCalc("x", [{ type: "evil", values: {} }]), ["ec2"]), null);
+});

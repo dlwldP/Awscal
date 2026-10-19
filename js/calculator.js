@@ -2,7 +2,8 @@
 // 담은 목록은 이 브라우저에만 저장된다 (localStorage, 실패해도 동작에는 지장 없음).
 import { calculateOption, formatKrw, formatUsd } from "./engine.js";
 import { SERVICES, fieldDef } from "./schema.js";
-import { chipsHtml, esc, fieldHtml, keepOpen, linesHtml, readField, regionList, warningsHtml } from "./ui.js";
+import { chipsHtml, esc, fieldHtml, fullUrl, keepOpen, linesHtml, readField, regionList, shareLink, toast, warningsHtml } from "./ui.js";
+import { decodeCalc, encodeCalc } from "./share.js";
 
 const STORAGE_KEY = "aws-eolmaya:calculator";
 let state = null; // { region, items: [{ uid, type, values }] }
@@ -114,8 +115,27 @@ function servicePickerHtml() {
   ).join("")}</div>`;
 }
 
-export function renderCalculator(app, data) {
+/** 공유받은 링크(#/calc?s=...)를 연 경우: 목록이 비어 있으면 바로, 아니면 물어보고 바꾼다. */
+function applySharedLink(params, data) {
+  if (!params?.has("s")) return;
+  history.replaceState(null, "", "#/calc"); // 새로고침해도 다시 묻지 않게 주소에서 지운다
+  const shared = decodeCalc(params.get("s"), SERVICES.map((x) => x.type));
+  if (!shared) {
+    toast("공유 링크를 읽지 못했어요");
+    return;
+  }
+  const same = encodeCalc(state.region, state.items) === encodeCalc(shared.region, shared.items);
+  if (same) return;
+  if (state.items.length && !confirm("받은 구성으로 바꿀까요?\n지금 담아둔 목록은 사라져요.")) return;
+  state.region = data.prices.regions[shared.region] ? shared.region : data.settings.defaultRegion;
+  state.items = shared.items.map((it) => newItem(it.type, it.values));
+  save();
+  toast("받은 구성을 불러왔어요");
+}
+
+export function renderCalculator(app, data, params) {
   load(data.settings.defaultRegion);
+  applySharedLink(params, data);
   if (!data.prices.regions[state.region]) state.region = data.settings.defaultRegion;
   for (const item of state.items) item.invalid = undefined; // 다시 그리면 입력 칸이 저장된(올바른) 값으로 돌아간다
   const regionPrices = data.prices.regions[state.region];
@@ -129,6 +149,7 @@ export function renderCalculator(app, data) {
       <h1 class="page-title">쓸 서비스를 담아보세요</h1>
       <p class="page-sub">사양과 사용량을 입력하면 월 비용을 바로 계산해요.</p>
     </div>
+    ${state.items.length ? `<div class="share-row"><button type="button" class="btn btn-soft btn-sm" id="share-calc">🔗 이 계산 공유하기</button></div>` : ""}
     <div class="controls">${chipsHtml("리전", regionList(data.prices), state.region)}</div>
     <div id="items">${state.items.map((i) => itemHtml(i, regionPrices)).join("")}</div>
     <section class="card">
@@ -170,6 +191,10 @@ export function renderCalculator(app, data) {
       keepOpen(app, rerender);
       app.querySelector(`[data-uid="${state.items.at(-1).uid}"]`)?.scrollIntoView({ behavior: "smooth", block: "center" });
     })
+  );
+
+  app.querySelector("#share-calc")?.addEventListener("click", () =>
+    shareLink(fullUrl(`#/calc?s=${encodeCalc(state.region, state.items)}`), "내 AWS 구성 비용 · AWS 얼마야?")
   );
 
   app.querySelector("[data-clear]")?.addEventListener("click", () => {

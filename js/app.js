@@ -7,16 +7,18 @@
 //   #/prices                        가격 변동 내역
 import { calculateTemplate, formatKrw, formatUsd, HOURS_PER_MONTH, resolveResource } from "./engine.js";
 import { FIELDS, HIDDEN_ADJUST_FIELDS, fieldDef } from "./schema.js";
-import { chipsHtml, esc, fieldHtml, keepOpen, linesHtml, readField, regionList, warningsHtml } from "./ui.js";
+import { chipsHtml, esc, fieldHtml, fullUrl, keepOpen, linesHtml, readField, regionList, shareLink, warningsHtml } from "./ui.js";
+import { parseDomain, parseOverrides, resultHash } from "./share.js";
 import { importResources, renderCalculator } from "./calculator.js";
 import { installGlossaryHandlers, renderGlossary, setGlossary } from "./glossary.js";
 
 const app = document.getElementById("app");
 let data; // { prices, templates, settings, priceChanges }
 
-// 결과 화면에서 직접 바꾼 값. 템플릿·프리셋이 바뀌면 비운다.
-const adjust = { key: "", overrides: {} };
-// 도메인 포함 여부는 템플릿·프리셋을 바꿔도 유지한다.
+// 결과 화면에서 직접 바꾼 값. 주소(?키=값)에 담겨서 링크로 그대로 공유된다.
+const adjust = { overrides: {} };
+// 템플릿별 도메인 포함 여부. 주소에 domain=0/1이 있으면 그 값을 쓰고, 없으면 마지막 선택 또는 템플릿 기본값.
+const domainState = {};
 let domainOn = false;
 
 async function loadJson(path, optional = false) {
@@ -280,11 +282,16 @@ function notesHtml(preset, regionId) {
     </section>`;
 }
 
-function renderResult(template, presetId, regionId) {
-  const key = `${template.id}/${presetId}`;
-  if (adjust.key !== key) Object.assign(adjust, { key, overrides: {} });
+function renderResult(template, presetId, regionId, params = new URLSearchParams()) {
   const compareRegionId = compareRegionOf(regionId);
   const regionPrices = data.prices.regions[regionId];
+  adjust.overrides = parseOverrides(template.presets.find((p) => p.id === presetId), regionPrices, params);
+  domainOn = parseDomain(params) ?? domainState[template.id] ?? Boolean(template.defaultDomain);
+  domainState[template.id] = domainOn;
+  const hashFor = (p, r, ov) => resultHash(template, p, r, ov, domainOn);
+  // 값을 바꿀 때마다 주소도 바꿔둔다 (주소창을 그대로 복사해도 공유되게). 기록은 남기지 않는다.
+  const syncUrl = () => history.replaceState(null, "", hashFor(presetId, regionId, adjust.overrides));
+  syncUrl();
   const overrides = () => ({ ...adjust.overrides, domain: domainOn ? 1 : 0 });
   const calc = () => calculateTemplate(template, presetId, data.prices, regionId, compareRegionId, overrides());
   const { preset, values, options } = calc();
@@ -300,6 +307,7 @@ function renderResult(template, presetId, regionId) {
       <p class="step">${template.icon} ${esc(template.name)}</p>
       <h1 class="page-title">예상 월 비용이에요</h1>
     </div>
+    <div class="share-row"><button type="button" class="btn btn-soft btn-sm" id="share">🔗 이 결과 공유하기</button></div>
     <div class="controls">
       ${chipsHtml("규모", template.presets, presetId).replace(/data-value/g, "data-preset")}
       ${chipsHtml("리전", regionList(data.prices), regionId).replace(/data-value/g, "data-region")}
@@ -311,10 +319,11 @@ function renderResult(template, presetId, regionId) {
     ${notesHtml(preset, regionId)}`;
 
   app.querySelectorAll("[data-preset]").forEach((b) =>
-    b.addEventListener("click", () => (location.hash = `#/t/${template.id}/${b.dataset.preset}/${regionId}`))
+    // 규모를 바꾸면 직접 바꾼 값은 비우고(새 프리셋 기준), 도메인 선택은 유지한다.
+    b.addEventListener("click", () => (location.hash = hashFor(b.dataset.preset, regionId, {})))
   );
   app.querySelectorAll("[data-region]").forEach((b) =>
-    b.addEventListener("click", () => (location.hash = `#/t/${template.id}/${presetId}/${b.dataset.region}`))
+    b.addEventListener("click", () => (location.hash = hashFor(presetId, b.dataset.region, adjust.overrides)))
   );
 
   const optionsEl = app.querySelector("#options");
@@ -329,7 +338,9 @@ function renderResult(template, presetId, regionId) {
   app.querySelectorAll("[data-domain]").forEach((b) =>
     b.addEventListener("click", () => {
       domainOn = b.dataset.domain === "on";
+      domainState[template.id] = domainOn;
       app.querySelectorAll("[data-domain]").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+      syncUrl();
       refresh();
     })
   );
@@ -346,15 +357,17 @@ function renderResult(template, presetId, regionId) {
     if (!valid) return;
     if (value === preset.values[name]) delete adjust.overrides[name];
     else adjust.overrides[name] = value;
+    syncUrl();
     refresh();
   };
   const adjustEl = app.querySelector(".adjust");
   adjustEl.addEventListener("input", onField);
   adjustEl.addEventListener("change", onField);
-  app.querySelector("#adjust-reset").addEventListener("click", () => {
-    adjust.overrides = {};
-    renderResult(template, presetId, regionId);
-  });
+  app.querySelector("#adjust-reset").addEventListener("click", () => (location.hash = hashFor(presetId, regionId, {})));
+
+  app.querySelector("#share").addEventListener("click", () =>
+    shareLink(fullUrl(hashFor(presetId, regionId, adjust.overrides)), `${template.name} AWS 비용 · AWS 얼마야?`)
+  );
 
   optionsEl.addEventListener("click", (e) => {
     const btn = e.target.closest("[data-to-calc]");
@@ -452,7 +465,9 @@ function installThemeToggle() {
 
 // ---- 라우팅 ----
 function route() {
-  const [section, templateId, presetId, regionId] = location.hash.replace(/^#\/?/, "").split("/");
+  const [path, query = ""] = location.hash.replace(/^#\/?/, "").split("?");
+  const params = new URLSearchParams(query);
+  const [section, templateId, presetId, regionId] = path.split("/");
   document.querySelectorAll("[data-nav]").forEach((a) => {
     const active = (section === "calc" ? "calc" : "home") === a.dataset.nav;
     if (active) a.setAttribute("aria-current", "page");
@@ -460,10 +475,10 @@ function route() {
   });
   const template = section === "t" && data.templates.find((x) => x.id === templateId);
   const validResult = template && template.presets.some((p) => p.id === presetId) && data.prices.regions[regionId];
-  if (section === "calc") renderCalculator(app, data);
+  if (section === "calc") renderCalculator(app, data, params);
   else if (section === "glossary") renderGlossary(app);
   else if (section === "prices") renderPriceChanges();
-  else if (validResult) renderResult(template, presetId, regionId);
+  else if (validResult) renderResult(template, presetId, regionId, params);
   else if (template) renderSetup(template);
   else renderHome();
   window.scrollTo(0, 0);

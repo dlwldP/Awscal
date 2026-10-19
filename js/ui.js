@@ -85,3 +85,44 @@ export function keepOpen(container, render) {
 export function regionList(prices) {
   return Object.entries(prices.regions).map(([id, r]) => ({ id, name: r.name }));
 }
+
+// ---- 공유 ----
+
+/** 화면 아래에 잠깐 떴다 사라지는 알림. */
+export function toast(message) {
+  let el = document.querySelector(".toast");
+  if (!el) {
+    el = document.createElement("div");
+    el.className = "toast";
+    el.setAttribute("role", "status");
+    document.body.appendChild(el);
+  }
+  el.textContent = message;
+  el.classList.add("show");
+  clearTimeout(toast.timer);
+  toast.timer = setTimeout(() => el.classList.remove("show"), 2200);
+}
+
+/** 현재 페이지 기준 전체 주소 (#/... 해시 포함). */
+export function fullUrl(hash) {
+  return `${location.origin}${location.pathname}${hash}`;
+}
+
+/** 휴대폰은 공유창(카카오톡 등), 그 외에는 링크 복사. */
+export async function shareLink(url, title) {
+  const mobile = matchMedia("(pointer: coarse)").matches;
+  if (mobile && navigator.share) {
+    try {
+      await navigator.share({ title, url });
+      return;
+    } catch (err) {
+      if (err.name === "AbortError") return; // 사용자가 공유창을 닫음
+    }
+  }
+  try {
+    await navigator.clipboard.writeText(url);
+    toast("링크를 복사했어요");
+  } catch {
+    window.prompt("아래 링크를 복사하세요", url); // 클립보드를 못 쓰는 환경
+  }
+}
