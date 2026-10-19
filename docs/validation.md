@@ -5,7 +5,7 @@
 
 MVP 완료 조건: 모든 결과가 [AWS Pricing Calculator](https://calculator.aws/) 대비 **±10% 이내**.
 
-**진행 상황: 66개 중 1개 확인, 1개 통과**
+**진행 상황: 66개 중 2개 확인, 2개 통과**
 
 ## 검증 방법
 
@@ -54,7 +54,7 @@ MVP 완료 조건: 모든 결과가 [AWS Pricing Calculator](https://calculator.
 
 | 키 | 우리 계산 | 공식 계산기 | 차이 | 결과 | 입력값 |
 |---|---:|---:|---:|:---:|---|
-| `backend-webapp/personal/ap-northeast-2/ec2-rds` | $34.57 |  |  | ☐ | EC2: t4g.micro, Linux, On-Demand, 1대 (EBS는 0GB로 두고 아래 EBS 줄로 따로)<br>EBS: gp3 20GB × 1개 (IOPS 3000, 처리량 125MB/s 기본값)<br>VPC → Public IPv4 Address: In-use 1개<br>RDS for MySQL: db.t4g.micro, Single-AZ, On-Demand, gp3 20GB<br>Data Transfer: 인터넷으로 아웃바운드 5GB (같은 리전) |
+| `backend-webapp/personal/ap-northeast-2/ec2-rds` | $34.57 | $33.93 | 1.9% | ✅ | EC2: t4g.micro, Linux, On-Demand, 1대 (EBS는 0GB로 두고 아래 EBS 줄로 따로)<br>EBS: gp3 20GB × 1개 (IOPS 3000, 처리량 125MB/s 기본값)<br>VPC → Public IPv4 Address: In-use 1개<br>RDS for MySQL: db.t4g.micro, Single-AZ, On-Demand, gp3 20GB<br>Data Transfer: 인터넷으로 아웃바운드 5GB (같은 리전) |
 | `backend-webapp/personal/ap-northeast-2/lightsail` | $7.00 |  |  | ☐ | Lightsail: Linux 1GB 번들 × 1 |
 | `backend-webapp/personal/ap-northeast-2/fargate-rds` | $35.51 |  |  | ☐ | ECS Fargate: Linux/x86, 태스크 1개, 0.25vCPU, 0.5GB, 하루 24시간<br>VPC → Public IPv4 Address: In-use 1개<br>RDS for MySQL: db.t4g.micro, Single-AZ, On-Demand, gp3 20GB<br>Data Transfer: 인터넷으로 아웃바운드 5GB (같은 리전) |
 | `backend-webapp/personal/us-east-1/ec2-rds` | $25.81 |  |  | ☐ | EC2: t4g.micro, Linux, On-Demand, 1대 (EBS는 0GB로 두고 아래 EBS 줄로 따로)<br>EBS: gp3 20GB × 1개 (IOPS 3000, 처리량 125MB/s 기본값)<br>VPC → Public IPv4 Address: In-use 1개<br>RDS for MySQL: db.t4g.micro, Single-AZ, On-Demand, gp3 20GB<br>Data Transfer: 인터넷으로 아웃바운드 5GB (같은 리전) |

@@ -1,3 +1,4 @@
 {
-  "dev-server/personal/ap-northeast-2/ec2": 13.69
+  "dev-server/personal/ap-northeast-2/ec2": 13.69,
+  "backend-webapp/personal/ap-northeast-2/ec2-rds": 33.93
 }
