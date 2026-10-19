@@ -5,7 +5,7 @@
 
 MVP 완료 조건: 모든 결과가 [AWS Pricing Calculator](https://calculator.aws/) 대비 **±10% 이내**.
 
-**진행 상황: 66개 중 0개 확인, 0개 통과**
+**진행 상황: 66개 중 1개 확인, 1개 통과**
 
 ## 검증 방법
 
@@ -111,7 +111,7 @@ MVP 완료 조건: 모든 결과가 [AWS Pricing Calculator](https://calculator.
 
 | 키 | 우리 계산 | 공식 계산기 | 차이 | 결과 | 입력값 |
 |---|---:|---:|---:|:---:|---|
-| `dev-server/personal/ap-northeast-2/ec2` | $13.70 |  |  | ☐ | EC2: t4g.micro, Linux, On-Demand, 1대 (EBS는 0GB로 두고 아래 EBS 줄로 따로)<br>EBS: gp3 20GB × 1개 (IOPS 3000, 처리량 125MB/s 기본값)<br>VPC → Public IPv4 Address: In-use 1개<br>Data Transfer: 인터넷으로 아웃바운드 5GB (같은 리전) |
+| `dev-server/personal/ap-northeast-2/ec2` | $13.70 | $13.69 | 0.0% | ✅ | EC2: t4g.micro, Linux, On-Demand, 1대 (EBS는 0GB로 두고 아래 EBS 줄로 따로)<br>EBS: gp3 20GB × 1개 (IOPS 3000, 처리량 125MB/s 기본값)<br>VPC → Public IPv4 Address: In-use 1개<br>Data Transfer: 인터넷으로 아웃바운드 5GB (같은 리전) |
 | `dev-server/personal/ap-northeast-2/lightsail` | $7.00 |  |  | ☐ | Lightsail: Linux 1GB 번들 × 1 |
 | `dev-server/personal/us-east-1/ec2` | $11.83 |  |  | ☐ | EC2: t4g.micro, Linux, On-Demand, 1대 (EBS는 0GB로 두고 아래 EBS 줄로 따로)<br>EBS: gp3 20GB × 1개 (IOPS 3000, 처리량 125MB/s 기본값)<br>VPC → Public IPv4 Address: In-use 1개<br>Data Transfer: 인터넷으로 아웃바운드 5GB (같은 리전) |
 | `dev-server/personal/us-east-1/lightsail` | $7.00 |  |  | ☐ | Lightsail: Linux 1GB 번들 × 1 |
