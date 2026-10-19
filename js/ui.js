@@ -1,6 +1,7 @@
 // 여러 화면에서 같이 쓰는 HTML 조각과 입력 처리.
 import { formatUsd } from "./engine.js";
 import { choicesFor } from "./schema.js";
+import { glossarize } from "./glossary.js";
 
 export const esc = (s) =>
   String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
@@ -30,7 +31,7 @@ export function fieldHtml(def, value, regionPrices, idPrefix) {
   return `<div class="field">
       <label for="${id}">${esc(def.label)}</label>
       ${control}
-      ${def.help ? `<p class="help">${esc(def.help)}</p>` : ""}
+      ${def.help ? `<p class="help">${glossarize(esc(def.help))}</p>` : ""}
     </div>`;
 }
 
@@ -50,7 +51,7 @@ export function linesHtml(lines) {
       (l) => `
       <li><details>
         <summary><span class="lbl">${esc(l.label)}</span><span class="usd num">${formatUsd(l.usd)}</span></summary>
-        <div class="why">${esc(l.why)}<span class="formula">${esc(l.detail)}</span></div>
+        <div class="why">${glossarize(esc(l.why))}<span class="formula">${esc(l.detail)}</span></div>
       </details></li>`
     )
     .join("")}</ul>`;
@@ -59,7 +60,7 @@ export function linesHtml(lines) {
 export function warningsHtml(warnings) {
   if (!warnings.length) return "";
   return `<div class="warn-chips">${warnings
-    .map((w) => `<details class="warn"><summary>${esc(w.title)}</summary><p>${esc(w.text)}</p></details>`)
+    .map((w) => `<details class="warn"><summary>${esc(w.title)}</summary><p>${glossarize(esc(w.text))}</p></details>`)
     .join("")}</div>`;
 }
 

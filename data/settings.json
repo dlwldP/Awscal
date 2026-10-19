@@ -2,8 +2,14 @@
   "exchangeRate": {
     "krwPerUsd": 1400,
     "updatedAt": "2026-10-16",
-    "note": "고정 환율 (자동 갱신 아님)"
+    "note": "고정 환율 (자동 갱신 아님)",
+    "vatRate": 0.1
   },
   "defaultRegion": "ap-northeast-2",
-  "compareRegion": "us-east-1"
+  "compareRegion": "us-east-1",
+  "feedback": {
+    "githubIssueUrl": "https://github.com/dlwldP/Awscal/issues/new",
+    "googleFormUrl": ""
+  },
+  "siteUrl": "https://dlwldp.github.io/Awscal/"
 }

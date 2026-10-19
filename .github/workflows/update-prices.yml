@@ -27,14 +27,17 @@ jobs:
       - name: 가격 수집
         run: python3 scripts/fetch_prices.py
       - name: 테스트
-        run: npm test
+        run: |
+          npm test
+          python3 -m unittest discover -s tests -p "test_*.py"
       - name: 커밋 & 푸시
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/prices.json
+          git add data/prices.json data/price-changes.json
           git diff --cached --quiet && { echo "변경 없음"; exit 0; }
-          git commit -m "chore: 가격 데이터 자동 갱신 ($(date -u +%Y-%m-%d))"
+          changed=$(python3 -c "import json; print(len(json.load(open('data/price-changes.json'))['changes']))")
+          git commit -m "chore: 가격 데이터 자동 갱신 ($(date -u +%Y-%m-%d), 단가 변동 ${changed}건)"
           git push
 
   # GITHUB_TOKEN으로 만든 푸시는 다른 워크플로를 트리거하지 않으므로 배포를 직접 호출한다.

@@ -1,7 +1,7 @@
 # 공식 Pricing Calculator 교차 검증
 
 > 자동 생성 문서 — `node scripts/validation-report.js > docs/validation.md`
-> 가격 데이터 2026-10-16 기준
+> 가격 데이터 2026-10-19 기준
 
 MVP 완료 조건: 모든 결과가 [AWS Pricing Calculator](https://calculator.aws/) 대비 **±10% 이내**.
 

@@ -3,29 +3,58 @@
 //   #/t/<템플릿>                    설정 (규모, 리전)
 //   #/t/<템플릿>/<프리셋>/<리전>     결과 (+ 값 직접 조정)
 //   #/calc                          직접 계산기
+//   #/glossary                      용어 사전
+//   #/prices                        가격 변동 내역
 import { calculateTemplate, formatKrw, formatUsd, HOURS_PER_MONTH, resolveResource } from "./engine.js";
-import { FIELDS, fieldDef } from "./schema.js";
+import { FIELDS, HIDDEN_ADJUST_FIELDS, fieldDef } from "./schema.js";
 import { chipsHtml, esc, fieldHtml, keepOpen, linesHtml, readField, regionList, warningsHtml } from "./ui.js";
 import { importResources, renderCalculator } from "./calculator.js";
+import { installGlossaryHandlers, renderGlossary, setGlossary } from "./glossary.js";
 
 const app = document.getElementById("app");
-let data; // { prices, templates, settings }
+let data; // { prices, templates, settings, priceChanges }
 
 // 결과 화면에서 직접 바꾼 값. 템플릿·프리셋이 바뀌면 비운다.
 const adjust = { key: "", overrides: {} };
+// 도메인 포함 여부는 템플릿·프리셋을 바꿔도 유지한다.
+let domainOn = false;
 
-async function loadJson(path) {
+async function loadJson(path, optional = false) {
   const res = await fetch(path, { cache: "no-cache" });
-  if (!res.ok) throw new Error(`${path} 불러오기 실패 (${res.status})`);
+  if (!res.ok) {
+    if (optional) return null;
+    throw new Error(`${path} 불러오기 실패 (${res.status})`);
+  }
   return res.json();
 }
 
 const regionName = (id) => data.prices.regions[id]?.name ?? id;
-const krw = (usd) => formatKrw(usd, data.settings.exchangeRate.krwPerUsd);
+const ex = () => data.settings.exchangeRate;
+/** 원화는 항상 부가세 포함으로 보여준다. */
+const krw = (usd) => `${formatKrw(usd, ex().krwPerUsd, ex().vatRate)} <small class="vat">(부가세 포함)</small>`;
+/** 비교 리전: 기본 리전(서울)을 보고 있으면 버지니아, 그 외에는 서울과 비교한다. */
+const compareRegionOf = (regionId) =>
+  regionId === data.settings.defaultRegion ? data.settings.compareRegion : data.settings.defaultRegion;
+
+const REGION_HINTS = {
+  "ap-northeast-2": "한국 사용자 대상이라면 여기",
+  "ap-northeast-1": "한국·일본 사용자를 같이 받을 때",
+  "ap-southeast-1": "동남아 사용자 대상",
+  "us-east-1": "가장 저렴한 리전 중 하나",
+  "us-west-2": "버지니아만큼 저렴한 미국 서부",
+  "eu-central-1": "유럽 사용자 대상",
+};
+
+function feedbackUrl() {
+  const body = "## 어떤 점이 좋았나요 / 불편했나요?\n\n\n## 있었으면 하는 템플릿이나 서비스\n\n";
+  return `${data.settings.feedback.githubIssueUrl}?title=${encodeURIComponent("[피드백] ")}&body=${encodeURIComponent(body)}`;
+}
 
 // ---- 메인 ----
 function renderHome() {
   document.title = "AWS 얼마야? · 초보자용 AWS 비용 계산기";
+  const form = data.settings.feedback.googleFormUrl;
+  const changes = data.priceChanges;
   app.innerHTML = `
     <section class="hero">
       <p class="eyebrow">AWS 비용 계산기</p>
@@ -51,12 +80,37 @@ function renderHome() {
     </section>
 
     <section class="card">
-      <h2 class="card-title">쓸 서비스를 이미 알고 있다면</h2>
-      <p class="card-sub">EC2, RDS, S3 같은 서비스를 직접 담아서 계산해요</p>
+      <h2 class="card-title">더 알아보기</h2>
       <ul class="list">
         <li><a class="row" href="#/calc">
           <span class="ico" aria-hidden="true">🧮</span>
-          <span class="txt"><span class="ttl">직접 계산하기</span><span class="dsc">서비스 15종 · 사양과 사용량을 내 마음대로</span></span>
+          <span class="txt"><span class="ttl">직접 계산하기</span><span class="dsc">쓸 서비스를 알고 있다면 직접 담아서 계산해요</span></span>
+          <span class="chev" aria-hidden="true">›</span>
+        </a></li>
+        <li><a class="row" href="#/glossary">
+          <span class="ico" aria-hidden="true">📖</span>
+          <span class="txt"><span class="ttl">용어 사전</span><span class="dsc">vCPU, LCU, NAT Gateway… 어려운 말 쉽게 풀기</span></span>
+          <span class="chev" aria-hidden="true">›</span>
+        </a></li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h2 class="card-title">의견 보내기</h2>
+      <p class="card-sub">있었으면 하는 템플릿이나 불편한 점을 알려주세요</p>
+      <ul class="list">
+        ${
+          form
+            ? `<li><a class="row" href="${esc(form)}" target="_blank" rel="noopener">
+          <span class="ico" aria-hidden="true">📝</span>
+          <span class="txt"><span class="ttl">설문으로 보내기</span><span class="dsc">계정 없이 바로 작성할 수 있어요</span></span>
+          <span class="chev" aria-hidden="true">›</span>
+        </a></li>`
+            : ""
+        }
+        <li><a class="row" href="${esc(feedbackUrl())}" target="_blank" rel="noopener">
+          <span class="ico" aria-hidden="true">💬</span>
+          <span class="txt"><span class="ttl">GitHub 이슈로 보내기</span><span class="dsc">GitHub 계정이 있다면</span></span>
           <span class="chev" aria-hidden="true">›</span>
         </a></li>
       </ul>
@@ -64,7 +118,9 @@ function renderHome() {
 
     <div class="trust">
       <span>AWS 계정 없이 무료</span>
-      <span>가격 매주 자동 갱신 (${esc(data.prices.updatedAt)})</span>
+      <span>가격 매주 자동 갱신 (${esc(data.prices.updatedAt)}) · <a href="#/prices">변동 내역${
+        changes ? ` ${changes.changes.length}건` : ""
+      }</a></span>
       <span>숨은 비용까지 알려드려요</span>
     </div>`;
 }
@@ -72,7 +128,6 @@ function renderHome() {
 // ---- 설정 ----
 function renderSetup(template) {
   document.title = `${template.name} · AWS 얼마야?`;
-  const regionHints = { "ap-northeast-2": "한국 사용자 대상이라면 여기", "us-east-1": "가장 저렴한 리전 중 하나" };
   const choice = (name, value, title, desc, checked) => `
     <label class="choice">
       <input type="radio" name="${name}" value="${value}" ${checked ? "checked" : ""}>
@@ -96,7 +151,7 @@ function renderSetup(template) {
         <fieldset class="choice-list">
           <legend class="card-title" style="margin-bottom:12px">어디에 만들까요?</legend>
           ${regionList(data.prices)
-            .map((r) => choice("region", r.id, `${r.name} (${r.id})`, regionHints[r.id] ?? "", r.id === data.settings.defaultRegion))
+            .map((r) => choice("region", r.id, `${r.name} (${r.id})`, REGION_HINTS[r.id] ?? "", r.id === data.settings.defaultRegion))
             .join("")}
         </fieldset>
       </section>
@@ -111,12 +166,21 @@ function renderSetup(template) {
 
 // ---- 결과 ----
 function summaryHtml(options) {
-  const best = options.find((o) => o.isCheapest) ?? options[0];
-  const lead = options.length > 1 ? `가장 저렴한 건 <strong>${esc(best.name)}</strong>예요` : `${esc(best.name)}로 만들면`;
+  const cheapest = options.find((o) => o.isCheapest) ?? options[0];
+  const rec = options.find((o) => o.recommended);
+  const lead = options.length > 1 ? `가장 저렴한 건 <strong>${esc(cheapest.name)}</strong>예요` : `${esc(cheapest.name)}로 만들면`;
   return `
     <p class="card-sub" style="margin:0 0 4px">${lead}</p>
-    <div class="summary-amount num">월 ${formatUsd(best.totalUsd)}</div>
-    <div class="summary-krw num">${krw(best.totalUsd)}</div>`;
+    <div class="summary-amount num">월 ${formatUsd(cheapest.totalUsd)}</div>
+    <div class="summary-krw num">${krw(cheapest.totalUsd)}</div>
+    ${
+      rec && options.length > 1
+        ? `<div class="recommend">
+            <span class="tag tag-blue">처음이라면 추천</span>
+            <span><strong>${esc(rec.name)}</strong> · 월 ${formatUsd(rec.totalUsd)}<br><span class="recommend-why">${esc(rec.recommended)}</span></span>
+          </div>`
+        : ""
+    }`;
 }
 
 function barsHtml(options) {
@@ -137,12 +201,17 @@ function barsHtml(options) {
     </div>`;
 }
 
+const DIFFICULTY_CLASS = { 쉬움: "tag-easy", 보통: "tag-mid", 어려움: "tag-hard" };
+
 function optionHtml(o, compareRegionId) {
+  const excluded = domainOn ? o.excluded : [...o.excluded, "도메인 주소 (위 '도메인'에서 켜면 포함돼요)"];
   return `
     <article class="card">
       <div class="option-head">
         <h3 class="option-name">${esc(o.name)}</h3>
-        ${o.isCheapest ? '<span class="tag tag-blue">가장 저렴</span>' : ""}
+        ${o.recommended ? '<span class="tag tag-blue">처음이라면 추천</span>' : ""}
+        ${o.isCheapest ? '<span class="tag tag-green">가장 저렴</span>' : ""}
+        ${o.difficulty ? `<span class="tag ${DIFFICULTY_CLASS[o.difficulty] ?? ""}">난이도 ${esc(o.difficulty)}</span>` : ""}
       </div>
       <p class="option-summary">${esc(o.summary)}</p>
       <div class="amount num">${formatUsd(o.totalUsd)} <small>/ 월</small></div>
@@ -157,6 +226,8 @@ function optionHtml(o, compareRegionId) {
         <summary>비용 내역 · 장단점</summary>
         <div class="section-label">항목별 내역 <span style="font-weight:500">(누르면 이유가 보여요)</span></div>
         ${linesHtml(o.lines)}
+        <div class="section-label">이 금액에 포함 안 된 비용</div>
+        <ul class="excluded">${excluded.map((x) => `<li>${esc(x)}</li>`).join("")}</ul>
         <div class="pros-cons">
           <div><div class="section-label">장점</div><ul class="pros">${o.pros.map((p) => `<li>${esc(p)}</li>`).join("")}</ul></div>
           <div><div class="section-label">단점</div><ul class="cons">${o.cons.map((c) => `<li>${esc(c)}</li>`).join("")}</ul></div>
@@ -168,8 +239,8 @@ function optionHtml(o, compareRegionId) {
     </article>`;
 }
 
-function adjustHtml(template, preset, values, regionPrices) {
-  const keys = Object.keys(preset.values).filter((k) => FIELDS[k]);
+function adjustHtml(preset, values, regionPrices) {
+  const keys = Object.keys(preset.values).filter((k) => FIELDS[k] && !HIDDEN_ADJUST_FIELDS.has(k));
   const changed = Object.keys(adjust.overrides).length;
   return `
     <details class="card adjust" data-key="adjust" ${changed ? "open" : ""}>
@@ -179,14 +250,18 @@ function adjustHtml(template, preset, values, regionPrices) {
       </summary>
       <div class="fields">${keys.map((k) => fieldHtml(fieldDef(k), values[k], regionPrices, "adj")).join("")}</div>
       <div class="adjust-foot">
-        <span id="adjust-status">${changed ? `<span class="modified">${changed}개 값을 바꿨어요</span>` : `'${esc(preset.name)}' 기본값이에요`}</span>
+        <span id="adjust-status">${adjustStatus(preset)}</span>
         <button type="button" class="btn btn-ghost btn-sm" id="adjust-reset" ${changed ? "" : "hidden"}>기본값으로</button>
       </div>
     </details>`;
 }
 
+function adjustStatus(preset) {
+  const changed = Object.keys(adjust.overrides).length;
+  return changed ? `<span class="modified">${changed}개 값을 바꿨어요</span>` : `'${esc(preset.name)}' 기본값이에요`;
+}
+
 function notesHtml(preset, regionId) {
-  const ex = data.settings.exchangeRate;
   const changed = Object.keys(adjust.overrides).length;
   return `
     <section class="card notes">
@@ -197,8 +272,9 @@ function notesHtml(preset, regionId) {
         <li>한 달 = ${HOURS_PER_MONTH}시간, 온디맨드 요금 기준이에요.</li>
         <li>구간별로 단가가 달라지는 요금(전송량, S3 등)은 첫 구간 단가만 적용했어요.</li>
         <li>프리티어·크레딧은 반영하지 않았어요. 신규 계정이라면 실제로는 더 적게 나올 수 있어요 → <a href="https://aws.amazon.com/free/" target="_blank" rel="noopener">AWS 프리티어 안내</a></li>
-        <li>가격 갱신일 ${esc(data.prices.updatedAt)} (${esc(data.prices.source)})</li>
-        <li>원화는 고정 환율 1달러 = ${ex.krwPerUsd.toLocaleString("ko-KR")}원 기준이에요 (${esc(ex.updatedAt)}).</li>
+        <li>달러 금액은 AWS 표시 가격(부가세 별도)이에요. 한국 계정은 청구 시 부가세 10%가 더해져서, 원화는 부가세를 포함해 보여줘요.</li>
+        <li>원화는 고정 환율 1달러 = ${ex().krwPerUsd.toLocaleString("ko-KR")}원 기준이에요 (${esc(ex().updatedAt)}). 카드사 해외 결제 수수료는 포함하지 않았어요.</li>
+        <li>가격 갱신일 ${esc(data.prices.updatedAt)} (${esc(data.prices.source)}) · <a href="#/prices">변동 내역</a></li>
         <li>예상치이며 실제 청구액과 다를 수 있어요. 정확한 견적은 <a href="https://calculator.aws/" target="_blank" rel="noopener">AWS Pricing Calculator</a>에서 확인하세요.</li>
       </ul>
     </section>`;
@@ -207,11 +283,16 @@ function notesHtml(preset, regionId) {
 function renderResult(template, presetId, regionId) {
   const key = `${template.id}/${presetId}`;
   if (adjust.key !== key) Object.assign(adjust, { key, overrides: {} });
-  const compareRegionId = Object.keys(data.prices.regions).find((r) => r !== regionId);
+  const compareRegionId = compareRegionOf(regionId);
   const regionPrices = data.prices.regions[regionId];
-  const calc = () => calculateTemplate(template, presetId, data.prices, regionId, compareRegionId, adjust.overrides);
+  const overrides = () => ({ ...adjust.overrides, domain: domainOn ? 1 : 0 });
+  const calc = () => calculateTemplate(template, presetId, data.prices, regionId, compareRegionId, overrides());
   const { preset, values, options } = calc();
   document.title = `${template.name} 비용 · AWS 얼마야?`;
+  const domainChoices = [
+    { id: "off", name: "없음" },
+    { id: "on", name: "포함 (.com)" },
+  ];
 
   app.innerHTML = `
     <div class="page-head">
@@ -222,9 +303,10 @@ function renderResult(template, presetId, regionId) {
     <div class="controls">
       ${chipsHtml("규모", template.presets, presetId).replace(/data-value/g, "data-preset")}
       ${chipsHtml("리전", regionList(data.prices), regionId).replace(/data-value/g, "data-region")}
+      ${chipsHtml("도메인 (example.com 같은 주소)", domainChoices, domainOn ? "on" : "off").replace(/data-value/g, "data-domain")}
     </div>
     <section class="card" id="summary">${summaryHtml(options)}${barsHtml(options)}</section>
-    ${adjustHtml(template, preset, values, regionPrices)}
+    ${adjustHtml(preset, values, regionPrices)}
     <div id="options">${options.map((o) => optionHtml(o, compareRegionId)).join("")}</div>
     ${notesHtml(preset, regionId)}`;
 
@@ -240,12 +322,17 @@ function renderResult(template, presetId, regionId) {
     const result = calc();
     app.querySelector("#summary").innerHTML = summaryHtml(result.options) + barsHtml(result.options);
     keepOpen(optionsEl, () => (optionsEl.innerHTML = result.options.map((o) => optionHtml(o, compareRegionId)).join("")));
-    const changed = Object.keys(adjust.overrides).length;
-    app.querySelector("#adjust-status").innerHTML = changed
-      ? `<span class="modified">${changed}개 값을 바꿨어요</span>`
-      : `'${esc(preset.name)}' 기본값이에요`;
-    app.querySelector("#adjust-reset").hidden = !changed;
+    app.querySelector("#adjust-status").innerHTML = adjustStatus(preset);
+    app.querySelector("#adjust-reset").hidden = !Object.keys(adjust.overrides).length;
   };
+
+  app.querySelectorAll("[data-domain]").forEach((b) =>
+    b.addEventListener("click", () => {
+      domainOn = b.dataset.domain === "on";
+      app.querySelectorAll("[data-domain]").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+      refresh();
+    })
+  );
 
   const onField = (e) => {
     const el = e.target.closest("[data-field]");
@@ -273,10 +360,94 @@ function renderResult(template, presetId, regionId) {
     const btn = e.target.closest("[data-to-calc]");
     if (!btn) return;
     const option = template.options.find((o) => o.id === btn.dataset.toCalc);
-    const current = { ...preset.values, ...adjust.overrides };
+    const current = { ...preset.values, ...overrides() };
     importResources(option.resources.map((r) => resolveResource(r, current)), regionId);
     location.hash = "#/calc";
   });
+}
+
+// ---- 가격 변동 내역 ----
+const SERVICE_NAMES = {
+  ec2: "EC2", ebs: "EBS", alb: "ALB", natGateway: "NAT Gateway", publicIpv4: "퍼블릭 IPv4", dataTransferOut: "데이터 전송",
+  rds: "RDS", lightsail: "Lightsail", s3: "S3", cloudfront: "CloudFront", amplify: "Amplify", lambda: "Lambda",
+  apiGatewayHttp: "API Gateway", dynamodb: "DynamoDB", fargate: "Fargate", route53: "Route 53",
+};
+const UNIT_NAMES = {
+  hourly: "시간당", multiAzHourly: "Multi-AZ 시간당", storagePerGbMonth: "저장 GB-월", perGbMonth: "GB-월", perGb: "GB당",
+  lcuHourly: "LCU-시간", perRequest: "요청당", putPerRequest: "업로드 요청당", getPerRequest: "조회 요청당",
+  httpsPerRequest: "HTTPS 요청당", buildPerMinute: "빌드 분당", servedPerGb: "전송 GB당", perGbSecondArm: "GB-초 (ARM)",
+  perReadUnit: "읽기당", perWriteUnit: "쓰기당", perVcpuHour: "vCPU-시간", perGbHour: "GB-시간", monthly: "월 정액",
+  hostedZoneMonthly: "호스팅 영역 월", comDomainYearly: ".com 도메인 연",
+};
+
+function changeLabel(item) {
+  const parts = item.split("/");
+  const service = SERVICE_NAMES[parts[0]] ?? parts[0];
+  const unit = UNIT_NAMES[parts.at(-1)] ?? parts.at(-1);
+  return [service, ...parts.slice(1, -1), unit].join(" · ");
+}
+
+function renderPriceChanges() {
+  document.title = "가격 변동 내역 · AWS 얼마야?";
+  const c = data.priceChanges;
+  const price = (v) => `$${+v.toPrecision(4)}`;
+  const rows = c?.changes ?? [];
+  app.innerHTML = `
+    <div class="page-head">
+      <a class="back" href="#/">‹ 처음으로</a>
+      <p class="step">📈 가격 변동</p>
+      <h1 class="page-title">지난 갱신 대비 바뀐 가격</h1>
+      <p class="page-sub">매주 월요일 AWS 공개 가격표를 다시 받아서 비교해요.</p>
+    </div>
+    <section class="card">
+      ${
+        c
+          ? `<p class="card-sub" style="margin:0 0 12px">${esc(c.previousUpdatedAt ?? "-")} → ${esc(c.updatedAt)} · 바뀐 단가 ${rows.length}건${
+              c.addedItems ? ` · 새로 추가된 항목 ${c.addedItems}개` : ""
+            }${c.removedItems ? ` · 없어진 항목 ${c.removedItems}개` : ""}</p>`
+          : ""
+      }
+      ${
+        rows.length
+          ? `<ul class="lines changes">${rows
+              .map((r) => {
+                const pct = ((r.new - r.old) / r.old) * 100;
+                return `<li><div class="change-row">
+                  <span><strong>${esc(regionName(r.region))}</strong> · ${esc(changeLabel(r.item))}</span>
+                  <span class="num">${price(r.old)} → ${price(r.new)} <span class="${pct > 0 ? "up" : "down"}">${pct > 0 ? "▲" : "▼"} ${Math.abs(pct).toFixed(1)}%</span></span>
+                </div></li>`;
+              })
+              .join("")}</ul>`
+          : `<div class="empty"><strong>바뀐 가격이 없어요</strong>지난 갱신과 단가가 모두 같아요.</div>`
+      }
+    </section>`;
+}
+
+// ---- 테마 (다크 모드) ----
+function effectiveTheme() {
+  return document.documentElement.dataset.theme || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+}
+
+function installThemeToggle() {
+  const btn = document.getElementById("theme-toggle");
+  if (!btn) return;
+  const sync = () => {
+    const dark = effectiveTheme() === "dark";
+    btn.textContent = dark ? "☀️" : "🌙";
+    btn.setAttribute("aria-label", dark ? "밝은 화면으로" : "어두운 화면으로");
+  };
+  btn.addEventListener("click", () => {
+    const next = effectiveTheme() === "dark" ? "light" : "dark";
+    document.documentElement.dataset.theme = next;
+    try {
+      localStorage.setItem("theme", next);
+    } catch {
+      /* 저장 실패는 무시 (이번 방문에만 적용) */
+    }
+    sync();
+  });
+  matchMedia("(prefers-color-scheme: dark)").addEventListener("change", sync);
+  sync();
 }
 
 // ---- 라우팅 ----
@@ -290,6 +461,8 @@ function route() {
   const template = section === "t" && data.templates.find((x) => x.id === templateId);
   const validResult = template && template.presets.some((p) => p.id === presetId) && data.prices.regions[regionId];
   if (section === "calc") renderCalculator(app, data);
+  else if (section === "glossary") renderGlossary(app);
+  else if (section === "prices") renderPriceChanges();
   else if (validResult) renderResult(template, presetId, regionId);
   else if (template) renderSetup(template);
   else renderHome();
@@ -297,13 +470,18 @@ function route() {
 }
 
 async function main() {
+  installThemeToggle();
   try {
-    const [prices, templates, settings] = await Promise.all([
+    const [prices, templates, settings, glossary, priceChanges] = await Promise.all([
       loadJson("data/prices.json"),
       loadJson("data/templates.json"),
       loadJson("data/settings.json"),
+      loadJson("data/glossary.json"),
+      loadJson("data/price-changes.json", true),
     ]);
-    data = { prices, templates: templates.templates, settings };
+    data = { prices, templates: templates.templates, settings, priceChanges };
+    setGlossary(glossary.terms);
+    installGlossaryHandlers();
     window.addEventListener("hashchange", route);
     route();
   } catch (err) {

@@ -41,7 +41,12 @@ export const FIELDS = {
   writes: { label: "월 DB 쓰기", type: "number", unit: "건", min: 0, step: 1000 },
   memoryMb: { label: "Lambda 메모리", type: "select", choices: [[128, "128MB"], [256, "256MB"], [512, "512MB"], [1024, "1GB"], [2048, "2GB"]] },
   durationMs: { label: "평균 실행 시간", type: "number", unit: "ms", min: 1, step: 10 },
+  // 도메인 (결과 화면에서는 '도메인' 칩으로 따로 켜고 끈다)
+  domain: { label: "도메인 연결", type: "select", choices: [[0, "포함 안 함"], [1, "포함 (.com)"]] },
 };
+
+/** 결과 화면 "값 직접 바꿔보기"에 보이지 않는 프리셋 값 (별도 UI로 다룸) */
+export const HIDDEN_ADJUST_FIELDS = new Set(["domain"]);
 
 /** 직접 계산기에서 추가할 수 있는 서비스. fields는 [필드 이름, 기본값] 목록. */
 export const SERVICES = [
@@ -60,6 +65,7 @@ export const SERVICES = [
   { type: "alb", icon: "⚖️", name: "로드밸런서 (ALB)", desc: "요청 분산", fields: [["count", 1, { label: "개수", unit: "개" }], ["lcu", 0.5]] },
   { type: "natGateway", icon: "🚧", name: "NAT Gateway", desc: "프라이빗 서브넷 인터넷 연결", fields: [["count", 1, { label: "개수", unit: "개" }], ["gb", 10, { label: "월 처리량" }]] },
   { type: "dataTransferOut", icon: "📤", name: "데이터 전송", desc: "인터넷으로 나가는 트래픽", fields: [["gb", 30]] },
+  { type: "domain", icon: "🔗", name: "도메인 (Route 53)", desc: ".com 주소 + DNS 연결", fields: [["count", 1, { label: "도메인 개수", unit: "개" }]] },
 ];
 
 /** 필드 정의 + 서비스별 덮어쓰기를 합친다. */

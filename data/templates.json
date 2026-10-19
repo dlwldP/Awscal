@@ -16,7 +16,8 @@
             "s3GetRequests": 10000,
             "putRequests": 1000,
             "egressGb": 5,
-            "buildMinutes": 30
+            "buildMinutes": 30,
+            "domain": 0
           },
           "assumptions": [
             "사이트 파일 1GB",
@@ -36,7 +37,8 @@
             "s3GetRequests": 100000,
             "putRequests": 2000,
             "egressGb": 30,
-            "buildMinutes": 60
+            "buildMinutes": 60,
+            "domain": 0
           },
           "assumptions": [
             "사이트 파일 2GB",
@@ -56,7 +58,8 @@
             "s3GetRequests": 1000000,
             "putRequests": 5000,
             "egressGb": 200,
-            "buildMinutes": 150
+            "buildMinutes": 150,
+            "domain": 0
           },
           "assumptions": [
             "사이트 파일 5GB",
@@ -92,7 +95,16 @@
               "type": "cloudfront",
               "gb": "{{preset.egressGb}}",
               "requests": "{{preset.requests}}"
+            },
+            {
+              "type": "domain",
+              "count": "{{preset.domain}}"
             }
+          ],
+          "difficulty": "보통",
+          "excluded": [
+            "CloudFront 캐시 무효화: 월 1,000건 넘으면 건당 과금",
+            "S3 버전 관리를 켜면 쌓이는 이전 버전 파일 저장 요금"
           ]
         },
         {
@@ -114,7 +126,17 @@
               "buildMinutes": "{{preset.buildMinutes}}",
               "storageGb": "{{preset.storageGb}}",
               "servedGb": "{{preset.egressGb}}"
+            },
+            {
+              "type": "domain",
+              "count": "{{preset.domain}}"
             }
+          ],
+          "difficulty": "쉬움",
+          "recommended": "Git 연결만 하면 빌드·배포·HTTPS까지 알아서 해줘요",
+          "excluded": [
+            "방화벽(WAF)을 켜면 월 $15 추가",
+            "서버 렌더링(SSR)을 쓰면 컴퓨팅 요금 추가"
           ]
         }
       ]
@@ -141,7 +163,8 @@
             "lightsailBundle": "1GB",
             "fargateVcpu": 0.25,
             "fargateMemoryGb": 0.5,
-            "fargateCount": 1
+            "fargateCount": 1,
+            "domain": 0
           },
           "assumptions": [
             "서버 1대 (t4g.micro / Fargate 0.25vCPU·0.5GB)",
@@ -167,7 +190,8 @@
             "lightsailBundle": "2GB",
             "fargateVcpu": 0.5,
             "fargateMemoryGb": 1,
-            "fargateCount": 1
+            "fargateCount": 1,
+            "domain": 0
           },
           "assumptions": [
             "서버 1대 (t4g.small / Fargate 0.5vCPU·1GB)",
@@ -193,7 +217,8 @@
             "lightsailBundle": "4GB",
             "fargateVcpu": 0.5,
             "fargateMemoryGb": 1,
-            "fargateCount": 2
+            "fargateCount": 2,
+            "domain": 0
           },
           "assumptions": [
             "서버 2대 + 로드밸런서(ALB) (t4g.small / Fargate 0.5vCPU·1GB)",
@@ -255,7 +280,17 @@
             {
               "type": "dataTransferOut",
               "gb": "{{preset.egressGb}}"
+            },
+            {
+              "type": "domain",
+              "count": "{{preset.domain}}"
             }
+          ],
+          "difficulty": "보통",
+          "excluded": [
+            "RDS 자동 백업: DB 용량만큼은 무료, 넘으면 과금",
+            "EBS 스냅샷(서버 백업) 저장 요금",
+            "CloudWatch 로그·상세 모니터링"
           ]
         },
         {
@@ -276,7 +311,18 @@
             {
               "type": "lightsail",
               "bundle": "{{preset.lightsailBundle}}"
+            },
+            {
+              "type": "domain",
+              "count": "{{preset.domain}}"
             }
+          ],
+          "difficulty": "쉬움",
+          "recommended": "서버 하나로 시작해서 요금이 고정이라 처음에 부담이 적어요",
+          "excluded": [
+            "번들 데이터 전송 허용량을 넘는 전송 요금",
+            "스냅샷(백업) 저장 요금",
+            "관리형 DB를 따로 쓰면 월 $15부터"
           ]
         },
         {
@@ -324,7 +370,18 @@
             {
               "type": "dataTransferOut",
               "gb": "{{preset.egressGb}}"
+            },
+            {
+              "type": "domain",
+              "count": "{{preset.domain}}"
             }
+          ],
+          "difficulty": "어려움",
+          "excluded": [
+            "ECR 도커 이미지 저장: GB당 월 $0.10",
+            "CloudWatch 로그 수집·저장",
+            "RDS 자동 백업 초과분",
+            "프라이빗 서브넷 구성 시 NAT Gateway"
           ]
         }
       ]
@@ -346,7 +403,8 @@
             "storageGb": 1,
             "egressGb": 1,
             "memoryMb": 256,
-            "durationMs": 100
+            "durationMs": 100,
+            "domain": 0
           },
           "assumptions": [
             "월 API 요청 10만 건",
@@ -367,7 +425,8 @@
             "storageGb": 1,
             "egressGb": 10,
             "memoryMb": 256,
-            "durationMs": 100
+            "durationMs": 100,
+            "domain": 0
           },
           "assumptions": [
             "월 API 요청 100만 건",
@@ -388,7 +447,8 @@
             "storageGb": 5,
             "egressGb": 100,
             "memoryMb": 256,
-            "durationMs": 100
+            "durationMs": 100,
+            "domain": 0
           },
           "assumptions": [
             "월 API 요청 1,000만 건",
@@ -434,7 +494,17 @@
             {
               "type": "dataTransferOut",
               "gb": "{{preset.egressGb}}"
+            },
+            {
+              "type": "domain",
+              "count": "{{preset.domain}}"
             }
+          ],
+          "difficulty": "보통",
+          "excluded": [
+            "CloudWatch 로그 수집·저장 (Lambda 로그)",
+            "DynamoDB 백업·스트림",
+            "API 사용자 지정 도메인을 쓰면 도메인 요금"
           ]
         }
       ]
@@ -454,7 +524,8 @@
             "ebsGb": 20,
             "egressGb": 5,
             "lightsailBundle": "1GB",
-            "hours": 730
+            "hours": 730,
+            "domain": 0
           },
           "assumptions": [
             "24시간 켜둠 (월 730시간)",
@@ -472,7 +543,8 @@
             "ebsGb": 30,
             "egressGb": 10,
             "lightsailBundle": "2GB",
-            "hours": 730
+            "hours": 730,
+            "domain": 0
           },
           "assumptions": [
             "24시간 켜둠 (월 730시간)",
@@ -490,7 +562,8 @@
             "ebsGb": 50,
             "egressGb": 30,
             "lightsailBundle": "4GB",
-            "hours": 730
+            "hours": 730,
+            "domain": 0
           },
           "assumptions": [
             "24시간 켜둠 (월 730시간)",
@@ -535,7 +608,16 @@
             {
               "type": "dataTransferOut",
               "gb": "{{preset.egressGb}}"
+            },
+            {
+              "type": "domain",
+              "count": "{{preset.domain}}"
             }
+          ],
+          "difficulty": "보통",
+          "excluded": [
+            "EBS 스냅샷(서버 백업) 저장 요금",
+            "CloudWatch 상세 모니터링"
           ]
         },
         {
@@ -554,7 +636,17 @@
             {
               "type": "lightsail",
               "bundle": "{{preset.lightsailBundle}}"
+            },
+            {
+              "type": "domain",
+              "count": "{{preset.domain}}"
             }
+          ],
+          "difficulty": "쉬움",
+          "recommended": "만들기가 가장 간단하고 요금이 고정이에요",
+          "excluded": [
+            "번들 데이터 전송 허용량을 넘는 전송 요금",
+            "스냅샷(백업) 저장 요금"
           ]
         }
       ]

@@ -10,6 +10,9 @@ import { calculateTemplate, formatUsd, HOURS_PER_MONTH, resolveResource } from "
 const load = (p) => JSON.parse(readFileSync(new URL(`../${p}`, import.meta.url)));
 const prices = load("data/prices.json");
 const { templates } = load("data/templates.json");
+const settings = load("data/settings.json");
+// MVP 완료 조건은 서울·버지니아 두 리전 기준이라 체크리스트도 두 리전만 만든다.
+const MVP_REGIONS = [settings.defaultRegion, settings.compareRegion];
 const resultsPath = new URL("../docs/validation-results.json", import.meta.url);
 // { "<템플릿>/<프리셋>/<리전>/<구성안>": 공식 계산기 월 금액(USD) }
 const official = existsSync(resultsPath) ? JSON.parse(readFileSync(resultsPath)) : {};
@@ -34,6 +37,7 @@ function describe(r) {
     case "lambda": return `Lambda: Arm, 요청 ${n(r.requests)}건, 실행 ${r.durationMs}ms, 메모리 ${r.memoryMb}MB, 임시 스토리지 512MB, 프리티어 미포함`;
     case "apiGatewayHttp": return `API Gateway HTTP API: 요청 ${n(r.requests)}건`;
     case "dynamodb": return `DynamoDB On-Demand: 쓰기 ${n(r.writes)}건, 읽기 ${n(r.reads)}건(Strongly consistent), 저장 ${r.storageGb}GB`;
+    case "domain": return `Route 53: 호스팅 영역 ${r.count}개 (도메인 등록비는 계산기에 없음, 연 $15 ÷ 12 별도)`;
     case "fargate": return `ECS Fargate: Linux/x86, 태스크 ${r.count}개, ${r.vcpu}vCPU, ${r.memoryGb}GB, 하루 24시간${hours(r)}`;
     default: return r.type;
   }
@@ -43,7 +47,7 @@ const out = [];
 const rows = [];
 for (const t of templates)
   for (const p of t.presets)
-    for (const region of Object.keys(prices.regions))
+    for (const region of MVP_REGIONS)
       for (const o of calculateTemplate(t, p.id, prices, region).options) {
         const key = `${t.id}/${p.id}/${region}/${o.id}`;
         const resources = o.resources.map((r) => resolveResource(r, p.values)).filter((r) => r.count !== 0);

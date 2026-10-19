@@ -96,14 +96,14 @@ function itemHtml(item, regionPrices) {
     </article>`;
 }
 
-function totalHtml(regionPrices, krwPerUsd) {
+function totalHtml(regionPrices, krwPerUsd, vatRate) {
   const results = state.items.map((i) => calcItem(i, regionPrices));
   const total = results.reduce((sum, r) => sum + (r.error ? 0 : r.totalUsd), 0);
   const errors = results.filter((r) => r.error).length;
   return `
     <span class="label">월 합계${errors ? ` <small class="item-error">(${errors}개 확인 필요)</small>` : ""}</span>
     <span><span class="usd num" style="display:block;text-align:right">${formatUsd(total)}</span>
-    <span class="krw num" style="display:block">${formatKrw(total, krwPerUsd)}</span></span>`;
+    <span class="krw num" style="display:block">${formatKrw(total, krwPerUsd, vatRate)} (부가세 포함)</span></span>`;
 }
 
 function servicePickerHtml() {
@@ -119,7 +119,7 @@ export function renderCalculator(app, data) {
   if (!data.prices.regions[state.region]) state.region = data.settings.defaultRegion;
   for (const item of state.items) item.invalid = undefined; // 다시 그리면 입력 칸이 저장된(올바른) 값으로 돌아간다
   const regionPrices = data.prices.regions[state.region];
-  const krwPerUsd = data.settings.exchangeRate.krwPerUsd;
+  const { krwPerUsd, vatRate } = data.settings.exchangeRate;
   document.title = "직접 계산하기 · AWS 얼마야?";
 
   app.innerHTML = `
@@ -146,13 +146,14 @@ export function renderCalculator(app, data) {
         <li>${esc(data.prices.regions[state.region].name)} 리전 온디맨드 요금, 한 달 = 730시간이에요.</li>
         <li>구간 요금은 첫 구간 단가만 써요. 프리티어·크레딧은 반영하지 않아요.</li>
         <li>가격 갱신일 ${esc(data.prices.updatedAt)} · 1달러 = ${krwPerUsd.toLocaleString("ko-KR")}원 고정 환율</li>
+        <li>달러는 부가세 별도, 원화는 부가세 10% 포함이에요 (한국 계정 청구 기준).</li>
       </ul>
     </section>
-    <div class="total-bar" id="total">${totalHtml(regionPrices, krwPerUsd)}</div>`;
+    <div class="total-bar" id="total">${totalHtml(regionPrices, krwPerUsd, vatRate)}</div>`;
 
   const rerender = () => renderCalculator(app, data);
   const itemsEl = app.querySelector("#items");
-  const updateTotal = () => (app.querySelector("#total").innerHTML = totalHtml(regionPrices, krwPerUsd));
+  const updateTotal = () => (app.querySelector("#total").innerHTML = totalHtml(regionPrices, krwPerUsd, vatRate));
 
   app.querySelectorAll(".chip[data-value]").forEach((b) =>
     b.addEventListener("click", () => {

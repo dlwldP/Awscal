@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-10-16",
+  "updatedAt": "2026-10-19",
   "source": "AWS Price List Bulk API (On-Demand, 첫 유료 구간 단가)",
   "currency": "USD",
   "regions": {
@@ -139,6 +139,300 @@
       "fargate": {
         "perVcpuHour": 0.04656,
         "perGbHour": 0.00511
+      },
+      "route53": {
+        "hostedZoneMonthly": 0.5,
+        "hostedZoneMonthlyUpTo": 25.0,
+        "comDomainYearly": 15.0,
+        "comDomainCheckedAt": "2026-10-19"
+      }
+    },
+    "ap-northeast-1": {
+      "name": "도쿄",
+      "ec2": {
+        "t4g.nano": {
+          "hourly": 0.0054
+        },
+        "t4g.micro": {
+          "hourly": 0.0108
+        },
+        "t4g.small": {
+          "hourly": 0.0216
+        },
+        "t4g.medium": {
+          "hourly": 0.0432
+        },
+        "t4g.large": {
+          "hourly": 0.0864
+        },
+        "t4g.xlarge": {
+          "hourly": 0.1728
+        },
+        "t3.micro": {
+          "hourly": 0.0136
+        },
+        "t3.small": {
+          "hourly": 0.0272
+        },
+        "t3.medium": {
+          "hourly": 0.0544
+        },
+        "t3.large": {
+          "hourly": 0.1088
+        }
+      },
+      "ebs": {
+        "gp3": {
+          "perGbMonth": 0.096
+        }
+      },
+      "alb": {
+        "hourly": 0.0243,
+        "lcuHourly": 0.008
+      },
+      "natGateway": {
+        "hourly": 0.062,
+        "perGb": 0.062
+      },
+      "publicIpv4": {
+        "hourly": 0.005
+      },
+      "dataTransferOut": {
+        "perGb": 0.114,
+        "perGbUpTo": 10240.0
+      },
+      "rds": {
+        "db.t4g.micro": {
+          "hourly": 0.025,
+          "multiAzHourly": 0.05,
+          "storagePerGbMonth": 0.138
+        },
+        "db.t4g.small": {
+          "hourly": 0.05,
+          "multiAzHourly": 0.101,
+          "storagePerGbMonth": 0.138
+        },
+        "db.t4g.medium": {
+          "hourly": 0.101,
+          "multiAzHourly": 0.202,
+          "storagePerGbMonth": 0.138
+        },
+        "db.t4g.large": {
+          "hourly": 0.202,
+          "multiAzHourly": 0.403,
+          "storagePerGbMonth": 0.138
+        },
+        "db.t3.micro": {
+          "hourly": 0.026,
+          "multiAzHourly": 0.052,
+          "storagePerGbMonth": 0.138
+        }
+      },
+      "lightsail": {
+        "0.5GB": {
+          "hourly": 0.00672,
+          "monthly": 5.0
+        },
+        "1GB": {
+          "hourly": 0.0094,
+          "monthly": 7.0
+        },
+        "2GB": {
+          "hourly": 0.01612,
+          "monthly": 12.0
+        },
+        "4GB": {
+          "hourly": 0.03225,
+          "monthly": 24.0
+        },
+        "8GB": {
+          "hourly": 0.05913,
+          "monthly": 44.0
+        }
+      },
+      "s3": {
+        "storagePerGbMonth": 0.025,
+        "storagePerGbMonthUpTo": 51200.0,
+        "putPerRequest": 4.7e-06,
+        "getPerRequest": 3.7e-07
+      },
+      "cloudfront": {
+        "perGb": 0.114,
+        "perGbUpTo": 10240.0,
+        "httpsPerRequest": 1.2e-06
+      },
+      "amplify": {
+        "buildPerMinute": 0.01,
+        "storagePerGbMonth": 0.023,
+        "servedPerGb": 0.15
+      },
+      "lambda": {
+        "perRequest": 2e-07,
+        "perGbSecondArm": 1.33334e-05,
+        "perGbSecondArmUpTo": 7500000000.0
+      },
+      "apiGatewayHttp": {
+        "perRequest": 1.29e-06,
+        "perRequestUpTo": 300000000.0
+      },
+      "dynamodb": {
+        "perReadUnit": 1.425e-07,
+        "perWriteUnit": 7.15e-07,
+        "storagePerGbMonth": 0.285
+      },
+      "fargate": {
+        "perVcpuHour": 0.05056,
+        "perGbHour": 0.00553
+      },
+      "route53": {
+        "hostedZoneMonthly": 0.5,
+        "hostedZoneMonthlyUpTo": 25.0,
+        "comDomainYearly": 15.0,
+        "comDomainCheckedAt": "2026-10-19"
+      }
+    },
+    "ap-southeast-1": {
+      "name": "싱가포르",
+      "ec2": {
+        "t4g.nano": {
+          "hourly": 0.0053
+        },
+        "t4g.micro": {
+          "hourly": 0.0106
+        },
+        "t4g.small": {
+          "hourly": 0.0212
+        },
+        "t4g.medium": {
+          "hourly": 0.0424
+        },
+        "t4g.large": {
+          "hourly": 0.0848
+        },
+        "t4g.xlarge": {
+          "hourly": 0.1696
+        },
+        "t3.micro": {
+          "hourly": 0.0132
+        },
+        "t3.small": {
+          "hourly": 0.0264
+        },
+        "t3.medium": {
+          "hourly": 0.0528
+        },
+        "t3.large": {
+          "hourly": 0.1056
+        }
+      },
+      "ebs": {
+        "gp3": {
+          "perGbMonth": 0.096
+        }
+      },
+      "alb": {
+        "hourly": 0.0252,
+        "lcuHourly": 0.008
+      },
+      "natGateway": {
+        "hourly": 0.059,
+        "perGb": 0.059
+      },
+      "publicIpv4": {
+        "hourly": 0.005
+      },
+      "dataTransferOut": {
+        "perGb": 0.12,
+        "perGbUpTo": 10240.0
+      },
+      "rds": {
+        "db.t4g.micro": {
+          "hourly": 0.025,
+          "multiAzHourly": 0.051,
+          "storagePerGbMonth": 0.138
+        },
+        "db.t4g.small": {
+          "hourly": 0.051,
+          "multiAzHourly": 0.102,
+          "storagePerGbMonth": 0.138
+        },
+        "db.t4g.medium": {
+          "hourly": 0.102,
+          "multiAzHourly": 0.203,
+          "storagePerGbMonth": 0.138
+        },
+        "db.t4g.large": {
+          "hourly": 0.203,
+          "multiAzHourly": 0.406,
+          "storagePerGbMonth": 0.138
+        },
+        "db.t3.micro": {
+          "hourly": 0.026,
+          "multiAzHourly": 0.052,
+          "storagePerGbMonth": 0.138
+        }
+      },
+      "lightsail": {
+        "0.5GB": {
+          "hourly": 0.00672,
+          "monthly": 5.0
+        },
+        "1GB": {
+          "hourly": 0.0094,
+          "monthly": 7.0
+        },
+        "2GB": {
+          "hourly": 0.01612,
+          "monthly": 12.0
+        },
+        "4GB": {
+          "hourly": 0.03225,
+          "monthly": 24.0
+        },
+        "8GB": {
+          "hourly": 0.05913,
+          "monthly": 44.0
+        }
+      },
+      "s3": {
+        "storagePerGbMonth": 0.025,
+        "storagePerGbMonthUpTo": 51200.0,
+        "putPerRequest": 5e-06,
+        "getPerRequest": 4e-07
+      },
+      "cloudfront": {
+        "perGb": 0.12,
+        "perGbUpTo": 10240.0,
+        "httpsPerRequest": 1.2e-06
+      },
+      "amplify": {
+        "buildPerMinute": 0.01,
+        "storagePerGbMonth": 0.023,
+        "servedPerGb": 0.15
+      },
+      "lambda": {
+        "perRequest": 2e-07,
+        "perGbSecondArm": 1.33334e-05,
+        "perGbSecondArmUpTo": 7500000000.0
+      },
+      "apiGatewayHttp": {
+        "perRequest": 1.25e-06,
+        "perRequestUpTo": 300000000.0
+      },
+      "dynamodb": {
+        "perReadUnit": 1.425e-07,
+        "perWriteUnit": 7.1e-07,
+        "storagePerGbMonth": 0.285
+      },
+      "fargate": {
+        "perVcpuHour": 0.05056,
+        "perGbHour": 0.00553
+      },
+      "route53": {
+        "hostedZoneMonthly": 0.5,
+        "hostedZoneMonthlyUpTo": 25.0,
+        "comDomainYearly": 15.0,
+        "comDomainCheckedAt": "2026-10-19"
       }
     },
     "us-east-1": {
@@ -277,6 +571,300 @@
       "fargate": {
         "perVcpuHour": 0.04048,
         "perGbHour": 0.004445
+      },
+      "route53": {
+        "hostedZoneMonthly": 0.5,
+        "hostedZoneMonthlyUpTo": 25.0,
+        "comDomainYearly": 15.0,
+        "comDomainCheckedAt": "2026-10-19"
+      }
+    },
+    "us-west-2": {
+      "name": "오레곤",
+      "ec2": {
+        "t4g.nano": {
+          "hourly": 0.0042
+        },
+        "t4g.micro": {
+          "hourly": 0.0084
+        },
+        "t4g.small": {
+          "hourly": 0.0168
+        },
+        "t4g.medium": {
+          "hourly": 0.0336
+        },
+        "t4g.large": {
+          "hourly": 0.0672
+        },
+        "t4g.xlarge": {
+          "hourly": 0.1344
+        },
+        "t3.micro": {
+          "hourly": 0.0104
+        },
+        "t3.small": {
+          "hourly": 0.0208
+        },
+        "t3.medium": {
+          "hourly": 0.0416
+        },
+        "t3.large": {
+          "hourly": 0.0832
+        }
+      },
+      "ebs": {
+        "gp3": {
+          "perGbMonth": 0.08
+        }
+      },
+      "alb": {
+        "hourly": 0.0225,
+        "lcuHourly": 0.008
+      },
+      "natGateway": {
+        "hourly": 0.045,
+        "perGb": 0.045
+      },
+      "publicIpv4": {
+        "hourly": 0.005
+      },
+      "dataTransferOut": {
+        "perGb": 0.09,
+        "perGbUpTo": 10240.0
+      },
+      "rds": {
+        "db.t4g.micro": {
+          "hourly": 0.016,
+          "multiAzHourly": 0.032,
+          "storagePerGbMonth": 0.115
+        },
+        "db.t4g.small": {
+          "hourly": 0.032,
+          "multiAzHourly": 0.065,
+          "storagePerGbMonth": 0.115
+        },
+        "db.t4g.medium": {
+          "hourly": 0.065,
+          "multiAzHourly": 0.129,
+          "storagePerGbMonth": 0.115
+        },
+        "db.t4g.large": {
+          "hourly": 0.129,
+          "multiAzHourly": 0.258,
+          "storagePerGbMonth": 0.115
+        },
+        "db.t3.micro": {
+          "hourly": 0.017,
+          "multiAzHourly": 0.034,
+          "storagePerGbMonth": 0.115
+        }
+      },
+      "lightsail": {
+        "0.5GB": {
+          "hourly": 0.00672,
+          "monthly": 5.0
+        },
+        "1GB": {
+          "hourly": 0.0094,
+          "monthly": 7.0
+        },
+        "2GB": {
+          "hourly": 0.01612,
+          "monthly": 12.0
+        },
+        "4GB": {
+          "hourly": 0.03225,
+          "monthly": 24.0
+        },
+        "8GB": {
+          "hourly": 0.05913,
+          "monthly": 44.0
+        }
+      },
+      "s3": {
+        "storagePerGbMonth": 0.023,
+        "storagePerGbMonthUpTo": 51200.0,
+        "putPerRequest": 5e-06,
+        "getPerRequest": 4e-07
+      },
+      "cloudfront": {
+        "perGb": 0.085,
+        "perGbUpTo": 10240.0,
+        "httpsPerRequest": 1e-06
+      },
+      "amplify": {
+        "buildPerMinute": 0.01,
+        "storagePerGbMonth": 0.023,
+        "servedPerGb": 0.15
+      },
+      "lambda": {
+        "perRequest": 2e-07,
+        "perGbSecondArm": 1.33334e-05,
+        "perGbSecondArmUpTo": 7500000000.0
+      },
+      "apiGatewayHttp": {
+        "perRequest": 1e-06,
+        "perRequestUpTo": 300000000.0
+      },
+      "dynamodb": {
+        "perReadUnit": 1.25e-07,
+        "perWriteUnit": 6.25e-07,
+        "storagePerGbMonth": 0.25
+      },
+      "fargate": {
+        "perVcpuHour": 0.04048,
+        "perGbHour": 0.004445
+      },
+      "route53": {
+        "hostedZoneMonthly": 0.5,
+        "hostedZoneMonthlyUpTo": 25.0,
+        "comDomainYearly": 15.0,
+        "comDomainCheckedAt": "2026-10-19"
+      }
+    },
+    "eu-central-1": {
+      "name": "프랑크푸르트",
+      "ec2": {
+        "t4g.nano": {
+          "hourly": 0.0048
+        },
+        "t4g.micro": {
+          "hourly": 0.0096
+        },
+        "t4g.small": {
+          "hourly": 0.0192
+        },
+        "t4g.medium": {
+          "hourly": 0.0384
+        },
+        "t4g.large": {
+          "hourly": 0.0768
+        },
+        "t4g.xlarge": {
+          "hourly": 0.1536
+        },
+        "t3.micro": {
+          "hourly": 0.012
+        },
+        "t3.small": {
+          "hourly": 0.024
+        },
+        "t3.medium": {
+          "hourly": 0.048
+        },
+        "t3.large": {
+          "hourly": 0.096
+        }
+      },
+      "ebs": {
+        "gp3": {
+          "perGbMonth": 0.0952
+        }
+      },
+      "alb": {
+        "hourly": 0.027,
+        "lcuHourly": 0.008
+      },
+      "natGateway": {
+        "hourly": 0.052,
+        "perGb": 0.052
+      },
+      "publicIpv4": {
+        "hourly": 0.005
+      },
+      "dataTransferOut": {
+        "perGb": 0.09,
+        "perGbUpTo": 10240.0
+      },
+      "rds": {
+        "db.t4g.micro": {
+          "hourly": 0.019,
+          "multiAzHourly": 0.037,
+          "storagePerGbMonth": 0.137
+        },
+        "db.t4g.small": {
+          "hourly": 0.037,
+          "multiAzHourly": 0.074,
+          "storagePerGbMonth": 0.137
+        },
+        "db.t4g.medium": {
+          "hourly": 0.074,
+          "multiAzHourly": 0.149,
+          "storagePerGbMonth": 0.137
+        },
+        "db.t4g.large": {
+          "hourly": 0.149,
+          "multiAzHourly": 0.298,
+          "storagePerGbMonth": 0.137
+        },
+        "db.t3.micro": {
+          "hourly": 0.02,
+          "multiAzHourly": 0.04,
+          "storagePerGbMonth": 0.137
+        }
+      },
+      "lightsail": {
+        "0.5GB": {
+          "hourly": 0.00672,
+          "monthly": 5.0
+        },
+        "1GB": {
+          "hourly": 0.0094,
+          "monthly": 7.0
+        },
+        "2GB": {
+          "hourly": 0.01612,
+          "monthly": 12.0
+        },
+        "4GB": {
+          "hourly": 0.03225,
+          "monthly": 24.0
+        },
+        "8GB": {
+          "hourly": 0.05913,
+          "monthly": 44.0
+        }
+      },
+      "s3": {
+        "storagePerGbMonth": 0.0245,
+        "storagePerGbMonthUpTo": 51200.0,
+        "putPerRequest": 5.4e-06,
+        "getPerRequest": 4.3e-07
+      },
+      "cloudfront": {
+        "perGb": 0.085,
+        "perGbUpTo": 10240.0,
+        "httpsPerRequest": 1.2e-06
+      },
+      "amplify": {
+        "buildPerMinute": 0.01,
+        "storagePerGbMonth": 0.023,
+        "servedPerGb": 0.15
+      },
+      "lambda": {
+        "perRequest": 2e-07,
+        "perGbSecondArm": 1.33334e-05,
+        "perGbSecondArmUpTo": 7500000000.0
+      },
+      "apiGatewayHttp": {
+        "perRequest": 1.2e-06,
+        "perRequestUpTo": 300000000.0
+      },
+      "dynamodb": {
+        "perReadUnit": 1.525e-07,
+        "perWriteUnit": 7.625e-07,
+        "storagePerGbMonth": 0.306
+      },
+      "fargate": {
+        "perVcpuHour": 0.04656,
+        "perGbHour": 0.00511
+      },
+      "route53": {
+        "hostedZoneMonthly": 0.5,
+        "hostedZoneMonthlyUpTo": 25.0,
+        "comDomainYearly": 15.0,
+        "comDomainCheckedAt": "2026-10-19"
       }
     }
   }

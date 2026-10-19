@@ -35,8 +35,9 @@ export function formatUsd(usd) {
   return "$" + usd.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
-export function formatKrw(usd, krwPerUsd) {
-  const krw = usd * krwPerUsd;
+/** 원화 표시. vatRate를 주면 부가세를 더한다 (한국 계정은 AWS 청구액에 부가세 10%가 붙는다). */
+export function formatKrw(usd, krwPerUsd, vatRate = 0) {
+  const krw = usd * krwPerUsd * (1 + vatRate);
   if (krw > 0 && krw < 10) return "10원 미만";
   return "약 " + Math.round(krw).toLocaleString("ko-KR") + "원";
 }
@@ -382,6 +383,30 @@ const CALCULATORS = {
           usd: perGb * r.storageGb,
           detail: `${unitPrice(perGb, "GB-월")} × ${num(r.storageGb)}GB`,
           why: "테이블에 저장된 데이터 용량 요금이에요.",
+        },
+      ],
+      warnings: [],
+    };
+  },
+
+  domain(r, p) {
+    const zone = price(p, "route53", "hostedZoneMonthly");
+    const yearly = price(p, "route53", "comDomainYearly");
+    return {
+      lines: [
+        {
+          service: "도메인",
+          label: `도메인 등록 (.com) × ${r.count}`,
+          usd: (yearly / 12) * r.count,
+          detail: `연 ${formatUsd(yearly)} ÷ 12개월 × ${r.count}`,
+          why: "example.com 같은 주소를 1년 단위로 사는 비용이에요. 한 달 요금으로 나눠서 보여줘요 (.com 기준, 도메인 종류마다 달라요).",
+        },
+        {
+          service: "도메인",
+          label: `Route 53 호스팅 영역 × ${r.count}`,
+          usd: zone * r.count,
+          detail: `${unitPrice(zone, "월")} × ${r.count}`,
+          why: "도메인을 서버·CloudFront 주소에 연결해주는 DNS 설정 묶음이에요. 도메인 하나당 하나씩 필요해요.",
         },
       ],
       warnings: [],

@@ -28,6 +28,8 @@ jobs:
         with:
           node-version: 22
       - run: npm test
+      - name: 가격 수집 스크립트 테스트
+        run: python3 -m unittest discover -s tests -p "test_*.py"
 
   deploy:
     needs: test
@@ -39,10 +41,14 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.ref_name }}
-      - name: 배포할 파일만 모으기
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: 배포할 파일 모으기 + 검색용 소개 페이지 생성
         run: |
           mkdir _site
-          cp -r index.html css js data _site/
+          cp -r index.html css js data assets _site/
+          node scripts/build-pages.js _site
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

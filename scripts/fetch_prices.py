@@ -24,9 +24,20 @@ HOURS_LIGHTSAIL_MONTH = 744  # Lightsail 번들 월 요금 = 시간당 요금 x 
 REGIONS = {
     # 리전 코드: CloudFront 엣지 요금 지역 (해당 리전 사용자가 주로 접속하는 엣지 기준)
     # usagePrefix: usageType 앞에 붙는 리전 접두사 (us-east-1은 접두사가 없는 경우도 있음)
+    # 화면의 리전 순서도 이 순서를 따른다.
     "ap-northeast-2": {"name": "서울", "cloudfrontPrefix": "AP", "usagePrefix": "APN2"},
+    "ap-northeast-1": {"name": "도쿄", "cloudfrontPrefix": "JP", "usagePrefix": "APN1"},
+    "ap-southeast-1": {"name": "싱가포르", "cloudfrontPrefix": "AP", "usagePrefix": "APS1"},
     "us-east-1": {"name": "버지니아 북부", "cloudfrontPrefix": "US", "usagePrefix": "USE1"},
+    "us-west-2": {"name": "오레곤", "cloudfrontPrefix": "US", "usagePrefix": "USW2"},
+    "eu-central-1": {"name": "프랑크푸르트", "cloudfrontPrefix": "EU", "usagePrefix": "EUC1"},
 }
+
+# 도메인 등록비는 Price List API에 없어서 Route 53 도메인 요금표(.com 기준)를 직접 적는다.
+# Route 53 개발자 안내서의 "Domains that you can register" 표에서 확인하고, 바뀌면 값과 날짜를 고친다.
+DOMAIN_COM_YEARLY_USD = 15.0
+DOMAIN_PRICE_CHECKED_AT = "2026-10-19"
+GLOBAL_OFFERS = {"AmazonCloudFront", "AmazonRoute53"}  # 리전 파일이 아니라 글로벌 파일에 요금이 있는 서비스
 
 # 직접 계산기에서 고를 수 있는 목록이기도 하다. 늘리면 화면 선택지도 자동으로 늘어난다.
 EC2_INSTANCES = ["t4g.nano", "t4g.micro", "t4g.small", "t4g.medium", "t4g.large", "t4g.xlarge",
@@ -76,6 +87,7 @@ def spec(cf):
         ("dynamodb.storagePerGbMonth", "AmazonDynamoDB", "TimedStorage-ByteHrs", {}),
         ("fargate.perVcpuHour", "AmazonECS", "Fargate-vCPU-Hours:perCPU", {}),
         ("fargate.perGbHour", "AmazonECS", "Fargate-GB-Hours", {}),
+        ("route53.hostedZoneMonthly", "AmazonRoute53", "=HostedZone", {}),
     ]
     return s
 
@@ -98,7 +110,7 @@ def stream_csv(url):
 
 
 def offer_url(offer, region):
-    if offer == "AmazonCloudFront":  # CloudFront는 글로벌 파일에 엣지 지역별 요금이 있음
+    if offer in GLOBAL_OFFERS:
         return f"{BASE}/{offer}/current/index.csv"
     return f"{BASE}/{offer}/current/{region}/index.csv"
 
@@ -173,15 +185,51 @@ def build():
         for bundle in data["lightsail"].values():
             # 시간당 단가가 잘려서 공개되므로 센트 단위 올림 (0.0094 x 744 = 6.9936 → $7.00)
             bundle["monthly"] = math.ceil(bundle["hourly"] * HOURS_LIGHTSAIL_MONTH * 100) / 100
+        data["route53"]["comDomainYearly"] = DOMAIN_COM_YEARLY_USD
+        data["route53"]["comDomainCheckedAt"] = DOMAIN_PRICE_CHECKED_AT
         out["regions"][region] = data
     return out
 
 
+def flatten(obj, prefix=""):
+    """{'ec2': {'t4g.micro': {'hourly': 1}}} → {'ec2/t4g.micro/hourly': 1}. 숫자 단가만 남긴다."""
+    out = {}
+    for key, value in obj.items():
+        path = f"{prefix}/{key}" if prefix else key
+        if isinstance(value, dict):
+            out.update(flatten(value, path))
+        elif isinstance(value, (int, float)) and not key.endswith("UpTo"):
+            out[path] = value
+    return out
+
+
+def diff_prices(old, new):
+    """지난 갱신 대비 단가가 바뀐 항목. 새로 추가되거나 없어진 항목(리전·인스턴스 추가 등)은 개수만 센다."""
+    changes, added, removed = [], 0, 0
+    for region in new["regions"].keys() | old.get("regions", {}).keys():
+        before = flatten(old.get("regions", {}).get(region, {}))
+        after = flatten(new["regions"].get(region, {}))
+        added += len(after.keys() - before.keys())
+        removed += len(before.keys() - after.keys())
+        for path in sorted(before.keys() & after.keys()):
+            if before[path] != after[path]:
+                changes.append({"region": region, "item": path, "old": before[path], "new": after[path]})
+    changes.sort(key=lambda c: (c["region"], c["item"]))
+    return {"updatedAt": new["updatedAt"], "previousUpdatedAt": old.get("updatedAt"),
+            "changes": changes, "addedItems": added, "removedItems": removed}
+
+
 def main():
-    target = Path(sys.argv[1] if len(sys.argv) > 1 else Path(__file__).resolve().parent.parent / "data" / "prices.json")
+    data_dir = Path(__file__).resolve().parent.parent / "data"
+    target = Path(sys.argv[1]) if len(sys.argv) > 1 else data_dir / "prices.json"
+    old = json.loads(target.read_text(encoding="utf-8")) if target.exists() else {}
     prices = build()
     target.write_text(json.dumps(prices, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(f"wrote {target}", file=sys.stderr)
+    if old:  # 첫 수집이면 비교할 대상이 없다
+        changes = diff_prices(old, prices)
+        (target.parent / "price-changes.json").write_text(json.dumps(changes, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        print(f"price changes: {len(changes['changes'])} (added {changes['addedItems']}, removed {changes['removedItems']})", file=sys.stderr)
 
 
 if __name__ == "__main__":

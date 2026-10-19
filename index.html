@@ -3,10 +3,27 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>AWS 얼마야?</title>
-  <meta name="description" content="만들고 싶은 걸 고르면 필요한 AWS 구성과 예상 월 비용을 쉽게 알려드려요. AWS 계정 없이 무료로 쓸 수 있어요.">
-  <meta name="theme-color" content="#ffffff">
+  <title>AWS 얼마야? · 초보자용 AWS 비용 계산기</title>
+  <meta name="description" content="만들고 싶은 걸 고르면 필요한 AWS 구성과 예상 월 비용을 쉽게 알려드려요. 숨은 비용까지, AWS 계정 없이 무료로.">
+  <link rel="canonical" href="https://dlwldp.github.io/Awscal/">
+  <!-- 카카오톡·슬랙 등 링크 미리보기 -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="AWS 얼마야?">
+  <meta property="og:title" content="AWS 얼마야? · 초보자용 AWS 비용 계산기">
+  <meta property="og:description" content="만들고 싶은 걸 고르면 필요한 AWS 구성과 월 비용을 비교해드려요. 숨은 비용까지, 계정 없이 무료로.">
+  <meta property="og:url" content="https://dlwldp.github.io/Awscal/">
+  <meta property="og:image" content="https://dlwldp.github.io/Awscal/assets/og.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:locale" content="ko_KR">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#111215" media="(prefers-color-scheme: dark)">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💸</text></svg>">
+  <script>
+    // 화면이 깜빡이지 않도록 그리기 전에 저장된 테마를 적용한다.
+    try { var t = localStorage.getItem("theme"); if (t === "dark" || t === "light") document.documentElement.dataset.theme = t; } catch (e) {}
+  </script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
   <link rel="stylesheet" href="css/styles.css">
 </head>
@@ -17,6 +34,7 @@
       <nav class="topnav">
         <a href="#/" data-nav="home">구성 추천</a>
         <a href="#/calc" data-nav="calc">직접 계산</a>
+        <button type="button" class="theme-btn" id="theme-toggle" aria-label="화면 테마 바꾸기">🌙</button>
       </nav>
     </div>
   </header>
@@ -27,7 +45,17 @@
 
   <footer class="site-footer container">
     AWS 계정 연동 없이 공개 가격표(AWS Price List API)로 계산한 예상치예요. 실제 청구액과 다를 수 있어요.
-    · <a href="https://github.com/dlwldP/Awscal" target="_blank" rel="noopener">GitHub</a>
+    <!-- 검색엔진이 따라갈 수 있도록 정적 링크로 둔다 (pages/는 배포할 때 생성) -->
+    <nav aria-label="바로가기">
+      <a href="pages/static-website.html">정적 웹사이트 비용</a>
+      <a href="pages/backend-webapp.html">백엔드 웹앱 비용</a>
+      <a href="pages/serverless-api.html">서버리스 API 비용</a>
+      <a href="pages/dev-server.html">개발용 서버 비용</a>
+      <a href="#/glossary">용어 사전</a>
+      <a href="#/prices">가격 변동 내역</a>
+      <a href="https://github.com/dlwldP/Awscal/issues/new" target="_blank" rel="noopener">의견 보내기</a>
+      <a href="https://github.com/dlwldP/Awscal" target="_blank" rel="noopener">GitHub</a>
+    </nav>
   </footer>
 
   <script type="module" src="js/app.js"></script>

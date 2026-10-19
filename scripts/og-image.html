@@ -1,0 +1,39 @@
+<!doctype html>
+<!-- 링크 미리보기 이미지(assets/og.png, 1200×630) 원본.
+     다시 만들 때: 브라우저로 이 파일을 1200×630 크기로 열고 화면을 캡처해 assets/og.png로 저장한다. -->
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<style>
+  * { box-sizing: border-box; margin: 0; }
+  body { width: 1200px; height: 630px; background: #f2f4f6; font-family: "Pretendard Variable", Pretendard, "Apple SD Gothic Neo", "Noto Sans CJK KR", sans-serif; color: #191f28; display: flex; align-items: center; padding: 0 80px; gap: 56px; word-break: keep-all; }
+  .left { flex: 1; }
+  .logo { font-size: 30px; font-weight: 800; margin-bottom: 28px; }
+  h1 { font-size: 66px; line-height: 1.25; font-weight: 800; letter-spacing: -0.02em; }
+  h1 em { font-style: normal; color: #3182f6; }
+  p { margin-top: 24px; font-size: 28px; color: #4e5968; line-height: 1.5; }
+  .card { width: 400px; background: #fff; border-radius: 32px; padding: 36px; box-shadow: 0 16px 48px rgba(0,0,0,.08); }
+  .label { color: #8b95a1; font-size: 22px; }
+  .big { font-size: 56px; font-weight: 800; margin: 6px 0 24px; }
+  .row { display: flex; justify-content: space-between; font-size: 22px; margin-top: 14px; }
+  .bar { height: 12px; border-radius: 99px; background: #f2f4f6; margin-top: 8px; overflow: hidden; }
+  .bar i { display: block; height: 100%; border-radius: 99px; background: #b0c8f0; }
+  .best i { background: #3182f6; } .best span:last-child { color: #3182f6; font-weight: 700; }
+</style>
+</head>
+<body>
+  <div class="left">
+    <div class="logo">💸 AWS 얼마야?</div>
+    <h1>AWS, 한 달에<br><em>얼마</em> 나올까요?</h1>
+    <p>만들고 싶은 걸 고르면 구성과 월 비용을<br>쉽게 비교해드려요. 숨은 비용까지.</p>
+  </div>
+  <div class="card">
+    <div class="label">백엔드 웹앱 · 개인용</div>
+    <div class="big">월 $7.00</div>
+    <div class="row"><span>EC2 + RDS</span><span>$34.57</span></div><div class="bar"><i style="width:97%"></i></div>
+    <div class="row best"><span>Lightsail</span><span>$7.00</span></div><div class="bar best"><i style="width:20%"></i></div>
+    <div class="row"><span>Fargate + RDS</span><span>$35.51</span></div><div class="bar"><i style="width:100%"></i></div>
+  </div>
+</body>
+</html>
