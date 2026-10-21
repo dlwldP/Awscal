@@ -223,7 +223,8 @@ function barsHtml(options) {
 
 const DIFFICULTY_CLASS = { 쉬움: "tag-easy", 보통: "tag-mid", 어려움: "tag-hard" };
 
-/** main이 있으면 맨 위에 크게 보여주는 구성이다 ({ cheapest }: 더 싼 방법이 따로 있으면 알려준다). */
+/** main이 있으면 맨 위에 크게 보여주는 구성이다 ({ cheapest }: 더 싼 방법이 따로 있으면 알려준다).
+ * 난이도 배지는 "처음이라면 이걸로"와 겹쳐서 접힌 "다른 방법" 카드에서만 보여준다. */
 function optionHtml(o, compareRegionId, values, regionPrices, main = null) {
   const excluded = domainOn ? o.excluded : [...o.excluded, "도메인 주소 (위 '바꾸기'에서 도메인을 켜면 포함돼요)"];
   return `
@@ -233,7 +234,7 @@ function optionHtml(o, compareRegionId, values, regionPrices, main = null) {
         <h3 class="option-name">${esc(o.name)}</h3>
         ${o.recommended && !main ? '<span class="tag tag-blue">처음이라면 추천</span>' : ""}
         ${o.isCheapest ? '<span class="tag tag-green">가장 저렴</span>' : ""}
-        ${o.difficulty ? `<span class="tag ${DIFFICULTY_CLASS[o.difficulty] ?? ""}">난이도 ${esc(o.difficulty)}</span>` : ""}
+        ${o.difficulty && !main ? `<span class="tag ${DIFFICULTY_CLASS[o.difficulty] ?? ""}">난이도 ${esc(o.difficulty)}</span>` : ""}
       </div>
       <p class="option-summary">${esc(o.summary)}</p>
       <div class="amount num">${formatUsd(o.totalUsd)} <small>/ 월</small></div>
