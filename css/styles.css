@@ -200,6 +200,16 @@ main { padding-bottom: 48px; }
 .features .ico { flex: none; width: 36px; height: 36px; border-radius: 12px; background: var(--bg); display: grid; place-items: center; }
 .features small { color: var(--muted); font-weight: 500; }
 #templates { scroll-margin-top: 72px; }
+/* 넓은 화면(PC)에서는 메인만 폭을 넓혀 두 칸으로 놓는다. 휴대폰은 지금처럼 세로 한 줄. */
+@media (min-width: 900px) {
+  body:has(.home-grid) .container { max-width: 1000px; }
+  .hero { max-width: 720px; }
+  .home-intro { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+  .home-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 12px; align-items: start; }
+  .home-intro > .card, .home-grid > .card, .home-side > .card:last-child { margin-bottom: 0; }
+  .home-side { display: grid; gap: 12px; }
+  .home-grid { margin-bottom: 12px; }
+}
 .trust { display: flex; flex-wrap: wrap; gap: 8px; padding: 4px 4px 0; color: var(--muted); font-size: 0.88rem; }
 .trust span::before { content: "✓ "; color: var(--blue); font-weight: 700; }
 

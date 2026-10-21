@@ -72,6 +72,7 @@ function renderHome() {
       <button type="button" class="btn btn-primary hero-cta" id="go-templates">무엇을 만들지 고르기 ↓</button>
     </section>
 
+    <div class="home-intro">
     <section class="card">
       <h2 class="card-title">이렇게 써요</h2>
       <ol class="how-steps">
@@ -89,7 +90,9 @@ function renderHome() {
         <li><span class="ico" aria-hidden="true">✅</span><span>만든 다음 꼭 할 일</span></li>
       </ul>
     </section>
+    </div>
 
+    <div class="home-grid">
     <section class="card" id="templates">
       <h2 class="card-title">무엇을 만들고 싶나요?</h2>
       <p class="card-sub">고르면 구성 2~3가지를 비교해드려요</p>
@@ -107,6 +110,7 @@ function renderHome() {
       </ul>
     </section>
 
+    <div class="home-side">
     <section class="card">
       <h2 class="card-title">더 알아보기</h2>
       <ul class="list">
@@ -143,6 +147,8 @@ function renderHome() {
         </a></li>
       </ul>
     </section>
+    </div>
+    </div>
 
     <div class="trust">
       <span>가격 매주 자동 갱신 (${esc(data.prices.updatedAt)}) · <a href="#/prices">변동 내역${
