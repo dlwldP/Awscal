@@ -161,7 +161,7 @@ function renderSetup(template) {
           <legend class="card-title" style="margin-bottom:12px">어디에 만들까요?</legend>
           ${regionList(data.prices)
             .map((r) => {
-              const html = choice("region", r.id, `${r.name} (${r.id})`, REGION_HINTS[r.id] ?? "", r.id === data.settings.defaultRegion);
+              const html = choice("region", r.id, r.name, REGION_HINTS[r.id] ?? "", r.id === data.settings.defaultRegion);
               return primaryRegions().includes(r.id) ? html : html.replace('<label class="choice">', '<label class="choice" hidden>');
             })
             .join("")}
@@ -178,29 +178,36 @@ function renderSetup(template) {
 }
 
 // ---- 결과 ----
-function summaryHtml(options) {
-  const cheapest = options.find((o) => o.isCheapest) ?? options[0];
-  const rec = options.find((o) => o.recommended);
-  const lead = options.length > 1 ? `가장 저렴한 건 <strong>${esc(cheapest.name)}</strong>예요` : `${esc(cheapest.name)}로 만들면`;
-  return `
-    <p class="card-sub" style="margin:0 0 4px">${lead}</p>
-    <div class="summary-amount num">월 ${formatUsd(cheapest.totalUsd)}</div>
-    <div class="summary-krw num">${krw(cheapest.totalUsd)}</div>
-    ${
-      rec && options.length > 1
-        ? `<div class="recommend">
-            <span class="tag tag-blue">처음이라면 추천</span>
-            <span><strong>${esc(rec.name)}</strong> · 월 ${formatUsd(rec.totalUsd)}<br><span class="recommend-why">${esc(rec.recommended)}</span></span>
-          </div>`
-        : ""
-    }`;
+/** 처음 보여줄 구성: 추천이 있으면 추천, 없으면 가장 저렴한 것. 나머지는 "다른 방법"으로 접는다. */
+const mainOptionOf = (options) => options.find((o) => o.recommended) ?? options.find((o) => o.isCheapest) ?? options[0];
+
+function optionsHtml(options, compareRegionId, values, regionPrices) {
+  const main = mainOptionOf(options);
+  const cheapest = options.find((o) => o.isCheapest);
+  const others = options.filter((o) => o !== main);
+  const card = (o) => optionHtml(o, compareRegionId, values, regionPrices, o === main ? { cheapest } : null);
+  return `${card(main)}${
+    others.length
+      ? `<details class="others" data-key="others">
+          <summary>다른 방법 ${others.length}가지도 보기</summary>
+          <section class="card">
+            <h2 class="card-title">구성별 비교</h2>
+            ${barsHtml(options)}
+          </section>
+          ${others.map(card).join("")}
+        </details>`
+      : ""
+  }`;
+}
+
+/** 위쪽 한 줄 요약: "개인용 · 서울 · 도메인 없음" */
+function settingsText(preset, regionId) {
+  return `${esc(preset.name)} · ${esc(regionName(regionId))} · 도메인 ${domainOn ? "포함" : "없음"}`;
 }
 
 function barsHtml(options) {
-  if (options.length < 2) return "";
   const max = Math.max(...options.map((o) => o.totalUsd), 0.01);
   return `
-    <div class="section-label" style="margin-top:20px">구성별 비교</div>
     <div class="bars" aria-label="구성안별 월 비용 비교">
       ${options
         .map(
@@ -216,13 +223,15 @@ function barsHtml(options) {
 
 const DIFFICULTY_CLASS = { 쉬움: "tag-easy", 보통: "tag-mid", 어려움: "tag-hard" };
 
-function optionHtml(o, compareRegionId, values, regionPrices) {
-  const excluded = domainOn ? o.excluded : [...o.excluded, "도메인 주소 (위 '도메인'에서 켜면 포함돼요)"];
+/** main이 있으면 맨 위에 크게 보여주는 구성이다 ({ cheapest }: 더 싼 방법이 따로 있으면 알려준다). */
+function optionHtml(o, compareRegionId, values, regionPrices, main = null) {
+  const excluded = domainOn ? o.excluded : [...o.excluded, "도메인 주소 (위 '바꾸기'에서 도메인을 켜면 포함돼요)"];
   return `
-    <article class="card">
+    <article class="card ${main ? "option-main" : ""}">
+      ${main ? `<p class="pick-label">${o.recommended ? "처음이라면 이걸로" : "이렇게 만들면"}</p>` : ""}
       <div class="option-head">
         <h3 class="option-name">${esc(o.name)}</h3>
-        ${o.recommended ? '<span class="tag tag-blue">처음이라면 추천</span>' : ""}
+        ${o.recommended && !main ? '<span class="tag tag-blue">처음이라면 추천</span>' : ""}
         ${o.isCheapest ? '<span class="tag tag-green">가장 저렴</span>' : ""}
         ${o.difficulty ? `<span class="tag ${DIFFICULTY_CLASS[o.difficulty] ?? ""}">난이도 ${esc(o.difficulty)}</span>` : ""}
       </div>
@@ -232,6 +241,12 @@ function optionHtml(o, compareRegionId, values, regionPrices) {
       ${
         o.compareTotalUsd !== undefined
           ? `<div class="amount-compare num">${esc(regionName(compareRegionId))}에 만들면 ${formatUsd(o.compareTotalUsd)}</div>`
+          : ""
+      }
+      ${main && o.recommended ? `<p class="recommend-why">💡 ${esc(o.recommended)}</p>` : ""}
+      ${
+        main?.cheapest && main.cheapest !== o
+          ? `<p class="cheaper-hint">더 저렴한 방법도 있어요: <strong>${esc(main.cheapest.name)}</strong> 월 ${formatUsd(main.cheapest.totalUsd)} · 아래 '다른 방법'에서 비교해보세요</p>`
           : ""
       }
       ${diagramHtml(o.resources.map((r) => resolveResource(r, values)), regionPrices, o.id)}
@@ -296,16 +311,22 @@ function notesHtml(preset, regionId) {
     <section class="card notes">
       <h2 class="card-title">이런 가정으로 계산했어요</h2>
       <p class="card-sub" style="margin:0">${esc(preset.name)} · ${esc(regionName(regionId))}${changed ? " · 직접 바꾼 값은 위 입력 칸 기준" : ""}</p>
-      <ul>${preset.assumptions.map((a) => `<li>${esc(a)}</li>`).join("")}</ul>
       <ul>
-        <li>한 달 = ${HOURS_PER_MONTH}시간, 온디맨드 요금 기준이에요.</li>
-        <li>구간별로 단가가 달라지는 요금(전송량, S3 등)은 첫 구간 단가만 적용했어요.</li>
+        <li>${esc(preset.name)} 규모 (${esc(preset.description)}) 기준이에요.</li>
         <li>프리티어·크레딧은 반영하지 않았어요. 신규 계정이라면 실제로는 더 적게 나올 수 있어요 → <a href="https://aws.amazon.com/free/" target="_blank" rel="noopener">AWS 프리티어 안내</a></li>
-        <li>달러 금액은 AWS 표시 가격(부가세 별도)이에요. 한국 계정은 청구 시 부가세 10%가 더해져서, 원화는 부가세를 포함해 보여줘요.</li>
-        <li>원화는 고정 환율 1달러 = ${ex().krwPerUsd.toLocaleString("ko-KR")}원 기준이에요 (${esc(ex().updatedAt)}). 카드사 해외 결제 수수료는 포함하지 않았어요.</li>
-        <li>가격 갱신일 ${esc(data.prices.updatedAt)} (${esc(data.prices.source)}) · <a href="#/prices">변동 내역</a></li>
         <li>예상치이며 실제 청구액과 다를 수 있어요. 정확한 견적은 <a href="https://calculator.aws/" target="_blank" rel="noopener">AWS Pricing Calculator</a>에서 확인하세요.</li>
       </ul>
+      <details class="more" data-key="notes-more">
+        <summary>계산 기준 더 보기</summary>
+        <ul>
+          ${preset.assumptions.map((a) => `<li>${esc(a)}</li>`).join("")}
+          <li>한 달 = ${HOURS_PER_MONTH}시간, 온디맨드 요금 기준이에요.</li>
+          <li>구간별로 단가가 달라지는 요금(전송량, S3 등)은 첫 구간 단가만 적용했어요.</li>
+          <li>달러 금액은 AWS 표시 가격(부가세 별도)이에요. 한국 계정은 청구 시 부가세 10%가 더해져서, 원화는 부가세를 포함해 보여줘요.</li>
+          <li>원화는 고정 환율 1달러 = ${ex().krwPerUsd.toLocaleString("ko-KR")}원 기준이에요 (${esc(ex().updatedAt)}). 카드사 해외 결제 수수료는 포함하지 않았어요.</li>
+          <li>가격 갱신일 ${esc(data.prices.updatedAt)} (${esc(data.prices.source)}) · <a href="#/prices">변동 내역</a></li>
+        </ul>
+      </details>
     </section>`;
 }
 
@@ -334,17 +355,20 @@ function renderResult(template, presetId, regionId, params = new URLSearchParams
       <p class="step">${template.icon} ${esc(template.name)}</p>
       <h1 class="page-title">예상 월 비용이에요</h1>
     </div>
-    <div class="controls">
-      ${chipsHtml("규모", template.presets, presetId).replace(/data-value/g, "data-preset")}
-      ${regionChipsHtml(data.prices, regionId, primaryRegions()).replace(/data-value/g, "data-region")}
-      ${chipsHtml("도메인 (example.com 같은 주소)", domainChoices, domainOn ? "on" : "off").replace(/data-value/g, "data-domain")}
-    </div>
-    <section class="card">
-      <div id="summary">${summaryHtml(options)}${barsHtml(options)}</div>
-      <div class="summary-foot"><button type="button" class="btn btn-soft btn-sm" id="share">🔗 이 결과 공유하기</button></div>
-    </section>
+    <details class="card settings-line" data-key="settings">
+      <summary>
+        <span><span class="settings-label">계산 조건</span><span id="settings-text">${settingsText(preset, regionId)}</span></span>
+        <span class="settings-btn" aria-hidden="true"></span>
+      </summary>
+      <div class="controls">
+        ${chipsHtml("규모", template.presets, presetId).replace(/data-value/g, "data-preset")}
+        ${regionChipsHtml(data.prices, regionId, primaryRegions()).replace(/data-value/g, "data-region")}
+        ${chipsHtml("도메인 (example.com 같은 주소)", domainChoices, domainOn ? "on" : "off").replace(/data-value/g, "data-domain")}
+      </div>
+    </details>
+    <div id="options">${optionsHtml(options, compareRegionId, values, regionPrices)}</div>
+    <div class="share-row"><button type="button" class="btn btn-soft btn-sm" id="share">🔗 이 결과 공유하기</button></div>
     ${adjustHtml(template, preset, values, regionPrices)}
-    <div id="options">${options.map((o) => optionHtml(o, compareRegionId, values, regionPrices)).join("")}</div>
     ${afterLaunchHtml()}
     ${notesHtml(preset, regionId)}`;
 
@@ -359,8 +383,8 @@ function renderResult(template, presetId, regionId, params = new URLSearchParams
   const optionsEl = app.querySelector("#options");
   const refresh = () => {
     const result = calc();
-    app.querySelector("#summary").innerHTML = summaryHtml(result.options) + barsHtml(result.options);
-    keepOpen(optionsEl, () => (optionsEl.innerHTML = result.options.map((o) => optionHtml(o, compareRegionId, result.values, regionPrices)).join("")));
+    app.querySelector("#settings-text").innerHTML = settingsText(preset, regionId);
+    keepOpen(optionsEl, () => (optionsEl.innerHTML = optionsHtml(result.options, compareRegionId, result.values, regionPrices)));
     app.querySelector("#adjust-status").innerHTML = adjustStatus(preset);
     app.querySelector("#adjust-reset").hidden = !Object.keys(adjust.overrides).length;
   };

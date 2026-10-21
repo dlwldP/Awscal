@@ -256,9 +256,35 @@ main { padding-bottom: 48px; }
 .chip[aria-pressed="true"] { background: var(--chip-on-bg); color: var(--chip-on-text); }
 .controls { display: grid; gap: 10px; margin-bottom: 16px; }
 
-/* ---- 결과 요약 ---- */
-.summary-amount { font-size: 2.4rem; font-weight: 800; letter-spacing: -0.02em; line-height: 1.2; }
-.summary-krw { color: var(--sub); font-size: 1.05rem; margin-top: 2px; }
+/* ---- 결과: 계산 조건 한 줄 (누르면 규모/리전/도메인 칩이 펼쳐짐) ---- */
+.settings-line { padding-top: 16px; padding-bottom: 16px; }
+.settings-line > summary { display: flex; align-items: center; justify-content: space-between; gap: 8px; cursor: pointer; list-style: none; font-weight: 700; }
+.settings-line > summary::-webkit-details-marker { display: none; }
+.settings-label { display: block; color: var(--muted); font-size: 0.8rem; font-weight: 600; }
+.settings-btn { flex: none; color: var(--blue); font-size: 0.92rem; }
+.settings-btn::after { content: "바꾸기 ⌄"; }
+.settings-line[open] .settings-btn::after { content: "닫기 ⌃"; }
+.settings-line .controls { margin: 16px 0 0; }
+
+/* ---- 결과: 맨 위 구성 + 다른 방법 접기 ---- */
+.pick-label { color: var(--blue); font-weight: 800; font-size: 0.95rem; margin: 0 0 6px; }
+.option-main .amount { font-size: 2.4rem; }
+.option-main .recommend-why { margin: 10px 0 0; }
+.cheaper-hint { color: var(--sub); font-size: 0.9rem; margin: 8px 0 0; }
+.others > summary {
+  cursor: pointer;
+  list-style: none;
+  margin-bottom: 12px;
+  padding: 14px;
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--blue);
+  font-weight: 700;
+  text-align: center;
+}
+.others > summary::-webkit-details-marker { display: none; }
+.others > summary::after { content: " ⌄"; }
+.others[open] > summary::after { content: " ⌃"; }
 
 .bars { display: grid; gap: 14px; }
 .bar-head { display: flex; justify-content: space-between; gap: 8px; font-size: 0.95rem; margin-bottom: 6px; }
@@ -436,8 +462,6 @@ main { padding-bottom: 48px; }
 .tag-easy { background: var(--green-bg); color: var(--green); }
 .tag-mid { background: var(--bg); color: var(--sub); }
 .tag-hard { background: var(--warn-bg); color: var(--warn); }
-.recommend { display: flex; align-items: flex-start; gap: 10px; margin-top: 16px; padding: 14px; border-radius: 14px; background: var(--blue-bg); }
-.recommend .tag { flex: none; background: var(--surface); }
 .recommend-why { color: var(--sub); font-size: 0.9rem; }
 .vat { color: var(--muted); font-size: 0.8rem; font-weight: 500; }
 
@@ -569,7 +593,6 @@ main { padding-bottom: 48px; }
 .chip-more { border: 0; background: none; color: var(--blue); font-weight: 700; font-size: 0.9rem; padding: 6px 8px; cursor: pointer; }
 .chip.chip-more { background: var(--surface); }
 .warn-extra:not([hidden]) { display: contents; }
-.summary-foot { margin-top: 16px; display: flex; justify-content: flex-end; }
 
 /* ---- 만든 다음 꼭 할 일 ---- */
 .after-launch ol { list-style: none; counter-reset: step; margin: 4px 0 0; padding: 0; display: grid; gap: 14px; }
@@ -616,7 +639,7 @@ main { padding-bottom: 48px; }
   .dg-col { flex: none; }
   .dg-arrow { align-self: center; transform: rotate(135deg); margin: 2px 0; }
   .hero h1, .page-title { font-size: 1.6rem; }
-  .summary-amount { font-size: 2rem; }
+  .option-main .amount { font-size: 2rem; }
   .card { padding: 20px 16px; }
   .pros-cons { grid-template-columns: 1fr; }
   .fields { grid-template-columns: 1fr; }
