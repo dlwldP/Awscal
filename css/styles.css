@@ -205,9 +205,13 @@ main { padding-bottom: 48px; }
   body:has(.home-grid) .container { max-width: 1000px; }
   .hero { max-width: 720px; }
   .home-intro { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
-  .home-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 12px; align-items: start; }
+  .home-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 12px; }
   .home-intro > .card, .home-grid > .card, .home-side > .card:last-child { margin-bottom: 0; }
-  .home-side { display: grid; gap: 12px; }
+  /* 왼쪽과 오른쪽 칸의 위·아래 끝을 맞춘다. 짧은 쪽 카드는 늘어나고, 늘어난 공간은 목록 줄 사이에 고르게 나눈다. */
+  .home-side { display: grid; grid-auto-rows: 1fr; gap: 12px; }
+  .home-side > .card { margin-bottom: 0; } /* grid-auto-rows: 1fr로 오른쪽 두 카드도 같은 높이 */
+  .home-grid .card { display: flex; flex-direction: column; }
+  .home-grid .card > .list { flex: 1; display: flex; flex-direction: column; justify-content: space-around; }
   .home-grid { margin-bottom: 12px; }
 }
 .trust { display: flex; flex-wrap: wrap; gap: 8px; padding: 4px 4px 0; color: var(--muted); font-size: 0.88rem; }
