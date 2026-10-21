@@ -177,6 +177,29 @@ main { padding-bottom: 48px; }
 .row .dsc { display: block; color: var(--muted); font-size: 0.92rem; }
 .row .chev { flex: none; color: var(--chev); font-size: 1.3rem; }
 
+/* ---- 메인: 소개 · 사용법 ---- */
+.hero-cta { margin-top: 20px; }
+.how-steps { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 14px; counter-reset: how; }
+.how-steps li { display: grid; grid-template-columns: 32px 1fr; column-gap: 12px; counter-increment: how; }
+.how-steps li::before {
+  content: counter(how);
+  grid-row: span 2;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--blue-bg);
+  color: var(--blue);
+  font-weight: 800;
+  display: grid;
+  place-items: center;
+}
+.how-steps .ttl { font-weight: 700; }
+.how-steps .dsc { color: var(--muted); font-size: 0.9rem; }
+.features { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 10px; }
+.features li { display: flex; align-items: center; gap: 12px; font-weight: 600; }
+.features .ico { flex: none; width: 36px; height: 36px; border-radius: 12px; background: var(--bg); display: grid; place-items: center; }
+.features small { color: var(--muted); font-weight: 500; }
+#templates { scroll-margin-top: 72px; }
 .trust { display: flex; flex-wrap: wrap; gap: 8px; padding: 4px 4px 0; color: var(--muted); font-size: 0.88rem; }
 .trust span::before { content: "✓ "; color: var(--blue); font-weight: 700; }
 

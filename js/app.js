@@ -68,10 +68,29 @@ function renderHome() {
     <section class="hero">
       <p class="eyebrow">AWS 비용 계산기</p>
       <h1>AWS, 한 달에<br>얼마 나올까요?</h1>
-      <p class="sub">만들고 싶은 걸 고르면 필요한 구성과 비용을 쉽게 알려드려요.</p>
+      <p class="sub">만들고 싶은 걸 고르면 필요한 AWS 구성과 예상 월 비용을 원화로 알려드려요. AWS 계정 없이 무료예요.</p>
+      <button type="button" class="btn btn-primary hero-cta" id="go-templates">무엇을 만들지 고르기 ↓</button>
     </section>
 
     <section class="card">
+      <h2 class="card-title">이렇게 써요</h2>
+      <ol class="how-steps">
+        <li><span class="ttl">만들고 싶은 것 고르기</span><span class="dsc">예: 블로그, 웹 서비스</span></li>
+        <li><span class="ttl">규모 고르기</span><span class="dsc">혼자 쓰는지, 방문자가 많은지</span></li>
+        <li><span class="ttl">예상 비용 확인</span><span class="dsc">추천 구성 + 숨은 비용 경고</span></li>
+      </ol>
+    </section>
+
+    <section class="card">
+      <h2 class="card-title">이런 걸 알려줘요</h2>
+      <ul class="features">
+        <li><span class="ico" aria-hidden="true">💸</span><span>원화 월 비용 <small>(부가세 포함)</small></span></li>
+        <li><span class="ico" aria-hidden="true">⚠️</span><span>초보자가 놓치는 숨은 비용</span></li>
+        <li><span class="ico" aria-hidden="true">✅</span><span>만든 다음 꼭 할 일</span></li>
+      </ul>
+    </section>
+
+    <section class="card" id="templates">
       <h2 class="card-title">무엇을 만들고 싶나요?</h2>
       <p class="card-sub">고르면 구성 2~3가지를 비교해드려요</p>
       <ul class="list">
@@ -126,12 +145,14 @@ function renderHome() {
     </section>
 
     <div class="trust">
-      <span>AWS 계정 없이 무료</span>
       <span>가격 매주 자동 갱신 (${esc(data.prices.updatedAt)}) · <a href="#/prices">변동 내역${
         changes ? ` ${changes.changes.length}건` : ""
       }</a></span>
-      <span>숨은 비용까지 알려드려요</span>
     </div>`;
+  // 주소(#/...)로 화면을 나누고 있어서 #templates 링크 대신 버튼으로 스크롤한다.
+  app.querySelector("#go-templates").addEventListener("click", () =>
+    app.querySelector("#templates").scrollIntoView({ behavior: "smooth", block: "start" })
+  );
 }
 
 // ---- 설정 ----
