@@ -132,6 +132,10 @@ function page(t) {
   <footer class="site-footer container">
     다른 구성도 보기
     <nav aria-label="다른 템플릿">${others}<a href="../#/glossary">용어 사전</a></nav>
+    <details class="privacy">
+      <summary>개인정보 안내</summary>
+      <p>이 사이트는 회원가입이나 개인정보 수집이 없어요. 직접 계산기에 담은 목록은 이 브라우저에만 저장돼요. 의견 보내기 설문은 Google Forms, 사이트 호스팅은 GitHub Pages, 글꼴은 jsDelivr를 쓰고, 각 서비스의 개인정보 정책을 따라요.</p>
+    </details>
   </footer>
 </body>
 </html>
