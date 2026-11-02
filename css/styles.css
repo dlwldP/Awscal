@@ -514,6 +514,13 @@ main { padding-bottom: 48px; }
 .hidden-lines .ttl { font-weight: 600; }
 .hidden-lines .dsc { color: var(--muted); font-size: 0.88rem; }
 .hidden-lines .num { flex: none; font-weight: 700; }
+.guide-link { display: inline-block; margin-top: 14px; color: var(--blue); font-weight: 700; font-size: 0.92rem; }
+
+/* ---- 놓치기 쉬운 비용 안내 페이지 ---- */
+.guide-item p { margin: 8px 0 0; color: var(--sub); }
+.guide-item .guide-cost { color: var(--text); font-weight: 700; }
+.guide-avoid { padding: 12px 14px; border-radius: 12px; background: var(--blue-bg); }
+.guide-avoid strong { display: block; color: var(--blue); font-size: 0.85rem; margin-bottom: 2px; }
 
 /* ---- 용어 ---- */
 .term {

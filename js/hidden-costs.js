@@ -1,5 +1,10 @@
 // 놓치기 쉬운 비용: 계산 결과에서 초보자가 자주 놀라는 항목만 골라 금액과 함께 보여준다 (DOM 없음, 테스트 대상).
-//   hiddenCostsOf(option)  결과 화면 "놓치기 쉬운 비용" 카드에 쓸 { included, notes }
+//   hiddenCostsOf(option)          결과 화면 "놓치기 쉬운 비용" 카드에 쓸 { included, notes }
+//   guideHtml(items, regionPrices) 안내 페이지 본문 (앱 #/hidden-costs와 정적 pages/hidden-costs.html이 같이 쓴다)
+import { formatUsd, HOURS_PER_MONTH } from "./engine.js";
+
+const esc = (s) =>
+  String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 
 // 비용 내역(lines)의 service → 카드에 보여줄 이름과 한 줄 설명. 같은 service 줄은 합친다.
 // 전송 요금 줄(kind: "transfer")은 서비스가 달라도(EC2·CloudFront·Amplify) 데이터 전송으로 묶는다.
@@ -32,4 +37,36 @@ export function hiddenCostsOf(option) {
   if (!sums.has("전송") && option.lines.some((l) => l.service === "Lightsail")) included.push(LIGHTSAIL_TRANSFER);
   const notes = option.warnings.filter((w) => !(COVERED_WARNINGS[w.id] && sums.has(COVERED_WARNINGS[w.id])));
   return { included, notes };
+}
+
+// ---- 안내 페이지 ----
+// data/hidden-costs.json 문장 속 {이름}을 그 리전 가격으로 바꾼다.
+const GUIDE_VALUES = {
+  dataTransferPerGb: (p) => `$${p.dataTransferOut.perGb}`,
+  ipv4Monthly: (p) => formatUsd(p.publicIpv4.hourly * HOURS_PER_MONTH),
+  natMonthly: (p) => formatUsd(p.natGateway.hourly * HOURS_PER_MONTH),
+  natPerGb: (p) => `$${p.natGateway.perGb}`,
+  albMonthly: (p) => formatUsd(p.alb.hourly * HOURS_PER_MONTH),
+  ebsPerGb: (p) => `$${p.ebs.gp3.perGbMonth}`,
+};
+
+export function fillGuideText(text, regionPrices) {
+  return text.replace(/\{(\w+)\}/g, (all, name) => {
+    if (!GUIDE_VALUES[name]) throw new Error(`hidden-costs.json: 알 수 없는 값 {${name}}`);
+    return GUIDE_VALUES[name](regionPrices);
+  });
+}
+
+export function guideHtml(items, regionPrices) {
+  return items
+    .map(
+      (it, i) => `
+    <section class="card guide-item">
+      <h2 class="card-title"><span aria-hidden="true">${esc(it.icon)}</span> ${i + 1}. ${esc(it.title)}</h2>
+      <p class="guide-cost">${esc(fillGuideText(it.cost, regionPrices))}</p>
+      <p>${esc(it.why)}</p>
+      <p class="guide-avoid"><strong>이렇게 피해요</strong> ${esc(it.avoid)}</p>
+    </section>`
+    )
+    .join("");
 }

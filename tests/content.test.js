@@ -158,3 +158,14 @@ test("놓치기 쉬운 비용: 금액 줄을 서비스별로 합치고, 금액�
     assert.ok(Math.abs(hiddenCostsOf(o).included.find((h) => h.label.includes("데이터 전송")).usd - transfer) < 1e-9, o.id);
   }
 });
+
+test("놓치기 쉬운 비용 안내: 모든 항목이 채워져 있고 {값}이 모든 리전 가격으로 바뀐다", async () => {
+  const { fillGuideText, guideHtml } = await import("../js/hidden-costs.js");
+  const { items } = load("data/hidden-costs.json");
+  assert.ok(items.length >= 5);
+  for (const it of items) for (const k of ["icon", "title", "cost", "why", "avoid"]) assert.ok(it[k], `${it.title}.${k}`);
+  for (const [id, p] of Object.entries(prices.regions)) {
+    for (const it of items) assert.doesNotMatch(fillGuideText(it.cost, p), /[{}]|NaN|undefined/, `${id}: ${it.title}`);
+    assert.equal((guideHtml(items, p).match(/class="card guide-item"/g) ?? []).length, items.length);
+  }
+});

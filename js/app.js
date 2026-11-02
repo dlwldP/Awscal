@@ -5,6 +5,7 @@
 //   #/calc                          직접 계산기
 //   #/glossary                      용어 사전
 //   #/prices                        가격 변동 내역
+//   #/hidden-costs                  놓치기 쉬운 AWS 비용 안내
 import { calculateTemplate, formatKrw, formatUsd, HOURS_PER_MONTH, resolveResource } from "./engine.js";
 import { FIELDS, HIDDEN_ADJUST_FIELDS, fieldDef } from "./schema.js";
 import {
@@ -14,11 +15,11 @@ import {
 import { parseDomain, parseOverrides, resultHash } from "./share.js";
 import { importResources, renderCalculator } from "./calculator.js";
 import { diagramHtml } from "./diagram.js";
-import { hiddenCostsOf } from "./hidden-costs.js";
+import { guideHtml, hiddenCostsOf } from "./hidden-costs.js";
 import { glossarize, installGlossaryHandlers, renderGlossary, setGlossary } from "./glossary.js";
 
 const app = document.getElementById("app");
-let data; // { prices, templates, settings, priceChanges }
+let data; // { prices, templates, settings, priceChanges, hiddenCosts }
 
 // 결과 화면에서 직접 바꾼 값. 주소(?키=값)에 담겨서 링크로 그대로 공유된다.
 const adjust = { overrides: {} };
@@ -118,6 +119,11 @@ function renderHome() {
         <li><a class="row" href="#/calc">
           <span class="ico" aria-hidden="true">🧮</span>
           <span class="txt"><span class="ttl">직접 계산하기</span><span class="dsc">쓸 서비스를 알고 있다면 직접 담아서 계산해요</span></span>
+          <span class="chev" aria-hidden="true">›</span>
+        </a></li>
+        <li><a class="row" href="#/hidden-costs">
+          <span class="ico" aria-hidden="true">⚠️</span>
+          <span class="txt"><span class="ttl">놓치기 쉬운 비용</span><span class="dsc">데이터 전송, 퍼블릭 IP… 청구서에서 자주 놀라는 항목</span></span>
           <span class="chev" aria-hidden="true">›</span>
         </a></li>
         <li><a class="row" href="#/glossary">
@@ -251,6 +257,7 @@ function hiddenCardHtml(o) {
       ${notes.length ? `<div class="section-label">알아둘 점</div>${warningsHtml(notes, 3)}` : ""}
       <div class="section-label">이 금액에 안 들어 있어요</div>
       <ul class="excluded">${excludedOf(o).map((x) => `<li>${esc(x)}</li>`).join("")}</ul>
+      <a class="guide-link" href="#/hidden-costs">놓치기 쉬운 AWS 비용 ${data.hiddenCosts.length}가지 더 보기 ›</a>
     </section>`;
 }
 
@@ -492,6 +499,25 @@ function renderResult(template, presetId, regionId, params = new URLSearchParams
   });
 }
 
+// ---- 놓치기 쉬운 비용 안내 ----
+function renderHiddenCosts() {
+  document.title = "놓치기 쉬운 AWS 비용 · AWS 얼마야?";
+  const region = data.settings.defaultRegion;
+  app.innerHTML = `
+    <div class="page-head">
+      <a class="back" href="#/">‹ 처음으로</a>
+      <p class="step">⚠️ 놓치기 쉬운 비용</p>
+      <h1 class="page-title">놓치기 쉬운 AWS 비용 ${data.hiddenCosts.length}가지</h1>
+      <p class="page-sub">처음 쓰는 사람이 청구서를 보고 자주 놀라는 항목이에요. 금액은 ${esc(regionName(region))} 리전 기준이에요 (부가세 별도).</p>
+    </div>
+    ${guideHtml(data.hiddenCosts, data.prices.regions[region])}
+    <section class="card">
+      <h2 class="card-title">내 구성은 얼마나 나올까요?</h2>
+      <p class="card-sub">만들고 싶은 걸 고르면 이런 비용까지 포함해서 계산해드려요</p>
+      <a class="btn btn-primary" href="#/">구성 추천 받기</a>
+    </section>`;
+}
+
 // ---- 가격 변동 내역 ----
 const SERVICE_NAMES = {
   ec2: "EC2", ebs: "EBS", alb: "ALB", natGateway: "NAT Gateway", publicIpv4: "퍼블릭 IPv4", dataTransferOut: "데이터 전송",
@@ -591,6 +617,7 @@ function route() {
   if (section === "calc") renderCalculator(app, data, params);
   else if (section === "glossary") renderGlossary(app);
   else if (section === "prices") renderPriceChanges();
+  else if (section === "hidden-costs") renderHiddenCosts();
   else if (validResult) renderResult(template, presetId, regionId, params);
   else if (template) renderSetup(template);
   else renderHome();
@@ -601,14 +628,15 @@ async function main() {
   installThemeToggle();
   installExpandHandlers();
   try {
-    const [prices, templates, settings, glossary, priceChanges] = await Promise.all([
+    const [prices, templates, settings, glossary, priceChanges, hiddenCosts] = await Promise.all([
       loadJson("data/prices.json"),
       loadJson("data/templates.json"),
       loadJson("data/settings.json"),
       loadJson("data/glossary.json"),
       loadJson("data/price-changes.json", true),
+      loadJson("data/hidden-costs.json"),
     ]);
-    data = { prices, templates: templates.templates, settings, priceChanges };
+    data = { prices, templates: templates.templates, settings, priceChanges, hiddenCosts: hiddenCosts.items };
     setGlossary(glossary.terms);
     installGlossaryHandlers();
     window.addEventListener("hashchange", route);

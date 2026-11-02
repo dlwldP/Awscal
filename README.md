@@ -31,6 +31,7 @@ AWS 계정 연동이나 API 키 없이 누구나 무료로 쓸 수 있습니다.
 
 **그 밖에**
 - 용어 사전: 설명 속 밑줄 친 용어를 누르면 뜻이 보이고, 전체 사전(#/glossary)에서 검색
+- 놓치기 쉬운 AWS 비용 8가지(#/hidden-costs): 데이터 전송·퍼블릭 IPv4·NAT Gateway·로드밸런서·중지해도 나가는 디스크·스냅샷·로그·프리티어 종료를 금액(서울 기준)과 피하는 법으로 정리
 - 가격 변동 내역(#/prices): 매주 갱신 때 지난주 대비 바뀐 단가
 - 다크 모드 (기기 설정을 따르고, 상단 버튼으로 전환)
 - 링크 미리보기(OG 이미지), 검색엔진용 템플릿 소개 페이지, 의견 보내기
@@ -70,10 +71,12 @@ js/ui.js                    공통 HTML 조각
 js/glossary.js              용어 사전 (용어 자동 링크, 뜻 보기, 사전 화면)
 js/diagram.js               구성 다이어그램
 js/share.js                 공유 링크 (화면 상태 ↔ 주소)
+js/hidden-costs.js          놓치기 쉬운 비용 (결과 카드 항목 고르기, 안내 페이지 본문)
 data/prices.json            가격 데이터 (자동 생성 — 직접 수정하지 마세요)
 data/price-changes.json     지난 갱신 대비 가격 변동 (자동 생성)
 data/templates.json         템플릿 · 구성안 · 프리셋 · 난이도 · 추천 · 포함 안 된 비용
 data/glossary.json          용어 사전 내용
+data/hidden-costs.json      놓치기 쉬운 비용 안내 내용 ({이름}은 가격으로 채워짐)
 data/settings.json          환율·부가세, 기본/비교 리전, 피드백 링크, 사이트 주소
 assets/og.png               링크 미리보기 이미지 (원본: scripts/og-image.html)
 scripts/fetch_prices.py     가격 수집 + 변동 기록
