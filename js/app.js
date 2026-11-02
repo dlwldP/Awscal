@@ -191,7 +191,7 @@ function renderSetup(template) {
       <section class="card">
         <fieldset class="choice-list">
           <legend class="card-title" style="margin-bottom:12px">사용 규모</legend>
-          ${template.presets.map((p, i) => choice("preset", p.id, p.name, p.description, i === 0)).join("")}
+          ${template.presets.map((p) => choice("preset", p.id, p.name, p.description, false)).join("")}
         </fieldset>
       </section>
       <section class="card">
@@ -199,18 +199,28 @@ function renderSetup(template) {
           <legend class="card-title" style="margin-bottom:12px">어디에 만들까요?</legend>
           ${regionList(data.prices)
             .map((r) => {
-              const html = choice("region", r.id, r.name, REGION_HINTS[r.id] ?? "", r.id === data.settings.defaultRegion);
+              const html = choice("region", r.id, r.name, REGION_HINTS[r.id] ?? "", false);
               return primaryRegions().includes(r.id) ? html : html.replace('<label class="choice">', '<label class="choice" hidden>');
             })
             .join("")}
           <button type="button" class="btn btn-ghost btn-sm" data-expand>다른 리전 보기 ▾</button>
         </fieldset>
       </section>
-      <div class="bottom-cta"><button class="btn btn-primary btn-block" type="submit">비용 확인하기</button></div>
+      <div class="bottom-cta"><button class="btn btn-primary btn-block" type="submit" disabled>규모와 리전을 골라주세요</button></div>
     </form>`;
-  app.querySelector("#setup").addEventListener("submit", (e) => {
+  // 미리 골라두지 않는다. 규모와 리전을 둘 다 고르면 버튼이 켜진다.
+  const form = app.querySelector("#setup");
+  const submit = form.querySelector("[type=submit]");
+  form.addEventListener("change", () => {
+    const f = new FormData(form);
+    const ready = f.get("preset") && f.get("region");
+    submit.disabled = !ready;
+    submit.textContent = ready ? "비용 확인하기" : !f.get("preset") ? "규모를 골라주세요" : "리전을 골라주세요";
+  });
+  form.addEventListener("submit", (e) => {
     e.preventDefault();
-    const f = new FormData(e.target);
+    const f = new FormData(form);
+    if (!f.get("preset") || !f.get("region")) return;
     location.hash = `#/t/${template.id}/${f.get("preset")}/${f.get("region")}`;
   });
 }

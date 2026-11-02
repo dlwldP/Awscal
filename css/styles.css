@@ -268,6 +268,7 @@ main { padding-bottom: 48px; }
 }
 .btn-primary { background: var(--blue); color: #fff; }
 .btn-primary:hover { background: var(--blue-dark); }
+.btn:disabled, .btn:disabled:hover { background: var(--check-off); color: var(--muted); cursor: not-allowed; }
 .btn-soft { background: var(--blue-bg); color: var(--blue-dark); }
 .btn-soft:hover { background: var(--blue-bg-hover); }
 .btn-ghost { background: var(--bg); color: var(--sub); }
