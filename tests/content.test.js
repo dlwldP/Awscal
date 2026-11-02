@@ -151,6 +151,8 @@ test("놓치기 쉬운 비용: 금액 줄을 서비스별로 합치고, 금액�
   const lightsail = hiddenCostsOf(options.find((o) => o.id === "lightsail"));
   assert.ok(lightsail.notes.some((w) => w.id === "lightsailStop"));
   assert.ok(lightsail.included.some((h) => h.label.includes("데이터 전송") && h.usd === null), "Lightsail은 번들 포함으로 표시");
+  assert.ok(!lightsail.excluded.some((x) => x.includes("전송 허용량")), "번들 포함 줄과 같은 말은 '안 들어 있어요'에서 뺀다");
+  assert.equal(lightsail.excluded.length, t.options.find((o) => o.id === "lightsail").excluded.length - 1);
   // CloudFront·Amplify 전송도 데이터 전송으로 묶는다
   const st = templates.find((x) => x.id === "static-website");
   for (const o of calculateTemplate(st, st.presets[0].id, prices, region).options) {

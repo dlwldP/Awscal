@@ -363,7 +363,7 @@ main { padding-bottom: 48px; }
 .more > summary::after { content: "펼치기 ⌄"; color: var(--muted); font-weight: 600; font-size: 0.9rem; }
 .more[open] > summary::after { content: "접기 ⌃"; }
 
-.section-label { color: var(--muted); font-size: 0.85rem; font-weight: 700; margin: 16px 0 6px; }
+.section-label { color: var(--sub); font-size: 0.875rem; font-weight: 700; margin: 20px 0 8px; }
 
 .lines { list-style: none; margin: 0; padding: 0; }
 .lines li + li { border-top: 1px solid var(--line); }

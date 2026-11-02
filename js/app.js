@@ -232,7 +232,7 @@ const excludedOf = (o) => (domainOn ? o.excluded : [...o.excluded, "도메인 �
 
 /** 맨 위 구성 바로 아래 "놓치기 쉬운 비용" 카드: 금액에 들어 있는 항목(금액 표시)과 안 들어 있는 항목을 나눠 보여준다. */
 function hiddenCardHtml(o) {
-  const { included, notes } = hiddenCostsOf(o);
+  const { included, notes, excluded } = hiddenCostsOf(o, excludedOf(o));
   return `
     <section class="card hidden-costs">
       <h2 class="card-title">⚠️ 놓치기 쉬운 비용</h2>
@@ -250,7 +250,7 @@ function hiddenCardHtml(o) {
       }
       ${notes.length ? `<div class="section-label">알아둘 점</div>${warningsHtml(notes, 3)}` : ""}
       <div class="section-label">이 금액에 안 들어 있어요</div>
-      <ul class="excluded">${excludedOf(o).map((x) => `<li>${esc(x)}</li>`).join("")}</ul>
+      <ul class="excluded">${excluded.map((x) => `<li>${esc(x)}</li>`).join("")}</ul>
       <a class="guide-link" href="#/hidden-costs">놓치기 쉬운 AWS 비용 ${data.hiddenCosts.length}가지 더 보기 ›</a>
     </section>`;
 }

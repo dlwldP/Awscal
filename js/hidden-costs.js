@@ -20,13 +20,15 @@ const HIDDEN_LINES = {
 const COVERED_WARNINGS = { dataTransfer: "전송", publicIpv4: "IPv4", alb: "ALB", natGatewayOn: "NAT" };
 
 // Lightsail은 전송 허용량이 번들 월 요금에 들어 있어서 따로 금액 줄이 없다.
-const LIGHTSAIL_TRANSFER = { label: "데이터 전송", tip: "번들 허용량까지는 포함, 넘으면 GB당 추가 과금돼요", usd: null };
+// 같은 내용을 말하는 "포함 안 된 비용" 항목(전송 허용량 초과)은 카드에서 한 번만 보이게 뺀다(covers).
+const LIGHTSAIL_TRANSFER = { label: "데이터 전송", tip: "번들 허용량까지는 포함, 넘으면 GB당 추가 과금돼요", usd: null, covers: "전송 허용량" };
 
 /**
  * included: 이 금액에 들어 있는 놓치기 쉬운 항목 [{ label, tip, usd }] (금액 큰 순, usd가 null이면 "번들 포함")
  * notes:    금액 줄로 설명되지 않는 경고 (중지해도 과금, Multi-AZ 등)
+ * excluded: 이 금액에 안 들어 있는 항목 (included가 이미 설명한 항목은 뺀다)
  */
-export function hiddenCostsOf(option) {
+export function hiddenCostsOf(option, excluded = option.excluded ?? []) {
   const sums = new Map();
   for (const line of option.lines) {
     const key = line.kind === "transfer" ? "전송" : line.service;
@@ -36,7 +38,8 @@ export function hiddenCostsOf(option) {
   const included = [...sums].map(([key, usd]) => ({ ...HIDDEN_LINES[key], usd })).sort((a, b) => b.usd - a.usd);
   if (!sums.has("전송") && option.lines.some((l) => l.service === "Lightsail")) included.push(LIGHTSAIL_TRANSFER);
   const notes = option.warnings.filter((w) => !(COVERED_WARNINGS[w.id] && sums.has(COVERED_WARNINGS[w.id])));
-  return { included, notes };
+  const covered = included.map((h) => h.covers).filter(Boolean);
+  return { included, notes, excluded: excluded.filter((x) => !covered.some((c) => x.includes(c))) };
 }
 
 // ---- 안내 페이지 ----
