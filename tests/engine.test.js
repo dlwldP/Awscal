@@ -32,6 +32,7 @@ test("{{preset.x}} 자리표시자를 프리셋 값으로 바꾼다", () => {
   assert.equal(resolveValue("t4g.small", {}), "t4g.small");
   assert.equal(resolveValue(3, {}), 3);
   assert.throws(() => resolveValue("{{preset.missing}}", {}), /missing/);
+  assert.equal(resolveValue("{{preset.dailyChats*30}}", { dailyChats: 50 }), 1500);
 });
 
 test("시간 과금 = 시간당 단가 × 730 × 수량", () => {

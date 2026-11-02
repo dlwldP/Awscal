@@ -38,6 +38,7 @@ function describe(r) {
     case "apiGatewayHttp": return `API Gateway HTTP API: 요청 ${n(r.requests)}건`;
     case "dynamodb": return `DynamoDB On-Demand: 쓰기 ${n(r.writes)}건, 읽기 ${n(r.reads)}건(Strongly consistent), 저장 ${r.storageGb}GB`;
     case "domain": return `Route 53: 호스팅 영역 ${r.count}개 (도메인 등록비는 계산기에 없음, 연 $15 ÷ 12 별도)`;
+    case "bedrock": return `Amazon Bedrock: ${r.model}, On-Demand, 월 요청 ${n(r.dailyChats * 30)}건, 요청당 입력 ${n(r.inputTokens)}토큰 · 출력 ${n(r.outputTokens)}토큰 (Claude는 Global 교차 리전 추론)`;
     case "fargate": return `ECS Fargate: Linux/x86, 태스크 ${r.count}개, ${r.vcpu}vCPU, ${r.memoryGb}GB, 하루 24시간${hours(r)}`;
     default: return r.type;
   }

@@ -3,15 +3,18 @@
 
 export const HOURS_PER_MONTH = 730;
 
-const PLACEHOLDER = /^\{\{preset\.([A-Za-z0-9_]+)\}\}$/;
+const PLACEHOLDER = /^\{\{preset\.([A-Za-z0-9_]+)(?:\*([0-9.]+))?\}\}$/;
 
-/** "{{preset.x}}" 문자열을 프리셋 값으로 바꾼다. 그 외 값은 그대로 둔다. */
+/**
+ * "{{preset.x}}" 문자열을 프리셋 값으로 바꾼다. 그 외 값은 그대로 둔다.
+ * "{{preset.x*30}}"처럼 숫자를 곱할 수 있다 (예: 하루 대화 수 × 30일 = 월 요청 수).
+ */
 export function resolveValue(value, presetValues) {
   if (typeof value !== "string") return value;
   const m = value.match(PLACEHOLDER);
   if (!m) return value;
   if (!(m[1] in presetValues)) throw new Error(`프리셋에 '${m[1]}' 값이 없습니다`);
-  return presetValues[m[1]];
+  return m[2] === undefined ? presetValues[m[1]] : presetValues[m[1]] * Number(m[2]);
 }
 
 export function resolveResource(resource, presetValues) {

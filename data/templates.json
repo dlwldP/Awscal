@@ -908,6 +908,198 @@
         "hours",
         "egressGb"
       ]
+    },
+    {
+      "id": "ai-chatbot",
+      "icon": "🤖",
+      "name": "AI 챗봇",
+      "summary": "Bedrock의 AI 모델(Claude, Nova)로 질문에 답하는 챗봇 API",
+      "presets": [
+        {
+          "id": "personal",
+          "name": "개인용",
+          "description": "혼자 쓰거나 지인 몇 명이 쓰는 챗봇",
+          "values": {
+            "model": "claude-haiku-5.5",
+            "dailyChats": 50,
+            "inputTokens": 1000,
+            "outputTokens": 300,
+            "memoryMb": 256,
+            "durationMs": 3000,
+            "storageGb": 1,
+            "egressGb": 1,
+            "domain": 0
+          },
+          "assumptions": [
+            "하루 대화 50번 × 30일 (질문 1번 + 답변 1번 = 1번)",
+            "대화당 입력 1,000토큰(질문·지시문·이전 대화) · 출력 300토큰(답변)",
+            "AI 모델 Claude Haiku 5.5 (값 바꿔보기에서 다른 모델로 비교)",
+            "Lambda 메모리 256MB(ARM), AI 답변을 기다리는 시간 포함 평균 3초",
+            "대화 기록 저장 1GB (대화 기록 저장 구성만)",
+            "응답 전송 월 1GB"
+          ]
+        },
+        {
+          "id": "small",
+          "name": "소규모",
+          "description": "하루 수백 번 대화하는 서비스 챗봇",
+          "values": {
+            "model": "claude-haiku-5.5",
+            "dailyChats": 500,
+            "inputTokens": 1500,
+            "outputTokens": 400,
+            "memoryMb": 256,
+            "durationMs": 3000,
+            "storageGb": 1,
+            "egressGb": 2,
+            "domain": 0
+          },
+          "assumptions": [
+            "하루 대화 500번 × 30일 (질문 1번 + 답변 1번 = 1번)",
+            "대화당 입력 1,500토큰(질문·지시문·이전 대화) · 출력 400토큰(답변)",
+            "AI 모델 Claude Haiku 5.5 (값 바꿔보기에서 다른 모델로 비교)",
+            "Lambda 메모리 256MB(ARM), AI 답변을 기다리는 시간 포함 평균 3초",
+            "대화 기록 저장 1GB (대화 기록 저장 구성만)",
+            "응답 전송 월 2GB"
+          ]
+        },
+        {
+          "id": "medium",
+          "name": "중규모",
+          "description": "하루 수천 번 대화하는 고객 상담 챗봇",
+          "values": {
+            "model": "claude-haiku-5.5",
+            "dailyChats": 5000,
+            "inputTokens": 2000,
+            "outputTokens": 500,
+            "memoryMb": 256,
+            "durationMs": 3000,
+            "storageGb": 5,
+            "egressGb": 20,
+            "domain": 0
+          },
+          "assumptions": [
+            "하루 대화 5,000번 × 30일 (질문 1번 + 답변 1번 = 1번)",
+            "대화당 입력 2,000토큰(질문·지시문·이전 대화) · 출력 500토큰(답변)",
+            "AI 모델 Claude Haiku 5.5 (값 바꿔보기에서 다른 모델로 비교)",
+            "Lambda 메모리 256MB(ARM), AI 답변을 기다리는 시간 포함 평균 3초",
+            "대화 기록 저장 5GB (대화 기록 저장 구성만)",
+            "응답 전송 월 20GB"
+          ]
+        }
+      ],
+      "options": [
+        {
+          "id": "serverless-chatbot",
+          "name": "API Gateway + Lambda + Bedrock",
+          "summary": "API가 질문을 받아 Lambda가 AI 모델을 호출하고 답변을 돌려줌. 대화 기록은 저장하지 않음",
+          "pros": [
+            "서버 관리 없이 요청이 올 때만 과금",
+            "모델만 바꾸면 비용·성능을 쉽게 조절",
+            "가장 단순해서 처음 만들기 좋음"
+          ],
+          "cons": [
+            "이전 대화를 기억하지 못함 (한 번 묻고 답하기)",
+            "AI 답변을 기다리는 동안 Lambda 실행 시간도 과금",
+            "모델 사용 권한을 먼저 받아야 함"
+          ],
+          "resources": [
+            {
+              "type": "apiGatewayHttp",
+              "requests": "{{preset.dailyChats*30}}"
+            },
+            {
+              "type": "lambda",
+              "requests": "{{preset.dailyChats*30}}",
+              "memoryMb": "{{preset.memoryMb}}",
+              "durationMs": "{{preset.durationMs}}"
+            },
+            {
+              "type": "bedrock",
+              "model": "{{preset.model}}",
+              "dailyChats": "{{preset.dailyChats}}",
+              "inputTokens": "{{preset.inputTokens}}",
+              "outputTokens": "{{preset.outputTokens}}"
+            },
+            {
+              "type": "dataTransferOut",
+              "gb": "{{preset.egressGb}}"
+            },
+            {
+              "type": "domain",
+              "count": "{{preset.domain}}"
+            }
+          ],
+          "difficulty": "보통",
+          "recommended": "구성이 가장 단순하고, 모델 요금이 비용의 대부분이라 모델만 바꿔가며 비교하기 쉬워요",
+          "excluded": [
+            "지식 베이스(RAG)·벡터 DB (문서를 찾아 답하는 챗봇)",
+            "Bedrock 가드레일(유해 답변 차단)",
+            "CloudWatch 로그 수집·저장 (Lambda 로그)",
+            "프롬프트 캐싱·배치 할인 (쓰면 실제로는 더 쌀 수 있음)"
+          ]
+        },
+        {
+          "id": "chatbot-history",
+          "name": "API Gateway + Lambda + Bedrock + DynamoDB",
+          "summary": "대화 기록을 DynamoDB에 저장해서 이전 대화를 기억하는 챗봇",
+          "pros": [
+            "이전 대화를 기억해서 자연스럽게 이어감",
+            "대화 기록을 나중에 분석할 수 있음",
+            "DynamoDB도 쓴 만큼만 과금"
+          ],
+          "cons": [
+            "이전 대화를 같이 보내서 대화가 길어질수록 입력 토큰이 늘어남",
+            "대화 기록 보관 기간·개인정보 관리가 필요",
+            "구성 요소가 하나 더 늘어남"
+          ],
+          "resources": [
+            {
+              "type": "apiGatewayHttp",
+              "requests": "{{preset.dailyChats*30}}"
+            },
+            {
+              "type": "lambda",
+              "requests": "{{preset.dailyChats*30}}",
+              "memoryMb": "{{preset.memoryMb}}",
+              "durationMs": "{{preset.durationMs}}"
+            },
+            {
+              "type": "bedrock",
+              "model": "{{preset.model}}",
+              "dailyChats": "{{preset.dailyChats}}",
+              "inputTokens": "{{preset.inputTokens}}",
+              "outputTokens": "{{preset.outputTokens}}"
+            },
+            {
+              "type": "dynamodb",
+              "reads": "{{preset.dailyChats*30}}",
+              "writes": "{{preset.dailyChats*60}}",
+              "storageGb": "{{preset.storageGb}}"
+            },
+            {
+              "type": "dataTransferOut",
+              "gb": "{{preset.egressGb}}"
+            },
+            {
+              "type": "domain",
+              "count": "{{preset.domain}}"
+            }
+          ],
+          "difficulty": "보통",
+          "excluded": [
+            "지식 베이스(RAG)·벡터 DB (문서를 찾아 답하는 챗봇)",
+            "Bedrock 가드레일(유해 답변 차단)",
+            "CloudWatch 로그 수집·저장 (Lambda 로그)",
+            "DynamoDB 백업, 오래된 대화 기록 정리(TTL) 설정"
+          ]
+        }
+      ],
+      "mainFields": [
+        "model",
+        "dailyChats",
+        "inputTokens"
+      ]
     }
   ]
 }
