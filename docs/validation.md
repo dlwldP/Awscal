@@ -1,11 +1,11 @@
 # 공식 Pricing Calculator 교차 검증
 
 > 자동 생성 문서 — `node scripts/validation-report.js > docs/validation.md`
-> 가격 데이터 2026-10-19 기준
+> 가격 데이터 2026-11-02 기준
 
 MVP 완료 조건: 모든 결과가 [AWS Pricing Calculator](https://calculator.aws/) 대비 **±10% 이내**.
 
-**진행 상황: 66개 중 2개 확인, 2개 통과**
+**진행 상황: 78개 중 2개 확인, 2개 통과**
 
 ## 검증 방법
 
@@ -123,3 +123,20 @@ MVP 완료 조건: 모든 결과가 [AWS Pricing Calculator](https://calculator.
 | `dev-server/medium/ap-northeast-2/lightsail` | $24.00 |  |  | ☐ | Lightsail: Linux 4GB 번들 × 1 |
 | `dev-server/medium/us-east-1/ec2` | $34.88 |  |  | ☐ | EC2: t4g.medium, Linux, On-Demand, 1대 (EBS는 0GB로 두고 아래 EBS 줄로 따로)<br>EBS: gp3 50GB × 1개 (IOPS 3000, 처리량 125MB/s 기본값)<br>VPC → Public IPv4 Address: In-use 1개<br>Data Transfer: 인터넷으로 아웃바운드 30GB (같은 리전) |
 | `dev-server/medium/us-east-1/lightsail` | $24.00 |  |  | ☐ | Lightsail: Linux 4GB 번들 × 1 |
+
+### 🤖 AI 챗봇
+
+| 키 | 우리 계산 | 공식 계산기 | 차이 | 결과 | 입력값 |
+|---|---:|---:|---:|:---:|---|
+| `ai-chatbot/personal/ap-northeast-2/serverless-chatbot` | $0.52 |  |  | ☐ | API Gateway HTTP API: 요청 1,500건<br>Lambda: Arm, 요청 1,500건, 실행 3000ms, 메모리 256MB, 임시 스토리지 512MB, 프리티어 미포함<br>Amazon Bedrock: claude-haiku-5.5, On-Demand, 월 요청 1,500건, 요청당 입력 1,000토큰 · 출력 300토큰 (Claude는 Global 교차 리전 추론)<br>Data Transfer: 인터넷으로 아웃바운드 1GB (같은 리전) |
+| `ai-chatbot/personal/ap-northeast-2/chatbot-history` | $0.79 |  |  | ☐ | API Gateway HTTP API: 요청 1,500건<br>Lambda: Arm, 요청 1,500건, 실행 3000ms, 메모리 256MB, 임시 스토리지 512MB, 프리티어 미포함<br>Amazon Bedrock: claude-haiku-5.5, On-Demand, 월 요청 1,500건, 요청당 입력 1,000토큰 · 출력 300토큰 (Claude는 Global 교차 리전 추론)<br>DynamoDB On-Demand: 쓰기 3,000건, 읽기 1,500건(Strongly consistent), 저장 1GB<br>Data Transfer: 인터넷으로 아웃바운드 1GB (같은 리전) |
+| `ai-chatbot/personal/us-east-1/serverless-chatbot` | $0.48 |  |  | ☐ | API Gateway HTTP API: 요청 1,500건<br>Lambda: Arm, 요청 1,500건, 실행 3000ms, 메모리 256MB, 임시 스토리지 512MB, 프리티어 미포함<br>Amazon Bedrock: claude-haiku-5.5, On-Demand, 월 요청 1,500건, 요청당 입력 1,000토큰 · 출력 300토큰 (Claude는 Global 교차 리전 추론)<br>Data Transfer: 인터넷으로 아웃바운드 1GB (같은 리전) |
+| `ai-chatbot/personal/us-east-1/chatbot-history` | $0.73 |  |  | ☐ | API Gateway HTTP API: 요청 1,500건<br>Lambda: Arm, 요청 1,500건, 실행 3000ms, 메모리 256MB, 임시 스토리지 512MB, 프리티어 미포함<br>Amazon Bedrock: claude-haiku-5.5, On-Demand, 월 요청 1,500건, 요청당 입력 1,000토큰 · 출력 300토큰 (Claude는 Global 교차 리전 추론)<br>DynamoDB On-Demand: 쓰기 3,000건, 읽기 1,500건(Strongly consistent), 저장 1GB<br>Data Transfer: 인터넷으로 아웃바운드 1GB (같은 리전) |
+| `ai-chatbot/small/ap-northeast-2/serverless-chatbot` | $5.67 |  |  | ☐ | API Gateway HTTP API: 요청 15,000건<br>Lambda: Arm, 요청 15,000건, 실행 3000ms, 메모리 256MB, 임시 스토리지 512MB, 프리티어 미포함<br>Amazon Bedrock: claude-haiku-5.5, On-Demand, 월 요청 15,000건, 요청당 입력 1,500토큰 · 출력 400토큰 (Claude는 Global 교차 리전 추론)<br>Data Transfer: 인터넷으로 아웃바운드 2GB (같은 리전) |
+| `ai-chatbot/small/ap-northeast-2/chatbot-history` | $5.97 |  |  | ☐ | API Gateway HTTP API: 요청 15,000건<br>Lambda: Arm, 요청 15,000건, 실행 3000ms, 메모리 256MB, 임시 스토리지 512MB, 프리티어 미포함<br>Amazon Bedrock: claude-haiku-5.5, On-Demand, 월 요청 15,000건, 요청당 입력 1,500토큰 · 출력 400토큰 (Claude는 Global 교차 리전 추론)<br>DynamoDB On-Demand: 쓰기 30,000건, 읽기 15,000건(Strongly consistent), 저장 1GB<br>Data Transfer: 인터넷으로 아웃바운드 2GB (같은 리전) |
+| `ai-chatbot/small/us-east-1/serverless-chatbot` | $5.60 |  |  | ☐ | API Gateway HTTP API: 요청 15,000건<br>Lambda: Arm, 요청 15,000건, 실행 3000ms, 메모리 256MB, 임시 스토리지 512MB, 프리티어 미포함<br>Amazon Bedrock: claude-haiku-5.5, On-Demand, 월 요청 15,000건, 요청당 입력 1,500토큰 · 출력 400토큰 (Claude는 Global 교차 리전 추론)<br>Data Transfer: 인터넷으로 아웃바운드 2GB (같은 리전) |
+| `ai-chatbot/small/us-east-1/chatbot-history` | $5.87 |  |  | ☐ | API Gateway HTTP API: 요청 15,000건<br>Lambda: Arm, 요청 15,000건, 실행 3000ms, 메모리 256MB, 임시 스토리지 512MB, 프리티어 미포함<br>Amazon Bedrock: claude-haiku-5.5, On-Demand, 월 요청 15,000건, 요청당 입력 1,500토큰 · 출력 400토큰 (Claude는 Global 교차 리전 추론)<br>DynamoDB On-Demand: 쓰기 30,000건, 읽기 15,000건(Strongly consistent), 저장 1GB<br>Data Transfer: 인터넷으로 아웃바운드 2GB (같은 리전) |
+| `ai-chatbot/medium/ap-northeast-2/serverless-chatbot` | $71.73 |  |  | ☐ | API Gateway HTTP API: 요청 150,000건<br>Lambda: Arm, 요청 150,000건, 실행 3000ms, 메모리 256MB, 임시 스토리지 512MB, 프리티어 미포함<br>Amazon Bedrock: claude-haiku-5.5, On-Demand, 월 요청 150,000건, 요청당 입력 2,000토큰 · 출력 500토큰 (Claude는 Global 교차 리전 추론)<br>Data Transfer: 인터넷으로 아웃바운드 20GB (같은 리전) |
+| `ai-chatbot/medium/ap-northeast-2/chatbot-history` | $73.31 |  |  | ☐ | API Gateway HTTP API: 요청 150,000건<br>Lambda: Arm, 요청 150,000건, 실행 3000ms, 메모리 256MB, 임시 스토리지 512MB, 프리티어 미포함<br>Amazon Bedrock: claude-haiku-5.5, On-Demand, 월 요청 150,000건, 요청당 입력 2,000토큰 · 출력 500토큰 (Claude는 Global 교차 리전 추론)<br>DynamoDB On-Demand: 쓰기 300,000건, 읽기 150,000건(Strongly consistent), 저장 5GB<br>Data Transfer: 인터넷으로 아웃바운드 20GB (같은 리전) |
+| `ai-chatbot/medium/us-east-1/serverless-chatbot` | $70.98 |  |  | ☐ | API Gateway HTTP API: 요청 150,000건<br>Lambda: Arm, 요청 150,000건, 실행 3000ms, 메모리 256MB, 임시 스토리지 512MB, 프리티어 미포함<br>Amazon Bedrock: claude-haiku-5.5, On-Demand, 월 요청 150,000건, 요청당 입력 2,000토큰 · 출력 500토큰 (Claude는 Global 교차 리전 추론)<br>Data Transfer: 인터넷으로 아웃바운드 20GB (같은 리전) |
+| `ai-chatbot/medium/us-east-1/chatbot-history` | $72.44 |  |  | ☐ | API Gateway HTTP API: 요청 150,000건<br>Lambda: Arm, 요청 150,000건, 실행 3000ms, 메모리 256MB, 임시 스토리지 512MB, 프리티어 미포함<br>Amazon Bedrock: claude-haiku-5.5, On-Demand, 월 요청 150,000건, 요청당 입력 2,000토큰 · 출력 500토큰 (Claude는 Global 교차 리전 추론)<br>DynamoDB On-Demand: 쓰기 300,000건, 읽기 150,000건(Strongly consistent), 저장 5GB<br>Data Transfer: 인터넷으로 아웃바운드 20GB (같은 리전) |
