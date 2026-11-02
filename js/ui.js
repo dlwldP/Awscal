@@ -11,9 +11,14 @@ export function fieldHtml(def, value, regionPrices, idPrefix) {
   const id = `${idPrefix}-${def.name}`;
   let control;
   if (def.type === "select") {
-    const options = choicesFor(def, regionPrices)
-      .map(([v, label]) => `<option value="${esc(JSON.stringify(v))}" ${v === value ? "selected" : ""}>${esc(label)}</option>`)
-      .join("");
+    const choices = choicesFor(def, regionPrices);
+    // 리전을 바꿔서 지금 값이 이 리전에 없으면(예: 도쿄에 없는 모델) 그대로 보여주고 다른 걸 고르게 한다.
+    const missing = choices.some(([v]) => v === value)
+      ? ""
+      : `<option value="${esc(JSON.stringify(value))}" selected>${esc(value)} (이 리전에는 없어요)</option>`;
+    const options =
+      missing +
+      choices.map(([v, label]) => `<option value="${esc(JSON.stringify(v))}" ${v === value ? "selected" : ""}>${esc(label)}</option>`).join("");
     control = `<select id="${id}" data-field="${def.name}">${options}</select>`;
   } else {
     const attrs = [
@@ -71,7 +76,7 @@ export function linesHtml(lines) {
 // 경고는 돈이 많이 새는 순서로 보여준다. 처음엔 앞의 몇 개만 보이고 나머지는 접어둔다.
 const WARNING_PRIORITY = [
   "natGateway", "natGatewayOn", "publicIpv4", "alb", "lightsailStop", "dataTransfer",
-  "alwaysOn", "trafficSpike", "rdsMultiAz", "tierExceeded",
+  "tokenCost", "alwaysOn", "trafficSpike", "rdsMultiAz", "tierExceeded",
 ];
 
 export function warningsHtml(warnings, limit = 2) {

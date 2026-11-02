@@ -69,7 +69,8 @@ function calcItem(item, regionPrices) {
   try {
     return calculateOption({ resources: [{ type: item.type, ...item.values }] }, {}, regionPrices);
   } catch (err) {
-    return { error: err.message };
+    // 리전을 바꿔서 고른 사양·모델이 이 리전에 없을 때
+    return { error: err.message.startsWith("가격 데이터 없음") ? "이 리전에서는 고를 수 없는 사양이에요" : err.message };
   }
 }
 

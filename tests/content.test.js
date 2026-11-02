@@ -255,3 +255,18 @@ test("얼마일까? 퀴즈: 서로 다른 템플릿 3문제, 보기 3개는 서�
   }
   assert.equal(positions.size, 3, "정답이 가장 쌈·가운데·가장 비쌈 모두 나온다");
 });
+
+test("Bedrock: 하루 대화 수 × 30일 × 대화당 토큰 × 100만 토큰당 단가, 리전에 없는 모델은 선택지에서 빠진다", async () => {
+  const { choicesFor, fieldDef } = await import("../js/schema.js");
+  const p = prices.regions["ap-northeast-2"];
+  const r = calculateOption({ resources: [{ type: "bedrock", model: "claude-haiku-5.5", dailyChats: 50, inputTokens: 1000, outputTokens: 300 }] }, {}, p);
+  const m = p.bedrock["claude-haiku-5.5"];
+  assert.ok(Math.abs(r.totalUsd - ((1500 * 1000) / 1e6) * m.inputPerMTok - ((1500 * 300) / 1e6) * m.outputPerMTok) < 1e-12);
+  assert.ok(r.warnings.some((w) => w.id === "tokenCost"));
+  for (const [id, rp] of Object.entries(prices.regions)) {
+    for (const [k, v] of Object.entries(rp.bedrock)) assert.ok(v.name && v.inputPerMTok > 0 && v.outputPerMTok > v.inputPerMTok, `${id}/${k}`);
+    assert.ok(rp.bedrock["claude-haiku-5.5"] && rp.bedrock["nova-micro"], `${id}: 기본 모델은 모든 리전에 있어야 함`);
+  }
+  const labels = choicesFor(fieldDef("model"), p).map(([, label]) => label);
+  assert.ok(labels.includes("Claude Haiku 5.5") && labels.includes("Amazon Nova Micro"));
+});

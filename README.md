@@ -27,7 +27,7 @@ AWS 계정 연동이나 API 키 없이 누구나 무료로 쓸 수 있습니다.
 - **만든 다음 꼭 할 일**: 예산 알림 켜기 · 안 쓰면 삭제 · 남은 IP·스냅샷·디스크 정리 · 첫 달 청구서 확인
 
 **직접 계산** — 서비스를 담아서 내 구성 합계를 계산
-- 16종: EC2, EBS, 퍼블릭 IPv4, Lightsail, RDS, DynamoDB, S3, CloudFront, Amplify, Lambda, API Gateway, ECS Fargate, ALB, NAT Gateway, 데이터 전송, 도메인(Route 53)
+- 17종: EC2, EBS, 퍼블릭 IPv4, Lightsail, RDS, DynamoDB, S3, CloudFront, Amplify, Lambda, API Gateway, ECS Fargate, ALB, NAT Gateway, 데이터 전송, 도메인(Route 53), Bedrock(AI 모델: Nova Micro·Lite·Pro, Claude Haiku·Sonnet)
 - 사용 시간(예: 평일 낮에만 켜두기), Multi-AZ 같은 옵션 지원
 - 담은 목록은 이 브라우저에 저장되고, 링크로 공유할 수 있음
 

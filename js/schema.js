@@ -43,6 +43,11 @@ export const FIELDS = {
   writes: { label: "월 DB 쓰기", type: "number", unit: "건", min: 0, step: 1000 },
   memoryMb: { label: "Lambda 메모리", type: "select", choices: [[128, "128MB"], [256, "256MB"], [512, "512MB"], [1024, "1GB"], [2048, "2GB"]] },
   durationMs: { label: "평균 실행 시간", type: "number", unit: "ms", min: 1, step: 10 },
+  // AI 모델 (Bedrock)
+  model: { label: "AI 모델", type: "select", source: "bedrock", help: "Nova Micro가 가장 싸고, Claude Sonnet이 가장 똑똑하고 비싸요. 리전에 따라 고를 수 있는 모델이 달라요." },
+  dailyChats: { label: "하루 대화 수", type: "number", unit: "번", min: 0, step: 10, help: "질문 1번 + 답변 1번을 1번으로 세요. 한 달은 30일로 계산해요." },
+  inputTokens: { label: "대화당 입력 토큰", type: "number", unit: "토큰", min: 0, step: 100, help: "질문 + 지시문 + 함께 보내는 이전 대화. 한국어는 글자 1~2개가 약 1토큰이에요." },
+  outputTokens: { label: "대화당 출력 토큰", type: "number", unit: "토큰", min: 0, step: 50, help: "AI 답변 길이. 짧은 답변은 100~300, 긴 설명은 1,000토큰 정도예요." },
   // 도메인 (결과 화면에서는 '도메인' 칩으로 따로 켜고 끈다)
   domain: { label: "도메인 연결", type: "select", choices: [[0, "포함 안 함"], [1, "포함 (.com)"]] },
 };
@@ -67,6 +72,7 @@ export const SERVICES = [
   { type: "alb", icon: "⚖️", name: "로드밸런서 (ALB)", desc: "요청 분산", fields: [["count", 1, { label: "개수", unit: "개" }], ["lcu", 0.5]] },
   { type: "natGateway", icon: "🚧", name: "NAT Gateway", desc: "프라이빗 서브넷 인터넷 연결", fields: [["count", 1, { label: "개수", unit: "개" }], ["gb", 10, { label: "월 처리량" }]] },
   { type: "dataTransferOut", icon: "📤", name: "데이터 전송", desc: "인터넷으로 나가는 트래픽", fields: [["gb", 30]] },
+  { type: "bedrock", icon: "🤖", name: "Bedrock (AI 모델)", desc: "챗봇 등 AI 답변 생성", fields: [["model", "claude-haiku-5.5"], ["dailyChats", 50], ["inputTokens", 1000], ["outputTokens", 300]] },
   { type: "domain", icon: "🔗", name: "도메인 (Route 53)", desc: ".com 주소 + DNS 연결", fields: [["count", 1, { label: "도메인 개수", unit: "개" }]] },
 ];
 
@@ -77,8 +83,8 @@ export function fieldDef(name, override = {}) {
   return { name, ...base, ...override };
 }
 
-/** select 필드의 선택지 [[값, 표시], ...]. source가 있으면 가격 데이터에 있는 항목만 보여준다. */
+/** select 필드의 선택지 [[값, 표시], ...]. source가 있으면 가격 데이터에 있는 항목만 보여준다 (name이 있으면 그 이름으로). */
 export function choicesFor(def, regionPrices) {
   if (def.choices) return def.choices;
-  return Object.keys(regionPrices[def.source]).map((k) => [k, k]);
+  return Object.entries(regionPrices[def.source]).map(([k, v]) => [k, v?.name ?? k]);
 }

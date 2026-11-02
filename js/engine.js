@@ -97,6 +97,10 @@ const WARNINGS = {
     title: "트래픽 급증 주의",
     text: "요청 수만큼 과금되므로 봇이나 무한 호출이 생기면 비용도 같이 늘어요. AWS Budgets 예산 알림을 꼭 켜두세요.",
   }),
+  tokenCost: () => ({
+    title: "토큰 요금 주의",
+    text: "AI 모델은 주고받는 글자 양(토큰)만큼 과금돼요. 이전 대화를 같이 보내면 대화가 길어질수록 입력 토큰이 쌓이고, 답변(출력) 토큰은 입력보다 4~5배 비싸요. 답변 길이 제한과 예산 알림을 꼭 켜두세요.",
+  }),
   tierExceeded: () => ({
     title: "첫 요금 구간 초과",
     text: "사용량이 첫 요금 구간을 넘었어요. 이 계산기는 첫 구간 단가만 쓰기 때문에, 실제로는 넘는 부분에 더 싼 단가가 적용돼 조금 덜 나와요.",
@@ -398,6 +402,34 @@ const CALCULATORS = {
         },
       ],
       warnings: [],
+    };
+  },
+
+  bedrock(r, p) {
+    const m = price(p, "bedrock", r.model);
+    const chats = r.dailyChats * 30;
+    const inTok = chats * r.inputTokens;
+    const outTok = chats * r.outputTokens;
+    const perM = (usd) => `$${+usd.toPrecision(4)}/100만 토큰`;
+    const tok = (n) => (n >= 10000 ? `${num(Math.round(n / 10000))}만` : num(n));
+    return {
+      lines: [
+        {
+          service: "Bedrock",
+          label: `${m.name} 입력 토큰 ${tok(inTok)}`,
+          usd: (inTok / 1e6) * m.inputPerMTok,
+          detail: `하루 ${num(r.dailyChats)}번 × 30일 × 대화당 ${num(r.inputTokens)}토큰, ${perM(m.inputPerMTok)}`,
+          why: "AI 모델에 보내는 질문·지시문·이전 대화가 입력 토큰이에요. 한국어는 글자 1~2개가 약 1토큰이에요.",
+        },
+        {
+          service: "Bedrock",
+          label: `${m.name} 출력 토큰 ${tok(outTok)}`,
+          usd: (outTok / 1e6) * m.outputPerMTok,
+          detail: `하루 ${num(r.dailyChats)}번 × 30일 × 대화당 ${num(r.outputTokens)}토큰, ${perM(m.outputPerMTok)}`,
+          why: "AI 모델이 만들어낸 답변이 출력 토큰이에요. 입력보다 단가가 비싸서 답변이 길수록 비용이 크게 늘어요.",
+        },
+      ],
+      warnings: ["tokenCost"],
     };
   },
 

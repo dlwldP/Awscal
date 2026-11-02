@@ -18,6 +18,7 @@ const NODES = {
   rds: { col: "data", icon: "🗄️", title: () => "RDS MySQL", sub: (r) => r.instance },
   dynamodb: { col: "data", icon: "📇", title: () => "DynamoDB", sub: "온디맨드" },
   s3: { col: "data", icon: "🪣", title: () => "S3", sub: "파일 저장" },
+  bedrock: { col: "data", icon: "🤖", title: () => "Bedrock", sub: (r) => r.model },
 };
 
 const COLUMNS = ["user", "entry", "compute", "data"];
