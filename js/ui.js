@@ -31,8 +31,19 @@ export function fieldHtml(def, value, regionPrices, idPrefix) {
   return `<div class="field">
       <label for="${id}">${esc(def.label)}</label>
       ${control}
-      ${def.help ? `<p class="help">${glossarize(esc(def.help))}</p>` : ""}
+      ${helpHtml(def.help)}
     </div>`;
+}
+
+/** 입력 칸 도움말: 첫 문장만 보이고, 문장이 더 있으면 "더 보기"로 펼친다 (내용은 그대로). */
+function helpHtml(help) {
+  if (!help) return "";
+  const [, first, rest] = help.match(/^(.+?[.?!])\s+(.+)$/) ?? [null, help, ""];
+  if (!rest) return `<p class="help">${glossarize(esc(help))}</p>`;
+  return `<details class="help">
+      <summary>${glossarize(esc(first))}</summary>
+      <p>${glossarize(esc(rest))}</p>
+    </details>`;
 }
 
 /** 입력 칸 값을 읽는다. 숫자 칸이 비었거나 범위를 벗어나면 valid: false. */

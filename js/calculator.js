@@ -107,10 +107,11 @@ function totalHtml(regionPrices, krwPerUsd, vatRate) {
     <span class="krw num" style="display:block">${formatKrw(total, krwPerUsd, vatRate)} (부가세 포함)</span></span>`;
 }
 
-function servicePickerHtml() {
-  return `<div class="service-grid">${SERVICES.map(
-    (s) => `<button type="button" class="service-btn" data-add="${s.type}">
-        <span class="ico" aria-hidden="true">${s.icon}</span><span class="ttl">${esc(s.name)}</span><span class="dsc">${esc(s.desc)}</span>
+/** 처음(빈 목록)에는 설명까지 크게, 하나라도 담은 뒤에는 이름만 있는 작은 버튼으로 보여준다 (설명은 담은 카드와 title에 그대로). */
+function servicePickerHtml(compact) {
+  return `<div class="service-grid ${compact ? "compact" : ""}">${SERVICES.map(
+    (s) => `<button type="button" class="service-btn" data-add="${s.type}" title="${esc(s.desc)}">
+        <span class="ico" aria-hidden="true">${s.icon}</span><span class="ttl">${esc(s.name)}</span>${compact ? "" : `<span class="dsc">${esc(s.desc)}</span>`}
       </button>`
   ).join("")}</div>`;
 }
@@ -158,7 +159,7 @@ export function renderCalculator(app, data, params) {
           ? `<h2 class="card-title">서비스 더 담기</h2>`
           : `<div class="empty"><strong>아직 담은 서비스가 없어요</strong>아래에서 쓸 서비스를 골라주세요. 뭘 써야 할지 모르겠다면 <a href="#/">구성 추천</a>부터 해보세요.</div>`
       }
-      <div style="margin-top:12px">${servicePickerHtml()}</div>
+      <div style="margin-top:12px">${servicePickerHtml(state.items.length > 0)}</div>
       ${state.items.length ? `<div style="margin-top:14px;text-align:right"><button type="button" class="btn btn-ghost btn-sm" data-clear>모두 비우기</button></div>` : ""}
     </section>
     ${state.items.length ? afterLaunchHtml() : ""}

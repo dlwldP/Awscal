@@ -420,6 +420,11 @@ main { padding-bottom: 48px; }
 .field .unit { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: var(--fs-small); pointer-events: none; }
 .field input.has-unit { padding-right: 52px; }
 .field .help { font-size: var(--fs-small); color: var(--muted); margin: 4px 0 0; }
+.field details.help > summary { cursor: pointer; list-style: none; }
+.field details.help > summary::-webkit-details-marker { display: none; }
+.field details.help > summary::after { content: " 더 보기"; color: var(--blue); font-weight: 600; white-space: nowrap; }
+.field details.help[open] > summary::after { content: " 접기"; }
+.field details.help p { margin: 2px 0 0; }
 .field.invalid input { outline: 2px solid var(--red); }
 
 .adjust > summary {
@@ -464,6 +469,9 @@ main { padding-bottom: 48px; }
 .service-btn .ico { font-size: 1.3rem; font-weight: 700; }
 .service-btn .ttl { font-weight: 700; }
 .service-btn .dsc { color: var(--muted); font-size: var(--fs-small); }
+.service-grid.compact { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 6px; }
+.service-grid.compact .service-btn { flex-direction: row; align-items: center; gap: 8px; padding: 10px 12px; border-radius: 12px; }
+.service-grid.compact .ico { font-size: 1.1rem; }
 
 .empty { text-align: center; color: var(--muted); padding: 28px 0 8px; }
 .empty strong { display: block; color: var(--text); font-size: var(--fs-card); margin-bottom: 4px; }
