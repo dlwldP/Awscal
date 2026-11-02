@@ -171,10 +171,16 @@ const AFTER_LAUNCH = [
   ["첫 달 청구서 확인", "결제 대시보드의 서비스별 요금에서 이 계산과 크게 다른 항목이 없는지 한 번 봐주세요."],
 ];
 
+/** 네 가지 제목만 먼저 보여주고, 누르면 설명이 펼쳐진다. */
 export function afterLaunchHtml() {
   return `<section class="card after-launch">
       <h2 class="card-title">만든 다음 꼭 할 일</h2>
-      <p class="card-sub">요금 폭탄은 대부분 이 네 가지를 놓쳐서 생겨요</p>
-      <ol>${AFTER_LAUNCH.map(([title, text]) => `<li><strong>${esc(title)}</strong><span>${glossarize(esc(text))}</span></li>`).join("")}</ol>
+      <p class="card-sub">요금 폭탄은 대부분 이 네 가지를 놓쳐서 생겨요 · 누르면 자세히 보여요</p>
+      <ol>${AFTER_LAUNCH.map(
+        ([title, text], i) => `<li><details data-key="after-launch-${i}">
+          <summary>${esc(title)}</summary>
+          <p>${glossarize(esc(text))}</p>
+        </details></li>`
+      ).join("")}</ol>
     </section>`;
 }

@@ -652,11 +652,10 @@ main { padding-bottom: 48px; }
 .warn-extra:not([hidden]) { display: contents; }
 
 /* ---- 만든 다음 꼭 할 일 ---- */
-.after-launch ol { list-style: none; counter-reset: step; margin: 4px 0 0; padding: 0; display: grid; gap: 14px; }
-.after-launch li { counter-increment: step; display: grid; grid-template-columns: 28px 1fr; column-gap: 10px; }
+.after-launch ol { list-style: none; counter-reset: step; margin: 4px 0 0; padding: 0; display: grid; gap: 10px; }
+.after-launch li { counter-increment: step; display: grid; grid-template-columns: 28px 1fr; column-gap: 10px; align-items: start; }
 .after-launch li::before {
   content: counter(step);
-  grid-row: span 2;
   width: 28px;
   height: 28px;
   border-radius: 50%;
@@ -666,7 +665,11 @@ main { padding-bottom: 48px; }
   display: grid;
   place-items: center;
 }
-.after-launch li span { color: var(--sub); font-size: var(--fs-small); }
+.after-launch summary { display: flex; justify-content: space-between; align-items: center; gap: 8px; min-height: 28px; cursor: pointer; list-style: none; font-weight: 700; }
+.after-launch summary::-webkit-details-marker { display: none; }
+.after-launch summary::after { content: "⌄"; flex: none; color: var(--muted); }
+.after-launch details[open] > summary::after { content: "⌃"; }
+.after-launch details p { margin: 4px 0 0; color: var(--sub); font-size: var(--fs-small); }
 
 /* ---- 공유 ---- */
 .share-row { display: flex; justify-content: flex-end; margin: -8px 0 12px; }
