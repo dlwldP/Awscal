@@ -6,6 +6,7 @@
 //   #/glossary                      용어 사전
 //   #/prices                        가격 변동 내역
 //   #/hidden-costs                  놓치기 쉬운 AWS 비용 안내
+//   #/guide/<템플릿>/<구성안>        이 구성 만들기 (단계별 가이드)
 import { calculateTemplate, formatKrw, formatUsd, HOURS_PER_MONTH, resolveResource } from "./engine.js";
 import { FIELDS, HIDDEN_ADJUST_FIELDS, fieldDef } from "./schema.js";
 import {
@@ -19,7 +20,7 @@ import { guideHtml, hiddenCostsOf } from "./hidden-costs.js";
 import { glossarize, installGlossaryHandlers, renderGlossary, setGlossary } from "./glossary.js";
 
 const app = document.getElementById("app");
-let data; // { prices, templates, settings, priceChanges, hiddenCosts }
+let data; // { prices, templates, settings, priceChanges, hiddenCosts, buildGuides }
 
 // 결과 화면에서 직접 바꾼 값. 주소(?키=값)에 담겨서 링크로 그대로 공유된다.
 const adjust = { overrides: {} };
@@ -209,11 +210,13 @@ function renderSetup(template) {
 /** 처음 보여줄 구성: 추천이 있으면 추천, 없으면 가장 저렴한 것. 나머지는 "다른 방법"으로 접는다. */
 const mainOptionOf = (options) => options.find((o) => o.recommended) ?? options.find((o) => o.isCheapest) ?? options[0];
 
-function optionsHtml(options, compareRegionId, values, regionPrices) {
+function optionsHtml(options, compareRegionId, values, regionPrices, templateId) {
   const main = mainOptionOf(options);
   const cheapest = options.find((o) => o.isCheapest);
   const others = options.filter((o) => o !== main);
-  const card = (o) => optionHtml(o, compareRegionId, values, regionPrices, o === main ? { cheapest } : null);
+  const guideKey = `${templateId}/${main.id}`;
+  const guide = data.buildGuides.guides[guideKey] ? guideKey : null;
+  const card = (o) => optionHtml(o, compareRegionId, values, regionPrices, o === main ? { cheapest, guide } : null);
   return `${card(main)}${hiddenCardHtml(main)}${
     others.length
       ? `<details class="others" data-key="others">
@@ -306,6 +309,7 @@ function optionHtml(o, compareRegionId, values, regionPrices, main = null) {
           : ""
       }
       ${diagramHtml(o.resources.map((r) => resolveResource(r, values)), regionPrices, o.id)}
+      ${main?.guide ? `<a class="btn btn-soft btn-block guide-btn" href="#/guide/${main.guide}">🛠 이 구성 만들기 · 단계별 가이드 ›</a>` : ""}
       ${main ? "" : warningsHtml(o.warnings)}
       <details class="more" data-key="more-${o.id}">
         <summary>비용 내역 · 장단점</summary>
@@ -426,7 +430,7 @@ function renderResult(template, presetId, regionId, params = new URLSearchParams
         ${chipsHtml("도메인 (example.com 같은 주소)", domainChoices, domainOn ? "on" : "off").replace(/data-value/g, "data-domain")}
       </div>
     </details>
-    <div id="options">${optionsHtml(options, compareRegionId, values, regionPrices)}</div>
+    <div id="options">${optionsHtml(options, compareRegionId, values, regionPrices, template.id)}</div>
     <div class="share-row"><button type="button" class="btn btn-soft btn-sm" id="share">🔗 이 결과 공유하기</button></div>
     ${adjustHtml(template, preset, values, regionPrices)}
     ${afterLaunchHtml()}
@@ -444,7 +448,7 @@ function renderResult(template, presetId, regionId, params = new URLSearchParams
   const refresh = () => {
     const result = calc();
     app.querySelector("#settings-text").innerHTML = settingsText(preset, regionId);
-    keepOpen(optionsEl, () => (optionsEl.innerHTML = optionsHtml(result.options, compareRegionId, result.values, regionPrices)));
+    keepOpen(optionsEl, () => (optionsEl.innerHTML = optionsHtml(result.options, compareRegionId, result.values, regionPrices, template.id)));
     app.querySelector("#adjust-status").innerHTML = adjustStatus(preset);
     app.querySelector("#adjust-reset").hidden = !Object.keys(adjust.overrides).length;
   };
@@ -509,6 +513,49 @@ function renderHiddenCosts() {
       <h2 class="card-title">내 구성은 얼마나 나올까요?</h2>
       <p class="card-sub">만들고 싶은 걸 고르면 이런 비용까지 포함해서 계산해드려요</p>
       <a class="btn btn-primary" href="#/">구성 추천 받기</a>
+    </section>`;
+}
+
+// ---- 이 구성 만들기 (단계별 가이드) ----
+function renderGuide(templateId, optionId) {
+  const g = data.buildGuides.guides[`${templateId}/${optionId}`];
+  const template = data.templates.find((t) => t.id === templateId);
+  const option = template?.options.find((o) => o.id === optionId);
+  if (!g || !option) return renderHome();
+  document.title = `${g.title} · AWS 얼마야?`;
+  const { before } = data.buildGuides.common;
+  // `명령어`는 코드로 보여주고, 용어 밑줄은 코드 밖에만 붙인다.
+  const text = (t) =>
+    t
+      .split(/`([^`]+)`/)
+      .map((part, i) => (i % 2 ? `<code>${esc(part)}</code>` : glossarize(esc(part))))
+      .join("");
+  const stepsHtml = (steps) =>
+    `<ol class="guide-steps">${steps.map((st) => `<li><strong>${esc(st.title)}</strong><p>${text(st.text)}</p></li>`).join("")}</ol>`;
+  app.innerHTML = `
+    <div class="page-head">
+      <a class="back" href="#/t/${template.id}">‹ ${esc(template.name)} 비용 다시 보기</a>
+      <p class="step">🛠 이 구성 만들기 · ${esc(option.name)}</p>
+      <h1 class="page-title">${esc(g.title)}</h1>
+      <p class="page-sub">${esc(g.summary)} 걸리는 시간 ${esc(g.time)}.</p>
+    </div>
+    <section class="card">
+      <h2 class="card-title">시작하기 전에</h2>
+      ${stepsHtml(before)}
+    </section>
+    <section class="card">
+      <h2 class="card-title">만드는 순서</h2>
+      <p class="card-sub">콘솔 화면은 조금씩 바뀔 수 있어요. 메뉴 이름이 다르면 비슷한 이름을 찾아보세요.</p>
+      ${stepsHtml(g.steps)}
+    </section>
+    <section class="card">
+      <h2 class="card-title">다 쓴 뒤 정리하기</h2>
+      <p class="card-sub">안 지우면 요금이 계속 나가요</p>
+      <ul class="excluded">${g.cleanup.map((c) => `<li>${glossarize(esc(c))}</li>`).join("")}</ul>
+    </section>
+    <section class="card">
+      <h2 class="card-title">공식 문서</h2>
+      <ul class="excluded">${g.docs.map((d) => `<li><a href="${esc(d.url)}" target="_blank" rel="noopener">${esc(d.label)}</a></li>`).join("")}</ul>
     </section>`;
 }
 
@@ -612,6 +659,7 @@ function route() {
   else if (section === "glossary") renderGlossary(app);
   else if (section === "prices") renderPriceChanges();
   else if (section === "hidden-costs") renderHiddenCosts();
+  else if (section === "guide") renderGuide(templateId, presetId);
   else if (validResult) renderResult(template, presetId, regionId, params);
   else if (template) renderSetup(template);
   else renderHome();
@@ -622,15 +670,16 @@ async function main() {
   installThemeToggle();
   installExpandHandlers();
   try {
-    const [prices, templates, settings, glossary, priceChanges, hiddenCosts] = await Promise.all([
+    const [prices, templates, settings, glossary, priceChanges, hiddenCosts, buildGuides] = await Promise.all([
       loadJson("data/prices.json"),
       loadJson("data/templates.json"),
       loadJson("data/settings.json"),
       loadJson("data/glossary.json"),
       loadJson("data/price-changes.json", true),
       loadJson("data/hidden-costs.json"),
+      loadJson("data/build-guides.json"),
     ]);
-    data = { prices, templates: templates.templates, settings, priceChanges, hiddenCosts: hiddenCosts.items };
+    data = { prices, templates: templates.templates, settings, priceChanges, hiddenCosts: hiddenCosts.items, buildGuides };
     setGlossary(glossary.terms);
     // 꼬리말은 모든 화면에 같이 나오는 정적 HTML이라 가격 갱신일만 여기서 채운다.
     document.getElementById("footer-updated").textContent = ` (${prices.updatedAt})`;

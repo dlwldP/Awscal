@@ -527,6 +527,25 @@ main { padding-bottom: 48px; }
 .hidden-lines .num { flex: none; font-weight: 700; }
 .guide-link { display: inline-block; margin-top: 14px; color: var(--blue); font-weight: 700; font-size: var(--fs-small); }
 
+/* ---- 이 구성 만들기 ---- */
+.guide-btn { margin-top: 12px; }
+.guide-steps { list-style: none; counter-reset: gstep; margin: 8px 0 0; padding: 0; display: grid; gap: 14px; }
+.guide-steps li { counter-increment: gstep; display: grid; grid-template-columns: 28px 1fr; column-gap: 10px; }
+.guide-steps li::before {
+  content: counter(gstep);
+  grid-row: span 2;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--blue-bg);
+  color: var(--blue);
+  font-weight: 800;
+  display: grid;
+  place-items: center;
+}
+.guide-steps p { margin: 2px 0 0; color: var(--sub); font-size: var(--fs-small); }
+.guide-steps code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.85em; background: var(--bg); color: var(--text); border-radius: 6px; padding: 1px 5px; overflow-wrap: anywhere; }
+
 /* ---- 놓치기 쉬운 비용 안내 페이지 ---- */
 .guide-item p { margin: 8px 0 0; color: var(--sub); }
 .guide-item .guide-cost { color: var(--text); font-weight: 700; }

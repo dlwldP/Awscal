@@ -171,3 +171,22 @@ test("놓치기 쉬운 비용 안내: 모든 항목이 채워져 있고 {값}이
     assert.equal((guideHtml(items, p).match(/class="card guide-item"/g) ?? []).length, items.length);
   }
 });
+
+test("이 구성 만들기: 템플릿마다 맨 위 구성(추천, 없으면 최저가)에 가이드가 있고 내용이 채워져 있다", () => {
+  const { common, guides } = load("data/build-guides.json");
+  assert.ok(common.before.length >= 1);
+  const region = settings.defaultRegion;
+  for (const t of templates) {
+    const { options } = calculateTemplate(t, t.presets[0].id, prices, region);
+    const main = options.find((o) => o.recommended) ?? options.find((o) => o.isCheapest) ?? options[0];
+    assert.ok(guides[`${t.id}/${main.id}`], `${t.id}/${main.id} 가이드 없음`);
+  }
+  for (const [key, g] of Object.entries(guides)) {
+    const [tid, oid] = key.split("/");
+    assert.ok(templates.find((t) => t.id === tid)?.options.some((o) => o.id === oid), `${key}: 없는 구성안`);
+    for (const k of ["title", "time", "summary"]) assert.ok(g[k], `${key}.${k}`);
+    assert.ok(g.steps.length >= 3 && g.steps.every((s) => s.title && s.text), `${key}.steps`);
+    assert.ok(g.cleanup.length >= 1, `${key}.cleanup`);
+    assert.ok(g.docs.length >= 1 && g.docs.every((d) => d.label && d.url.startsWith("https://")), `${key}.docs`);
+  }
+});
