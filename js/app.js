@@ -65,7 +65,6 @@ function feedbackUrl() {
 function renderHome() {
   document.title = "AWS 얼마야? · 초보자용 AWS 비용 계산기";
   const form = data.settings.feedback.googleFormUrl;
-  const changes = data.priceChanges;
   app.innerHTML = `
     <section class="hero">
       <p class="eyebrow">AWS 비용 계산기</p>
@@ -156,12 +155,7 @@ function renderHome() {
     </section>
     </div>
     </div>
-
-    <div class="trust">
-      <span>가격 매주 자동 갱신 (${esc(data.prices.updatedAt)}) · <a href="#/prices">변동 내역${
-        changes ? ` ${changes.changes.length}건` : ""
-      }</a></span>
-    </div>`;
+`;
   // 주소(#/...)로 화면을 나누고 있어서 #templates 링크 대신 버튼으로 스크롤한다.
   app.querySelector("#go-templates").addEventListener("click", () =>
     app.querySelector("#templates").scrollIntoView({ behavior: "smooth", block: "start" })
@@ -638,6 +632,8 @@ async function main() {
     ]);
     data = { prices, templates: templates.templates, settings, priceChanges, hiddenCosts: hiddenCosts.items };
     setGlossary(glossary.terms);
+    // 꼬리말은 모든 화면에 같이 나오는 정적 HTML이라 가격 갱신일만 여기서 채운다.
+    document.getElementById("footer-updated").textContent = ` (${prices.updatedAt})`;
     installGlossaryHandlers();
     window.addEventListener("hashchange", route);
     route();
