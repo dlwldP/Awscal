@@ -1,4 +1,4 @@
-// 검색엔진용 정적 페이지를 만든다: 템플릿별 소개 페이지와 sitemap.xml.
+// 검색엔진용 정적 페이지를 만든다: 템플릿별 소개 페이지, 놓치기 쉬운 비용 안내, sitemap.xml.
 // (GitHub Pages 프로젝트 사이트는 도메인 루트가 아니라서 robots.txt는 검색엔진이 읽지 않는다.
 //  sitemap은 Google Search Console 등에 주소를 직접 등록해서 쓴다.)
 // 앱 화면은 자바스크립트로 그려져서 검색에 잘 잡히지 않으므로, 핵심 내용(구성·비용·장단점)을
@@ -7,12 +7,14 @@
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { calculateTemplate, formatKrw, formatUsd } from "../js/engine.js";
+import { guideHtml } from "../js/hidden-costs.js";
 
 const outDir = process.argv[2] ?? "_site";
 const load = (p) => JSON.parse(readFileSync(new URL(`../data/${p}`, import.meta.url)));
 const prices = load("prices.json");
 const { templates } = load("templates.json");
 const settings = load("settings.json");
+const hiddenCosts = load("hidden-costs.json").items;
 const site = settings.siteUrl.replace(/\/?$/, "/");
 const region = settings.defaultRegion;
 const { krwPerUsd, vatRate } = settings.exchangeRate;
@@ -79,6 +81,66 @@ function page(t) {
     .map((x) => `<a href="${x.id}.html">${esc(x.name)} 비용</a>`)
     .join("");
 
+  return shell({
+    title,
+    description,
+    url,
+    main: `
+    <div class="page-head">
+      <p class="step">${t.icon} 구성별 비용 정리</p>
+      <h1 class="page-title">${esc(t.name)}, AWS로 한 달에 얼마?</h1>
+      <p class="page-sub">${esc(t.summary)}. ${esc(regionName)} 리전 온디맨드 요금 기준으로 구성 ${t.options.length}가지를 비교했어요.</p>
+    </div>
+    <section class="card">
+      <h2 class="card-title">규모별 월 비용 (USD, 부가세 별도)</h2>
+      ${table}
+      <div class="option-actions"><a class="btn btn-primary btn-block" href="../#/t/${t.id}">내 상황으로 다시 계산하기 ›</a></div>
+    </section>
+    ${cards}
+    <section class="card notes">
+      <h2 class="card-title">계산 기준</h2>
+      <ul>
+        <li>${esc(regionName)} 리전, 한 달 = 730시간, 온디맨드 요금 기준이에요.</li>
+        <li>가정: ${first.preset.assumptions.map(esc).join(", ")} (${esc(first.preset.name)})</li>
+        <li>프리티어·크레딧은 반영하지 않았어요. 원화는 1달러 = ${krwPerUsd.toLocaleString("ko-KR")}원, 부가세 10% 포함이에요.</li>
+        <li>가격 갱신일 ${esc(prices.updatedAt)} (AWS Price List API). 예상치이며 실제 청구액과 다를 수 있어요.</li>
+      </ul>
+    </section>`,
+    footer: `
+    다른 구성도 보기
+    <nav aria-label="다른 템플릿">${others}<a href="hidden-costs.html">놓치기 쉬운 비용</a><a href="../#/glossary">용어 사전</a></nav>`,
+  });
+}
+
+/** 놓치기 쉬운 비용 안내 (앱 #/hidden-costs와 같은 본문) */
+function hiddenCostsPage() {
+  const regionName = prices.regions[region].name;
+  const title = `놓치기 쉬운 AWS 비용 ${hiddenCosts.length}가지 — 요금 폭탄 피하는 법 | AWS 얼마야?`;
+  const description = `데이터 전송, 퍼블릭 IPv4, NAT Gateway, 로드밸런서, 스냅샷, 로그, 프리티어 종료까지. AWS 처음 쓰는 사람이 청구서에서 자주 놀라는 비용 ${hiddenCosts.length}가지와 피하는 법을 정리했어요.`;
+  return shell({
+    title,
+    description,
+    url: `${site}pages/hidden-costs.html`,
+    main: `
+    <div class="page-head">
+      <p class="step">⚠️ 놓치기 쉬운 비용</p>
+      <h1 class="page-title">놓치기 쉬운 AWS 비용 ${hiddenCosts.length}가지</h1>
+      <p class="page-sub">처음 쓰는 사람이 청구서를 보고 자주 놀라는 항목이에요. 금액은 ${esc(regionName)} 리전 기준이에요 (부가세 별도, 가격 갱신일 ${esc(prices.updatedAt)}).</p>
+    </div>
+    ${guideHtml(hiddenCosts, prices.regions[region])}
+    <section class="card">
+      <h2 class="card-title">내 구성은 얼마나 나올까요?</h2>
+      <p class="card-sub">만들고 싶은 걸 고르면 이런 비용까지 포함해서 계산해드려요</p>
+      <a class="btn btn-primary" href="../#/">구성 추천 받기</a>
+    </section>`,
+    footer: `
+    구성별 비용 보기
+    <nav aria-label="템플릿">${templates.map((x) => `<a href="${x.id}.html">${esc(x.name)} 비용</a>`).join("")}<a href="../#/glossary">용어 사전</a></nav>`,
+  });
+}
+
+/** 정적 페이지 공통 틀 (머리글, 꼬리말, 개인정보 안내) */
+function shell({ title, description, url, main, footer }) {
   return `<!doctype html>
 <html lang="ko">
 <head>
@@ -107,31 +169,9 @@ function page(t) {
       <nav class="topnav"><a href="../#/">구성 추천</a><a href="../#/calc">직접 계산</a></nav>
     </div>
   </header>
-  <main class="container">
-    <div class="page-head">
-      <p class="step">${t.icon} 구성별 비용 정리</p>
-      <h1 class="page-title">${esc(t.name)}, AWS로 한 달에 얼마?</h1>
-      <p class="page-sub">${esc(t.summary)}. ${esc(regionName)} 리전 온디맨드 요금 기준으로 구성 ${t.options.length}가지를 비교했어요.</p>
-    </div>
-    <section class="card">
-      <h2 class="card-title">규모별 월 비용 (USD, 부가세 별도)</h2>
-      ${table}
-      <div class="option-actions"><a class="btn btn-primary btn-block" href="../#/t/${t.id}">내 상황으로 다시 계산하기 ›</a></div>
-    </section>
-    ${cards}
-    <section class="card notes">
-      <h2 class="card-title">계산 기준</h2>
-      <ul>
-        <li>${esc(regionName)} 리전, 한 달 = 730시간, 온디맨드 요금 기준이에요.</li>
-        <li>가정: ${first.preset.assumptions.map(esc).join(", ")} (${esc(first.preset.name)})</li>
-        <li>프리티어·크레딧은 반영하지 않았어요. 원화는 1달러 = ${krwPerUsd.toLocaleString("ko-KR")}원, 부가세 10% 포함이에요.</li>
-        <li>가격 갱신일 ${esc(prices.updatedAt)} (AWS Price List API). 예상치이며 실제 청구액과 다를 수 있어요.</li>
-      </ul>
-    </section>
+  <main class="container">${main}
   </main>
-  <footer class="site-footer container">
-    다른 구성도 보기
-    <nav aria-label="다른 템플릿">${others}<a href="../#/glossary">용어 사전</a></nav>
+  <footer class="site-footer container">${footer}
     <details class="privacy">
       <summary>개인정보 안내</summary>
       <p>이 사이트는 회원가입이나 개인정보 수집이 없어요. 직접 계산기에 담은 목록은 이 브라우저에만 저장돼요. 의견 보내기 설문은 Google Forms, 사이트 호스팅은 GitHub Pages, 글꼴은 jsDelivr를 쓰고, 각 서비스의 개인정보 정책을 따라요.</p>
@@ -144,8 +184,9 @@ function page(t) {
 
 mkdirSync(join(outDir, "pages"), { recursive: true });
 for (const t of templates) writeFileSync(join(outDir, "pages", `${t.id}.html`), page(t));
+writeFileSync(join(outDir, "pages", "hidden-costs.html"), hiddenCostsPage());
 
-const urls = [site, ...templates.map((t) => `${site}pages/${t.id}.html`)];
+const urls = [site, ...templates.map((t) => `${site}pages/${t.id}.html`), `${site}pages/hidden-costs.html`];
 writeFileSync(
   join(outDir, "sitemap.xml"),
   `<?xml version="1.0" encoding="UTF-8"?>
@@ -154,4 +195,4 @@ ${urls.map((u) => `  <url><loc>${u}</loc><lastmod>${prices.updatedAt}</lastmod><
 </urlset>
 `
 );
-console.log(`wrote ${templates.length} pages and sitemap.xml → ${outDir}`);
+console.log(`wrote ${templates.length + 1} pages and sitemap.xml → ${outDir}`);

@@ -80,7 +80,7 @@ data/hidden-costs.json      놓치기 쉬운 비용 안내 내용 ({이름}은 �
 data/settings.json          환율·부가세, 기본/비교 리전, 피드백 링크, 사이트 주소
 assets/og.png               링크 미리보기 이미지 (원본: scripts/og-image.html)
 scripts/fetch_prices.py     가격 수집 + 변동 기록
-scripts/build-pages.js      검색엔진용 템플릿 소개 페이지 + sitemap.xml 생성 (배포 때 실행)
+scripts/build-pages.js      검색엔진용 템플릿 소개·놓치기 쉬운 비용 페이지 + sitemap.xml 생성 (배포 때 실행)
 scripts/validation-report.js  공식 계산기 교차 검증 체크리스트 생성
 docs/validation.md          교차 검증 체크리스트
 tests/                      단위 테스트 (*.test.js: Node, test_*.py: Python)
@@ -132,7 +132,7 @@ npm run validation   # docs/validation.md 다시 만들기
 
 `main`에 푸시하면 `deploy.yml`이 테스트 후 **GitHub Pages**에 배포합니다. 정적 파일만 있어서 서버, API 키, 운영비가 필요 없습니다.
 
-배포 때 `scripts/build-pages.js`가 템플릿별 소개 페이지(`pages/*.html`)와 `sitemap.xml`을 만듭니다. 검색 노출을 원하면 [Google Search Console](https://search.google.com/search-console)에 `https://dlwldp.github.io/Awscal/sitemap.xml`을 등록하세요 (프로젝트 사이트라 robots.txt는 만들지 않습니다).
+배포 때 `scripts/build-pages.js`가 템플릿별 소개 페이지(`pages/*.html`), 놓치기 쉬운 비용 안내(`pages/hidden-costs.html`), `sitemap.xml`을 만듭니다. 검색 노출을 원하면 [Google Search Console](https://search.google.com/search-console)에 `https://dlwldp.github.io/Awscal/sitemap.xml`을 등록하세요 (프로젝트 사이트라 robots.txt는 만들지 않습니다).
 
 의견 보내기의 구글폼 주소는 `data/settings.json`의 `feedback.googleFormUrl`에 넣으면 메인 화면에 나타납니다.
 
