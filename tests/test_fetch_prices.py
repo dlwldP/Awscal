@@ -49,6 +49,23 @@ class PathTest(unittest.TestCase):
         self.assertEqual(fp.split_path("alb.hourly"), ["alb", "hourly"])
 
 
+class BedrockSpecTest(unittest.TestCase):
+    def test_paths_and_usage(self):
+        items = {path: (offer, usage, filters) for path, offer, usage, filters in fp.spec("AP", "APN2")}
+        offer, usage, filters = items["bedrock.claude-haiku-5.5.inputPerMTok"]
+        self.assertEqual(offer, "AmazonBedrockFoundationModels")
+        self.assertTrue(fp.usage_matches("APN2-MP:APN2_input_tokens_global_standard-Units", usage, "APN2"))
+        self.assertFalse(fp.usage_matches("APN2-MP:APN2_input_tokens_standard-Units", usage, "APN2"))
+        self.assertEqual(filters, {"Model": "Claude Haiku 5.5"})
+        offer, usage, _ = items["bedrock.nova-micro.outputPerMTok"]
+        self.assertTrue(fp.usage_matches("APN2-NovaMicro-output-tokens", usage, "APN2"))
+        self.assertFalse(fp.usage_matches("APN2-NovaMicro-output-tokens-batch", usage, "APN2"))
+
+    def test_model_lookup(self):
+        self.assertEqual(fp.bedrock_model("bedrock.nova-lite.inputPerMTok")["scale"], 1000)
+        self.assertIsNone(fp.bedrock_model("ec2.t4g.micro.hourly"))
+
+
 class DiffTest(unittest.TestCase):
     def test_changes_and_added(self):
         old = {"updatedAt": "2026-10-01", "regions": {"r": {"name": "R", "ec2": {"a": {"hourly": 1.0}}, "dataTransferOut": {"perGb": 0.1, "perGbUpTo": 10}}}}

@@ -145,6 +145,33 @@
         "hostedZoneMonthlyUpTo": 25.0,
         "comDomainYearly": 15.0,
         "comDomainCheckedAt": "2026-10-19"
+      },
+      "bedrock": {
+        "nova-micro": {
+          "inputPerMTok": 0.041,
+          "outputPerMTok": 0.164,
+          "name": "Amazon Nova Micro"
+        },
+        "nova-lite": {
+          "inputPerMTok": 0.071,
+          "outputPerMTok": 0.284,
+          "name": "Amazon Nova Lite"
+        },
+        "nova-pro": {
+          "inputPerMTok": 0.95,
+          "outputPerMTok": 3.8,
+          "name": "Amazon Nova Pro"
+        },
+        "claude-haiku-5.5": {
+          "inputPerMTok": 0.1,
+          "outputPerMTok": 0.5,
+          "name": "Claude Haiku 5.5"
+        },
+        "claude-sonnet-5.5": {
+          "inputPerMTok": 2.0,
+          "outputPerMTok": 10.0,
+          "name": "Claude Sonnet 5.5"
+        }
       }
     },
     "ap-northeast-1": {
@@ -289,6 +316,28 @@
         "hostedZoneMonthlyUpTo": 25.0,
         "comDomainYearly": 15.0,
         "comDomainCheckedAt": "2026-10-19"
+      },
+      "bedrock": {
+        "nova-micro": {
+          "inputPerMTok": 0.042,
+          "outputPerMTok": 0.168,
+          "name": "Amazon Nova Micro"
+        },
+        "nova-lite": {
+          "inputPerMTok": 0.072,
+          "outputPerMTok": 0.288,
+          "name": "Amazon Nova Lite"
+        },
+        "nova-pro": {
+          "inputPerMTok": 0.96,
+          "outputPerMTok": 3.84,
+          "name": "Amazon Nova Pro"
+        },
+        "claude-haiku-5.5": {
+          "inputPerMTok": 0.1,
+          "outputPerMTok": 0.5,
+          "name": "Claude Haiku 5.5"
+        }
       }
     },
     "ap-southeast-1": {
@@ -433,6 +482,33 @@
         "hostedZoneMonthlyUpTo": 25.0,
         "comDomainYearly": 15.0,
         "comDomainCheckedAt": "2026-10-19"
+      },
+      "bedrock": {
+        "nova-micro": {
+          "inputPerMTok": 0.047,
+          "outputPerMTok": 0.188,
+          "name": "Amazon Nova Micro"
+        },
+        "nova-lite": {
+          "inputPerMTok": 0.081,
+          "outputPerMTok": 0.324,
+          "name": "Amazon Nova Lite"
+        },
+        "nova-pro": {
+          "inputPerMTok": 1.08,
+          "outputPerMTok": 4.32,
+          "name": "Amazon Nova Pro"
+        },
+        "claude-haiku-5.5": {
+          "inputPerMTok": 0.1,
+          "outputPerMTok": 0.5,
+          "name": "Claude Haiku 5.5"
+        },
+        "claude-sonnet-5.5": {
+          "inputPerMTok": 2.0,
+          "outputPerMTok": 10.0,
+          "name": "Claude Sonnet 5.5"
+        }
       }
     },
     "us-east-1": {
@@ -577,6 +653,33 @@
         "hostedZoneMonthlyUpTo": 25.0,
         "comDomainYearly": 15.0,
         "comDomainCheckedAt": "2026-10-19"
+      },
+      "bedrock": {
+        "nova-micro": {
+          "inputPerMTok": 0.035,
+          "outputPerMTok": 0.14,
+          "name": "Amazon Nova Micro"
+        },
+        "nova-lite": {
+          "inputPerMTok": 0.06,
+          "outputPerMTok": 0.24,
+          "name": "Amazon Nova Lite"
+        },
+        "nova-pro": {
+          "inputPerMTok": 0.8,
+          "outputPerMTok": 3.2,
+          "name": "Amazon Nova Pro"
+        },
+        "claude-haiku-5.5": {
+          "inputPerMTok": 0.1,
+          "outputPerMTok": 0.5,
+          "name": "Claude Haiku 5.5"
+        },
+        "claude-sonnet-5.5": {
+          "inputPerMTok": 2.0,
+          "outputPerMTok": 10.0,
+          "name": "Claude Sonnet 5.5"
+        }
       }
     },
     "us-west-2": {
@@ -721,6 +824,33 @@
         "hostedZoneMonthlyUpTo": 25.0,
         "comDomainYearly": 15.0,
         "comDomainCheckedAt": "2026-10-19"
+      },
+      "bedrock": {
+        "nova-micro": {
+          "inputPerMTok": 0.035,
+          "outputPerMTok": 0.14,
+          "name": "Amazon Nova Micro"
+        },
+        "nova-lite": {
+          "inputPerMTok": 0.06,
+          "outputPerMTok": 0.24,
+          "name": "Amazon Nova Lite"
+        },
+        "nova-pro": {
+          "inputPerMTok": 0.8,
+          "outputPerMTok": 3.2,
+          "name": "Amazon Nova Pro"
+        },
+        "claude-haiku-5.5": {
+          "inputPerMTok": 0.1,
+          "outputPerMTok": 0.5,
+          "name": "Claude Haiku 5.5"
+        },
+        "claude-sonnet-5.5": {
+          "inputPerMTok": 2.0,
+          "outputPerMTok": 10.0,
+          "name": "Claude Sonnet 5.5"
+        }
       }
     },
     "eu-central-1": {
@@ -865,6 +995,33 @@
         "hostedZoneMonthlyUpTo": 25.0,
         "comDomainYearly": 15.0,
         "comDomainCheckedAt": "2026-10-19"
+      },
+      "bedrock": {
+        "nova-micro": {
+          "inputPerMTok": 0.046,
+          "outputPerMTok": 0.184,
+          "name": "Amazon Nova Micro"
+        },
+        "nova-lite": {
+          "inputPerMTok": 0.078,
+          "outputPerMTok": 0.312,
+          "name": "Amazon Nova Lite"
+        },
+        "nova-pro": {
+          "inputPerMTok": 1.05,
+          "outputPerMTok": 4.2,
+          "name": "Amazon Nova Pro"
+        },
+        "claude-haiku-5.5": {
+          "inputPerMTok": 0.1,
+          "outputPerMTok": 0.5,
+          "name": "Claude Haiku 5.5"
+        },
+        "claude-sonnet-5.5": {
+          "inputPerMTok": 2.0,
+          "outputPerMTok": 10.0,
+          "name": "Claude Sonnet 5.5"
+        }
       }
     }
   }

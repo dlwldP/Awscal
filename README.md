@@ -109,7 +109,7 @@ tests/                      단위 테스트 (*.test.js: Node, test_*.py: Python
 python3 scripts/fetch_prices.py   # data/prices.json 갱신 (약 30초)
 ```
 
-추출할 항목은 스크립트의 `spec()` 화이트리스트에 있습니다. 직접 계산기에서 고를 수 있는 인스턴스도 이 목록(`EC2_INSTANCES`, `RDS_INSTANCES`, `LIGHTSAIL_BUNDLES`)에서 나옵니다. 하나라도 찾지 못하거나 첫 구간 단가가 애매하면 실패하고, 기존 `prices.json`은 그대로 남습니다.
+추출할 항목은 스크립트의 `spec()` 화이트리스트에 있습니다. Bedrock 모델(AI 챗봇)은 `BEDROCK_MODELS`에 있고, 토큰 단가는 모두 100만 토큰당 USD로 맞춰 저장합니다 (Amazon Nova는 리전 안 온디맨드, Claude는 글로벌 교차 리전 추론 단가). 리전에 따라 없는 모델(`optional`)은 그 리전 선택지에서만 빠집니다. 직접 계산기에서 고를 수 있는 인스턴스도 이 목록(`EC2_INSTANCES`, `RDS_INSTANCES`, `LIGHTSAIL_BUNDLES`)에서 나옵니다. 하나라도 찾지 못하거나 첫 구간 단가가 애매하면 실패하고, 기존 `prices.json`은 그대로 남습니다.
 
 실행할 때마다 기존 `prices.json`과 비교해 바뀐 단가를 `data/price-changes.json`에 기록합니다. 새로 추가된 항목(리전·인스턴스 추가)은 변동이 아니라 개수로만 셉니다. 도메인 등록비(.com)는 Price List API에 없어서 스크립트에 상수로 적혀 있습니다 (`DOMAIN_COM_YEARLY_USD`).
 

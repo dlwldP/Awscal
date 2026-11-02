@@ -45,13 +45,29 @@ EC2_INSTANCES = ["t4g.nano", "t4g.micro", "t4g.small", "t4g.medium", "t4g.large"
 RDS_INSTANCES = ["db.t4g.micro", "db.t4g.small", "db.t4g.medium", "db.t4g.large", "db.t3.micro"]
 LIGHTSAIL_BUNDLES = ["0.5GB", "1GB", "2GB", "4GB", "8GB"]
 
+# Bedrock 모델 (AI 챗봇 템플릿). 토큰 단가는 모두 '100만 토큰당 USD'로 맞춰 저장한다.
+#   Amazon Nova: AmazonBedrock 오퍼, 리전 안 온디맨드, 원본 단위가 1K 토큰이라 1000을 곱한다.
+#   Claude: AmazonBedrockFoundationModels 오퍼, 글로벌 교차 리전 추론(global_standard) 단가, 원본 단위가 1M 토큰.
+#   optional: 리전에 따라 없을 수 있는 모델 (없으면 그 리전 선택지에서만 빠진다).
+#   모델 세대가 바뀌면 이 목록의 이름(model)과 id만 고치면 된다.
+BEDROCK_MODELS = {
+    "nova-micro": {"name": "Amazon Nova Micro", "offer": "AmazonBedrock", "usage": "NovaMicro-{kind}-tokens", "scale": 1000},
+    "nova-lite": {"name": "Amazon Nova Lite", "offer": "AmazonBedrock", "usage": "NovaLite-{kind}-tokens", "scale": 1000},
+    "nova-pro": {"name": "Amazon Nova Pro", "offer": "AmazonBedrock", "usage": "NovaPro-{kind}-tokens", "scale": 1000},
+    "claude-haiku-5.5": {"name": "Claude Haiku 5.5", "offer": "AmazonBedrockFoundationModels", "model": "Claude Haiku 5.5",
+                         "usage": "={up}-MP:{up}_{kind}_tokens_global_standard-Units", "scale": 1},
+    "claude-sonnet-5.5": {"name": "Claude Sonnet 5.5", "offer": "AmazonBedrockFoundationModels", "model": "Claude Sonnet 5.5",
+                          "usage": "={up}-MP:{up}_{kind}_tokens_global_standard-Units", "scale": 1, "optional": True},
+}
+BEDROCK_KINDS = {"input": "inputPerMTok", "output": "outputPerMTok"}
+
 LINUX_EC2 = {"operation": "RunInstances", "CapacityStatus": "Used", "Pre Installed S/W": "NA", "Tenancy": "Shared"}
 MYSQL_SINGLE = {"Database Engine": "MySQL", "Deployment Option": "Single-AZ"}
 MYSQL_MULTI = {"Database Engine": "MySQL", "Deployment Option": "Multi-AZ"}
 
 
-def spec(cf):
-    """(출력 경로, 오퍼 코드, usageType, 추가 필터) 목록. cf = CloudFront 엣지 접두사."""
+def spec(cf, up=""):
+    """(출력 경로, 오퍼 코드, usageType, 추가 필터) 목록. cf = CloudFront 엣지 접두사, up = usageType 리전 접두사."""
     s = []
     for it in EC2_INSTANCES:
         s.append((f"ec2.{it}.hourly", "AmazonEC2", f"BoxUsage:{it}", LINUX_EC2))
@@ -89,7 +105,17 @@ def spec(cf):
         ("fargate.perGbHour", "AmazonECS", "Fargate-GB-Hours", {}),
         ("route53.hostedZoneMonthly", "AmazonRoute53", "=HostedZone", {}),
     ]
+    for model_id, m in BEDROCK_MODELS.items():
+        for kind, field in BEDROCK_KINDS.items():
+            filters = {"Model": m["model"]} if "model" in m else {}
+            s.append((f"bedrock.{model_id}.{field}", m["offer"], m["usage"].format(kind=kind, up=up), filters))
     return s
+
+
+def bedrock_model(path):
+    """'bedrock.claude-haiku-5.5.inputPerMTok' → BEDROCK_MODELS의 항목 (Bedrock 경로가 아니면 None)."""
+    parts = split_path(path)
+    return BEDROCK_MODELS.get(parts[1]) if parts[0] == "bedrock" else None
 
 
 def usage_matches(actual, wanted, region_prefix):
@@ -174,11 +200,17 @@ def build():
     }
     for region, meta in REGIONS.items():
         print(f"[{region}]", file=sys.stderr)
-        items = spec(meta["cloudfrontPrefix"])
+        items = spec(meta["cloudfrontPrefix"], meta["usagePrefix"])
         found = collect(region, meta["usagePrefix"], items)
         data = {"name": meta["name"]}
         for path, *_ in items:
+            model = bedrock_model(path)
+            if model and model.get("optional") and not found[path]:
+                print(f"  (없음) {path}", file=sys.stderr)  # 이 리전에서는 팔지 않는 모델
+                continue
             value, tier_end = pick_price(path, found[path])
+            if model:
+                value = round(value * model["scale"], 10)
             set_path(data, path, value)
             if tier_end is not None:  # 첫 구간 한도 (예: dataTransferOut.perGbUpTo = 10240GB)
                 set_path(data, path + "UpTo", tier_end)
@@ -187,6 +219,10 @@ def build():
             bundle["monthly"] = math.ceil(bundle["hourly"] * HOURS_LIGHTSAIL_MONTH * 100) / 100
         data["route53"]["comDomainYearly"] = DOMAIN_COM_YEARLY_USD
         data["route53"]["comDomainCheckedAt"] = DOMAIN_PRICE_CHECKED_AT
+        for model_id, prices in data["bedrock"].items():
+            if len(prices) != len(BEDROCK_KINDS):  # 입력·출력 단가 중 하나만 있으면 쓸 수 없다
+                raise ValueError(f"{region} bedrock.{model_id}: 입력·출력 단가가 짝이 맞지 않음 {sorted(prices)}")
+            prices["name"] = BEDROCK_MODELS[model_id]["name"]
         out["regions"][region] = data
     return out
 
