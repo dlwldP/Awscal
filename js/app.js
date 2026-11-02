@@ -7,6 +7,7 @@
 //   #/prices                        가격 변동 내역
 //   #/hidden-costs                  놓치기 쉬운 AWS 비용 안내
 //   #/guide/<템플릿>/<구성안>        이 구성 만들기 (단계별 가이드)
+//   #/quiz                          "얼마일까?" 비용 감각 퀴즈
 import { calculateTemplate, formatKrw, formatUsd, HOURS_PER_MONTH, resolveResource } from "./engine.js";
 import { FIELDS, HIDDEN_ADJUST_FIELDS, fieldDef } from "./schema.js";
 import {
@@ -17,6 +18,7 @@ import { parseDomain, parseFree, parseOverrides, resultHash } from "./share.js";
 import { importResources, renderCalculator } from "./calculator.js";
 import { diagramHtml } from "./diagram.js";
 import { guideHtml, hiddenCostsOf } from "./hidden-costs.js";
+import { makeQuestions } from "./quiz.js";
 import { glossarize, installGlossaryHandlers, renderGlossary, setGlossary } from "./glossary.js";
 
 const app = document.getElementById("app");
@@ -121,6 +123,11 @@ function renderHome() {
         <li><a class="row" href="#/calc">
           <span class="ico" aria-hidden="true">🧮</span>
           <span class="txt"><span class="ttl">직접 계산하기</span><span class="dsc">쓸 서비스를 알고 있다면 직접 담아서 계산해요</span></span>
+          <span class="chev" aria-hidden="true">›</span>
+        </a></li>
+        <li><a class="row" href="#/quiz">
+          <span class="ico" aria-hidden="true">🎯</span>
+          <span class="txt"><span class="ttl">얼마일까? 퀴즈</span><span class="dsc">이 구성은 한 달에 얼마? 3문제로 비용 감 잡기</span></span>
           <span class="chev" aria-hidden="true">›</span>
         </a></li>
         <li><a class="row" href="#/hidden-costs">
@@ -445,7 +452,10 @@ function renderResult(template, presetId, regionId, params = new URLSearchParams
       </div>
     </details>
     <div id="options">${optionsHtml(options, compareRegionId, values, regionPrices, template.id)}</div>
-    <div class="share-row"><button type="button" class="btn btn-soft btn-sm" id="share">🔗 이 결과 공유하기</button></div>
+    <div class="share-row">
+      <a class="quiz-link" href="#/quiz">🎯 얼마일까? 퀴즈</a>
+      <button type="button" class="btn btn-soft btn-sm" id="share">🔗 이 결과 공유하기</button>
+    </div>
     ${adjustHtml(template, preset, values, regionPrices)}
     ${afterLaunchHtml()}
     ${notesHtml(preset, regionId)}`;
@@ -532,6 +542,101 @@ function renderHiddenCosts() {
       <p class="card-sub">만들고 싶은 걸 고르면 이런 비용까지 포함해서 계산해드려요</p>
       <a class="btn btn-primary" href="#/">구성 추천 받기</a>
     </section>`;
+}
+
+// ---- "얼마일까?" 퀴즈 ----
+const won = (krw) => `약 ${krw.toLocaleString("ko-KR")}원`;
+let quizClick = null; // 퀴즈 화면의 클릭 처리 (다시 들어오면 이전 것을 떼고 새로 건다)
+
+function renderQuiz() {
+  document.title = "얼마일까? 퀴즈 · AWS 얼마야?";
+  const region = data.settings.defaultRegion;
+  const quiz = { questions: makeQuestions(data.templates, data.prices, region, ex()), i: 0, picks: [] };
+
+  const head = `
+    <div class="page-head">
+      <a class="back" href="#/">‹ 처음으로</a>
+      <p class="step">🎯 얼마일까? 퀴즈</p>
+      <h1 class="page-title">이 구성, 한 달에 얼마일까요?</h1>
+      <p class="page-sub">${esc(regionName(region))} 리전, 원화는 부가세 포함이에요. 감으로 골라보세요.</p>
+    </div>`;
+
+  const questionHtml = () => {
+    const q = quiz.questions[quiz.i];
+    const pick = quiz.picks[quiz.i];
+    const answered = pick !== undefined;
+    const { included } = hiddenCostsOf(q.option);
+    const tips = included.slice(0, 2).map((h) => `${h.label} ${h.usd === null ? "(번들 포함)" : `월 ${formatUsd(h.usd)}`}`);
+    return `
+      <section class="card quiz-card">
+        <p class="quiz-count">${quiz.i + 1} / ${quiz.questions.length}</p>
+        <h2 class="card-title">${q.template.icon} ${esc(q.template.name)} · ${esc(q.option.name)}</h2>
+        <p class="option-summary">${esc(q.option.summary)}</p>
+        <p class="quiz-preset">규모: <strong>${esc(q.preset.name)}</strong> (${esc(q.preset.description)})</p>
+        <div class="quiz-choices">${q.choices
+          .map((c) => {
+            const cls = !answered ? "" : c === q.answer ? "correct" : c === pick ? "wrong" : "";
+            return `<button type="button" class="quiz-choice ${cls}" data-choice="${c}" ${answered ? "disabled" : ""}>${won(c)}</button>`;
+          })
+          .join("")}</div>
+        ${
+          answered
+            ? `<div class="quiz-result">
+                <strong>${pick === q.answer ? "정답이에요! 🎉" : "아쉬워요"}</strong>
+                <p>실제로는 월 ${formatUsd(q.answerUsd)}, ${formatKrw(q.answerUsd, ex().krwPerUsd, ex().vatRate)}(부가세 포함)이에요.${
+                  tips.length ? ` 놓치기 쉬운 비용: ${esc(tips.join(", "))}.` : ""
+                }</p>
+                <a href="#/t/${q.template.id}/${q.preset.id}/${region}">이 구성 자세히 보기 ›</a>
+              </div>
+              <button type="button" class="btn btn-primary btn-block" data-next>${
+                quiz.i + 1 < quiz.questions.length ? "다음 문제" : "결과 보기"
+              }</button>`
+            : ""
+        }
+      </section>`;
+  };
+
+  const doneHtml = () => {
+    const score = quiz.picks.filter((p, i) => p === quiz.questions[i].answer).length;
+    return `
+      <section class="card quiz-card quiz-done">
+        <p class="quiz-score">${quiz.questions.length}문제 중 <strong>${score}개</strong> 맞혔어요</p>
+        <p class="card-sub">${
+          score === quiz.questions.length ? "AWS 비용 감각이 좋아요!" : "생각보다 비싸거나 싼 구성이 있었죠? 숨은 비용이 차이를 만들어요."
+        }</p>
+        <div class="quiz-actions">
+          <a class="btn btn-primary btn-block" href="#/">내 구성 계산해보기</a>
+          <button type="button" class="btn btn-soft btn-block" data-share>🔗 퀴즈 공유하기</button>
+          <button type="button" class="btn btn-ghost btn-block" data-retry>다시 풀기</button>
+        </div>
+      </section>`;
+  };
+
+  const draw = () => {
+    app.innerHTML = head + (quiz.i < quiz.questions.length ? questionHtml() : doneHtml());
+  };
+  draw();
+  // 문제마다 다시 그려도 한 번만 걸리도록 app 요소에 위임한다.
+  if (quizClick) app.removeEventListener("click", quizClick);
+  const onClick = (e) => {
+    if (!location.hash.startsWith("#/quiz")) return;
+    const choice = e.target.closest("[data-choice]");
+    if (choice && quiz.picks[quiz.i] === undefined) {
+      quiz.picks[quiz.i] = Number(choice.dataset.choice);
+      draw();
+    } else if (e.target.closest("[data-next]")) {
+      quiz.i += 1;
+      draw();
+      window.scrollTo(0, 0);
+    } else if (e.target.closest("[data-retry]")) {
+      renderQuiz();
+    } else if (e.target.closest("[data-share]")) {
+      const score = quiz.picks.filter((p, i) => p === quiz.questions[i].answer).length;
+      shareLink(fullUrl("#/quiz"), `AWS 비용 퀴즈 ${quiz.questions.length}문제 중 ${score}개 맞혔어요 · AWS 얼마야?`);
+    }
+  };
+  quizClick = onClick;
+  app.addEventListener("click", onClick);
 }
 
 // ---- 이 구성 만들기 (단계별 가이드) ----
@@ -678,6 +783,7 @@ function route() {
   else if (section === "prices") renderPriceChanges();
   else if (section === "hidden-costs") renderHiddenCosts();
   else if (section === "guide") renderGuide(templateId, presetId);
+  else if (section === "quiz") renderQuiz();
   else if (validResult) renderResult(template, presetId, regionId, params);
   else if (template) renderSetup(template);
   else renderHome();

@@ -529,6 +529,23 @@ main { padding-bottom: 48px; }
 .hidden-lines .num { flex: none; font-weight: 700; }
 .guide-link { display: inline-block; margin-top: 14px; color: var(--blue); font-weight: 700; font-size: var(--fs-small); }
 
+/* ---- 얼마일까? 퀴즈 ---- */
+.share-row .quiz-link { margin-right: auto; align-self: center; color: var(--blue); font-weight: 700; font-size: var(--fs-small); }
+.quiz-count { margin: 0 0 6px; color: var(--blue); font-weight: 800; font-size: var(--fs-small); }
+.quiz-preset { margin: 0 0 16px; color: var(--sub); font-size: var(--fs-small); }
+.quiz-choices { display: grid; gap: 8px; }
+.quiz-choice { border: 2px solid var(--line); background: var(--surface); color: var(--text); border-radius: 14px; padding: 14px; font-size: var(--fs-card); font-weight: 700; text-align: left; cursor: pointer; }
+.quiz-choice:hover:not(:disabled) { border-color: var(--blue); }
+.quiz-choice:disabled { cursor: default; opacity: 0.6; }
+.quiz-choice.correct { border-color: var(--green); background: var(--green-bg); color: var(--green); opacity: 1; }
+.quiz-choice.wrong { border-color: var(--red); color: var(--red); opacity: 1; }
+.quiz-result { margin: 16px 0 12px; padding: 14px; border-radius: 14px; background: var(--bg); }
+.quiz-result p { margin: 4px 0 8px; color: var(--sub); font-size: var(--fs-small); }
+.quiz-result a { color: var(--blue); font-weight: 700; font-size: var(--fs-small); }
+.quiz-score { margin: 0 0 4px; font-size: var(--fs-card); }
+.quiz-score strong { color: var(--blue); font-size: var(--fs-title); }
+.quiz-actions { display: grid; gap: 8px; margin-top: 8px; }
+
 /* ---- 이 구성 만들기 ---- */
 .guide-btn { margin-top: 12px; }
 .guide-steps { list-style: none; counter-reset: gstep; margin: 8px 0 0; padding: 0; display: grid; gap: 14px; }

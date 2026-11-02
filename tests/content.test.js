@@ -230,3 +230,28 @@ test("항상 무료: 무료 사용량만큼 '항상 무료' 줄(음수)을 붙�
   assert.ok(svOn.lines.some((l) => l.label.includes("Lambda 호출")));
   for (const a of freeTier.allowances) assert.ok(a.key && a.label && a.qty > 0 && a.unit, a.key);
 });
+
+test("얼마일까? 퀴즈: 서로 다른 템플릿 3문제, 보기 3개는 서로 다르고 정답이 들어 있다", async () => {
+  const { makeQuestions, roundKrw } = await import("../js/quiz.js");
+  assert.equal(roundKrw(10780), 11000);
+  assert.equal(roundKrw(160302), 160000);
+  assert.equal(roundKrw(1234), 1200);
+  let seed = 1;
+  const rng = () => ((seed = (seed * 16807) % 2147483647) - 1) / 2147483646;
+  const positions = new Set();
+  for (let n = 0; n < 20; n++) {
+    const qs = makeQuestions(templates, prices, settings.defaultRegion, settings.exchangeRate, rng);
+    assert.equal(qs.length, 3);
+    assert.equal(new Set(qs.map((q) => q.template.id)).size, 3, "템플릿은 겹치지 않는다");
+    for (const q of qs) {
+      assert.equal(q.choices.length, 3);
+      assert.equal(new Set(q.choices).size, 3, `보기가 겹침: ${q.choices}`);
+      assert.ok(q.choices.includes(q.answer));
+      assert.ok(q.answerUsd >= 3);
+      const krw = q.answerUsd * settings.exchangeRate.krwPerUsd * (1 + settings.exchangeRate.vatRate);
+      assert.ok(Math.abs(q.answer - krw) / krw < 0.06, "정답은 실제 금액을 반올림한 값");
+      positions.add([...q.choices].sort((x, y) => x - y).indexOf(q.answer));
+    }
+  }
+  assert.equal(positions.size, 3, "정답이 가장 쌈·가운데·가장 비쌈 모두 나온다");
+});
