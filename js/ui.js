@@ -60,7 +60,7 @@ export function linesHtml(lines) {
   return `<ul class="lines">${lines
     .map(
       (l) => `
-      <li><details>
+      <li${l.kind === "free" ? ' class="free-line"' : ""}><details>
         <summary><span class="lbl">${esc(l.label)}</span><span class="usd num">${formatUsd(l.usd)}</span></summary>
         <div class="why">${glossarize(esc(l.why))}<span class="formula">${esc(l.detail)}</span></div>
       </details></li>`

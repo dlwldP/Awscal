@@ -85,6 +85,9 @@ test("결과 공유 주소는 바꾼 값만 담고, 다시 읽으면 같은 값�
   assert.deepEqual(parseOverrides(preset, prices.regions["ap-northeast-2"], params), overrides);
   assert.equal(parseDomain(params), true);
   assert.equal(resultHash(t, preset.id, "us-east-1"), "#/t/backend-webapp/personal/us-east-1");
+  const freeHash = resultHash(t, preset.id, "us-east-1", {}, false, true);
+  assert.match(freeHash, /free=1/);
+  assert.deepEqual(parseOverrides(preset, prices.regions["us-east-1"], new URLSearchParams(freeHash.split("?")[1])), {});
 });
 
 test("이상한 공유 주소 값은 버린다", () => {
@@ -101,7 +104,8 @@ test("직접 계산 공유: 인코딩 → 디코딩하면 같은 목록, 깨진 
   ];
   const s = encodeCalc("ap-northeast-1", items);
   assert.match(s, /^[A-Za-z0-9_-]+$/, "주소에 그대로 넣을 수 있는 문자만");
-  assert.deepEqual(decodeCalc(s, ["ec2", "rds"]), { region: "ap-northeast-1", items });
+  assert.deepEqual(decodeCalc(s, ["ec2", "rds"]), { region: "ap-northeast-1", items, freeTier: false });
+  assert.equal(decodeCalc(encodeCalc("ap-northeast-1", items, true), ["ec2"]).freeTier, true, "프리티어 적용 여부도 담는다");
   assert.deepEqual(decodeCalc(s, ["ec2"]).items.length, 1, "모르는 서비스는 버림");
   assert.equal(decodeCalc("not-base64!!", ["ec2"]), null);
   assert.equal(decodeCalc(encodeCalc("x", [{ type: "evil", values: {} }]), ["ec2"]), null);
@@ -189,4 +193,40 @@ test("이 구성 만들기: 템플릿마다 맨 위 구성(추천, 없으면 최
     assert.ok(g.cleanup.length >= 1, `${key}.cleanup`);
     assert.ok(g.docs.length >= 1 && g.docs.every((d) => d.label && d.url.startsWith("https://")), `${key}.docs`);
   }
+});
+
+test("항상 무료: 무료 사용량만큼 '항상 무료' 줄(음수)을 붙이고, 같은 한도는 여러 줄이 나눠 쓴다", async () => {
+  const { formatUsd } = await import("../js/engine.js");
+  const freeTier = load("data/free-tier.json");
+  const p = prices.regions[settings.defaultRegion];
+  assert.equal(formatUsd(-0.5), "-$0.50");
+  // 데이터 전송 80GB + 80GB → 100GB만 무료
+  const two = calculateOption({ resources: [{ type: "dataTransferOut", gb: 80 }, { type: "dataTransferOut", gb: 80 }] }, {}, p, freeTier);
+  const free = two.lines.filter((l) => l.kind === "free");
+  assert.equal(free.length, 1);
+  assert.ok(Math.abs(free[0].usd + 100 * p.dataTransferOut.perGb) < 1e-9);
+  assert.ok(Math.abs(two.totalUsd - 60 * p.dataTransferOut.perGb) < 1e-9);
+  // 무료 한도보다 적게 쓰면 그 서비스 비용은 0 (음수가 되지 않는다)
+  const small = calculateOption({ resources: [{ type: "lambda", requests: 100000, durationMs: 100, memoryMb: 128 }] }, {}, p, freeTier);
+  assert.ok(Math.abs(small.totalUsd) < 1e-9);
+  // 모든 템플릿·규모·구성안: 적용하면 같거나 싸지고, 0 아래로 내려가지 않는다
+  for (const t of templates)
+    for (const pr of t.presets) {
+      const off = calculateTemplate(t, pr.id, prices, settings.defaultRegion);
+      const on = calculateTemplate(t, pr.id, prices, settings.defaultRegion, undefined, {}, freeTier);
+      on.options.forEach((o, i) => {
+        assert.ok(o.totalUsd <= off.options[i].totalUsd + 1e-9 && o.totalUsd >= -1e-9, `${t.id}/${pr.id}/${o.id}`);
+      });
+    }
+  // 놓치기 쉬운 비용 카드도 항상 무료를 뺀 전송 금액을 보여준다
+  const { hiddenCostsOf } = await import("../js/hidden-costs.js");
+  const st = templates.find((x) => x.id === "static-website");
+  const s3cf = calculateTemplate(st, "personal", prices, settings.defaultRegion, undefined, {}, freeTier).options.find((o) => o.id === "s3-cloudfront");
+  const tr = hiddenCostsOf(s3cf).included.find((h) => h.label === "데이터 전송");
+  assert.ok(tr.free && tr.usd === 0, "1TB 무료 안이면 무료 범위");
+  // 서버리스 개인용은 항상 무료가 크게 적용된다
+  const sv = templates.find((x) => x.id === "serverless-api");
+  const svOn = calculateTemplate(sv, "personal", prices, settings.defaultRegion, undefined, {}, freeTier).options[0];
+  assert.ok(svOn.lines.some((l) => l.label.includes("Lambda 호출")));
+  for (const a of freeTier.allowances) assert.ok(a.key && a.label && a.qty > 0 && a.unit, a.key);
 });

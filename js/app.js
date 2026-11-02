@@ -13,20 +13,22 @@ import {
   afterLaunchHtml, chipsHtml, esc, fieldHtml, fullUrl, installExpandHandlers, keepOpen, linesHtml, readField, regionChipsHtml, regionList, shareLink,
   warningsHtml,
 } from "./ui.js";
-import { parseDomain, parseOverrides, resultHash } from "./share.js";
+import { parseDomain, parseFree, parseOverrides, resultHash } from "./share.js";
 import { importResources, renderCalculator } from "./calculator.js";
 import { diagramHtml } from "./diagram.js";
 import { guideHtml, hiddenCostsOf } from "./hidden-costs.js";
 import { glossarize, installGlossaryHandlers, renderGlossary, setGlossary } from "./glossary.js";
 
 const app = document.getElementById("app");
-let data; // { prices, templates, settings, priceChanges, hiddenCosts, buildGuides }
+let data; // { prices, templates, settings, priceChanges, hiddenCosts, buildGuides, freeTier }
 
 // 결과 화면에서 직접 바꾼 값. 주소(?키=값)에 담겨서 링크로 그대로 공유된다.
 const adjust = { overrides: {} };
 // 템플릿별 도메인 포함 여부. 주소에 domain=0/1이 있으면 그 값을 쓰고, 없으면 마지막 선택 또는 템플릿 기본값.
 const domainState = {};
 let domainOn = false;
+// 항상 무료(프리티어) 적용 여부. 주소에 free=1이 있으면 켜고, 없으면 이번 방문에서 마지막으로 고른 값.
+let freeOn = false;
 
 async function loadJson(path, optional = false) {
   const res = await fetch(path, { cache: "no-cache" });
@@ -246,7 +248,7 @@ function hiddenCardHtml(o) {
             <ul class="hidden-lines">${included
               .map(
                 (h) => `<li><span class="txt"><span class="ttl">${glossarize(esc(h.label))}</span><span class="dsc">${esc(h.tip)}</span></span>
-                  <span class="num">${h.usd === null ? "번들 포함" : `월 ${formatUsd(h.usd)}`}</span></li>`
+                  <span class="num">${h.usd === null ? "번들 포함" : h.free ? "무료 범위" : `월 ${formatUsd(h.usd)}`}</span></li>`
               )
               .join("")}</ul>`
           : ""
@@ -260,7 +262,7 @@ function hiddenCardHtml(o) {
 
 /** 위쪽 한 줄 요약: "개인용 · 서울 · 도메인 없음" */
 function settingsText(preset, regionId) {
-  return `${esc(preset.name)} · ${esc(regionName(regionId))} · 도메인 ${domainOn ? "포함" : "없음"}`;
+  return `${esc(preset.name)} · ${esc(regionName(regionId))} · 도메인 ${domainOn ? "포함" : "없음"}${freeOn ? " · 프리티어 적용" : ""}`;
 }
 
 function barsHtml(options) {
@@ -377,7 +379,11 @@ function notesHtml(preset, regionId) {
       <p class="card-sub" style="margin:0">${esc(preset.name)} · ${esc(regionName(regionId))}${changed ? " · 직접 바꾼 값은 위 입력 칸 기준" : ""}</p>
       <ul>
         <li>${esc(preset.name)} 규모 (${esc(preset.description)}) 기준이에요.</li>
-        <li>프리티어·크레딧은 반영하지 않았어요. 신규 계정이라면 실제로는 더 적게 나올 수 있어요 → <a href="https://aws.amazon.com/free/" target="_blank" rel="noopener">AWS 프리티어 안내</a></li>
+        <li>${
+          freeOn
+            ? `프리티어 중 매달 무료인 사용량(데이터 전송 100GB, Lambda 100만 건 등)을 뺐어요 (정책 기준일 ${esc(data.freeTier.policyDate)}). 기간 한정 무료와 신규 계정 크레딧은 반영하지 않았어요`
+            : "프리티어·크레딧은 반영하지 않았어요. 신규 계정이라면 실제로는 더 적게 나올 수 있어요 (위 '바꾸기'에서 매달 무료인 사용량을 뺄 수 있어요)"
+        } → <a href="https://aws.amazon.com/free/" target="_blank" rel="noopener">AWS 프리티어 안내</a></li>
         <li>예상치이며 실제 청구액과 다를 수 있어요. 정확한 견적은 <a href="https://calculator.aws/" target="_blank" rel="noopener">AWS Pricing Calculator</a>에서 확인하세요.</li>
       </ul>
       <details class="more" data-key="notes-more">
@@ -394,18 +400,25 @@ function notesHtml(preset, regionId) {
     </section>`;
 }
 
+const FREE_CHOICES = [
+  { id: "off", name: "반영 안 함" },
+  { id: "on", name: "항상 무료 빼기" },
+];
+
 function renderResult(template, presetId, regionId, params = new URLSearchParams()) {
   const compareRegionId = compareRegionOf(regionId);
   const regionPrices = data.prices.regions[regionId];
   adjust.overrides = parseOverrides(template.presets.find((p) => p.id === presetId), regionPrices, params);
   domainOn = parseDomain(params) ?? domainState[template.id] ?? Boolean(template.defaultDomain);
   domainState[template.id] = domainOn;
-  const hashFor = (p, r, ov) => resultHash(template, p, r, ov, domainOn);
+  freeOn = parseFree(params) ?? freeOn;
+  const hashFor = (p, r, ov, free = freeOn) => resultHash(template, p, r, ov, domainOn, free);
   // 값을 바꿀 때마다 주소도 바꿔둔다 (주소창을 그대로 복사해도 공유되게). 기록은 남기지 않는다.
   const syncUrl = () => history.replaceState(null, "", hashFor(presetId, regionId, adjust.overrides));
   syncUrl();
   const overrides = () => ({ ...adjust.overrides, domain: domainOn ? 1 : 0 });
-  const calc = () => calculateTemplate(template, presetId, data.prices, regionId, compareRegionId, overrides());
+  const calc = () =>
+    calculateTemplate(template, presetId, data.prices, regionId, compareRegionId, overrides(), freeOn ? data.freeTier : null);
   const { preset, values, options } = calc();
   document.title = `${template.name} 비용 · AWS 얼마야?`;
   const domainChoices = [
@@ -428,6 +441,7 @@ function renderResult(template, presetId, regionId, params = new URLSearchParams
         ${chipsHtml("규모", template.presets, presetId).replace(/data-value/g, "data-preset")}
         ${regionChipsHtml(data.prices, regionId, primaryRegions()).replace(/data-value/g, "data-region")}
         ${chipsHtml("도메인 (example.com 같은 주소)", domainChoices, domainOn ? "on" : "off").replace(/data-value/g, "data-domain")}
+        ${chipsHtml("프리티어 (매달 무료 사용량)", FREE_CHOICES, freeOn ? "on" : "off").replace(/data-value/g, "data-free")}
       </div>
     </details>
     <div id="options">${optionsHtml(options, compareRegionId, values, regionPrices, template.id)}</div>
@@ -442,6 +456,10 @@ function renderResult(template, presetId, regionId, params = new URLSearchParams
   );
   app.querySelectorAll("[data-region]").forEach((b) =>
     b.addEventListener("click", () => (location.hash = hashFor(presetId, b.dataset.region, adjust.overrides)))
+  );
+  // 프리티어는 계산 기준 문구도 바뀌어서 화면을 다시 그린다.
+  app.querySelectorAll("[data-free]").forEach((b) =>
+    b.addEventListener("click", () => (location.hash = hashFor(presetId, regionId, adjust.overrides, b.dataset.free === "on")))
   );
 
   const optionsEl = app.querySelector("#options");
@@ -670,7 +688,7 @@ async function main() {
   installThemeToggle();
   installExpandHandlers();
   try {
-    const [prices, templates, settings, glossary, priceChanges, hiddenCosts, buildGuides] = await Promise.all([
+    const [prices, templates, settings, glossary, priceChanges, hiddenCosts, buildGuides, freeTier] = await Promise.all([
       loadJson("data/prices.json"),
       loadJson("data/templates.json"),
       loadJson("data/settings.json"),
@@ -678,8 +696,9 @@ async function main() {
       loadJson("data/price-changes.json", true),
       loadJson("data/hidden-costs.json"),
       loadJson("data/build-guides.json"),
+      loadJson("data/free-tier.json"),
     ]);
-    data = { prices, templates: templates.templates, settings, priceChanges, hiddenCosts: hiddenCosts.items, buildGuides };
+    data = { prices, templates: templates.templates, settings, priceChanges, hiddenCosts: hiddenCosts.items, buildGuides, freeTier };
     setGlossary(glossary.terms);
     // 꼬리말은 모든 화면에 같이 나오는 정적 HTML이라 가격 갱신일만 여기서 채운다.
     document.getElementById("footer-updated").textContent = ` (${prices.updatedAt})`;

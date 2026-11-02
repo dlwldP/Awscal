@@ -31,6 +31,7 @@ function price(regionPrices, ...path) {
 // ---- 표시용 포맷 ----
 
 export function formatUsd(usd) {
+  if (usd < 0) return "-" + formatUsd(-usd);
   if (usd > 0 && usd < 0.01) return "$0.01 미만";
   return "$" + usd.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
@@ -107,6 +108,7 @@ const WARNINGS = {
 //   lines: [{ service, label, usd, detail, why, tier?, kind? }]
 //   tier: 구간 요금 항목이면 { path: [서비스, 단가 키], qty } — 첫 구간 한도를 넘는지 확인할 때 쓴다.
 //   kind: "transfer"면 사용자에게 나가는 전송 요금이다 (서비스가 달라도 "놓치기 쉬운 비용"에서 데이터 전송으로 묶는다).
+//   free: 항상 무료 사용량을 뺄 수 있는 줄이면 { key, qty, unitUsd } — key는 data/free-tier.json의 allowances.key.
 
 const CALCULATORS = {
   ec2(r, p) {
@@ -222,6 +224,7 @@ const CALCULATORS = {
         why: "AWS에서 인터넷으로 나가는 데이터(사용자에게 보내는 응답, 이미지 등)에 GB당 요금이 붙어요. 들어오는 데이터는 무료예요.",
         tier: { path: ["dataTransferOut", "perGb"], qty: r.gb },
         kind: "transfer",
+        free: { key: "transferGb", qty: r.gb, unitUsd: perGb },
       }],
       warnings: ["dataTransfer"],
     };
@@ -281,6 +284,7 @@ const CALCULATORS = {
           why: "CloudFront는 전 세계 엣지에서 사이트를 전달하는 CDN이에요. S3 → CloudFront 전송은 무료이고, 사용자에게 나가는 전송량만 과금돼요 (리전 근처 사용자 기준 단가).",
           tier: { path: ["cloudfront", "perGb"], qty: r.gb },
           kind: "transfer",
+          free: { key: "cloudfrontGb", qty: r.gb, unitUsd: perGb },
         },
         {
           service: "CloudFront",
@@ -288,6 +292,7 @@ const CALCULATORS = {
           usd: perReq * r.requests,
           detail: per10k(perReq),
           why: "사용자가 페이지·이미지를 요청할 때마다 아주 작은 요금이 붙어요.",
+          free: { key: "cloudfrontRequests", qty: r.requests, unitUsd: perReq },
         },
       ],
       warnings: [],
@@ -339,6 +344,7 @@ const CALCULATORS = {
           usd: perReq * r.requests,
           detail: perMillion(perReq),
           why: "Lambda는 요청이 올 때만 코드를 실행해요. 실행 횟수만큼 과금돼요.",
+          free: { key: "lambdaRequests", qty: r.requests, unitUsd: perReq },
         },
         {
           service: "Lambda",
@@ -347,6 +353,7 @@ const CALCULATORS = {
           detail: `${num(r.requests)}건 × ${num(r.durationMs)}ms × ${num(r.memoryMb)}MB, ${unitPrice(perGbSec, "GB-초")} (ARM)`,
           why: "실행 시간 × 메모리 크기(GB-초)만큼 과금돼요. 메모리를 크게 잡거나 코드가 느리면 비용이 올라가요.",
           tier: { path: ["lambda", "perGbSecondArm"], qty: gbSeconds },
+          free: { key: "lambdaGbSeconds", qty: gbSeconds, unitUsd: perGbSec },
         },
       ],
       warnings: [],
@@ -387,6 +394,7 @@ const CALCULATORS = {
           usd: perGb * r.storageGb,
           detail: `${unitPrice(perGb, "GB-월")} × ${num(r.storageGb)}GB`,
           why: "테이블에 저장된 데이터 용량 요금이에요.",
+          free: { key: "dynamodbStorageGb", qty: r.storageGb, unitUsd: perGb },
         },
       ],
       warnings: [],
@@ -448,8 +456,41 @@ export function calculateResource(raw, regionPrices, presetValues = {}) {
   return { resource: r, ...calc(r, regionPrices) };
 }
 
-/** 리소스 목록의 월 비용을 계산한다. count가 0인 리소스는 건너뛴다. */
-export function calculateOption(option, presetValues, regionPrices) {
+/**
+ * 항상 무료 사용량을 뺀다. 같은 key의 줄이 여러 개면 무료 사용량을 나눠 쓴다 (계정 전체 합산 한도라서).
+ * 빼준 금액은 원래 줄을 고치지 않고 "항상 무료" 줄(음수)로 따로 붙인다.
+ */
+function freeTierLines(lines, freeTier) {
+  const left = Object.fromEntries(freeTier.allowances.map((a) => [a.key, a.qty]));
+  const used = new Map(); // key → { qty, usd }
+  for (const line of lines) {
+    if (!line.free || !(left[line.free.key] > 0)) continue;
+    const qty = Math.min(line.free.qty, left[line.free.key]);
+    left[line.free.key] -= qty;
+    const u = used.get(line.free.key) ?? { qty: 0, usd: 0 };
+    used.set(line.free.key, { qty: u.qty + qty, usd: u.usd + qty * line.free.unitUsd });
+  }
+  return [...used]
+    .filter(([, u]) => u.usd > 0)
+    .map(([key, u]) => {
+      const a = freeTier.allowances.find((x) => x.key === key);
+      return {
+        service: "프리티어",
+        label: `항상 무료: ${a.label} ${num(Math.round(u.qty))}${a.unit}`,
+        usd: -u.usd,
+        detail: `월 ${num(a.qty)}${a.unit}까지 무료 (${a.note})`,
+        why: `AWS 프리티어 중 가입 기간과 상관없이 매달 무료인 사용량이에요 (정책 기준일 ${freeTier.policyDate}). 신규 계정 크레딧은 반영하지 않았어요.`,
+        kind: "free",
+        freeKey: key,
+      };
+    });
+}
+
+/**
+ * 리소스 목록의 월 비용을 계산한다. count가 0인 리소스는 건너뛴다.
+ * freeTier(data/free-tier.json)를 주면 항상 무료 사용량을 뺀 금액을 계산한다.
+ */
+export function calculateOption(option, presetValues, regionPrices, freeTier = null) {
   const lines = [];
   const warnings = new Map();
   const addWarning = (id, r) => {
@@ -466,6 +507,7 @@ export function calculateOption(option, presetValues, regionPrices) {
     const limit = regionPrices[service]?.[`${key}UpTo`];
     if (limit !== undefined && line.tier.qty > limit) addWarning("tierExceeded");
   }
+  if (freeTier) lines.push(...freeTierLines(lines, freeTier));
   const totalUsd = lines.reduce((sum, l) => sum + l.usd, 0);
   return { id: option.id, name: option.name, totalUsd, lines, warnings: [...warnings.values()] };
 }
@@ -473,17 +515,18 @@ export function calculateOption(option, presetValues, regionPrices) {
 /**
  * 템플릿의 모든 구성안을 계산한다.
  * overrides로 프리셋 값 일부를 바꿀 수 있다 (직접 조정). compareRegionId를 주면 그 리전 합계도 같이 돌려준다.
+ * freeTier를 주면 항상 무료 사용량을 뺀다.
  */
-export function calculateTemplate(template, presetId, prices, regionId, compareRegionId, overrides = {}) {
+export function calculateTemplate(template, presetId, prices, regionId, compareRegionId, overrides = {}, freeTier = null) {
   const preset = template.presets.find((p) => p.id === presetId);
   if (!preset) throw new Error(`프리셋 없음: ${presetId}`);
   const regionPrices = prices.regions[regionId];
   if (!regionPrices) throw new Error(`리전 없음: ${regionId}`);
   const values = { ...preset.values, ...overrides };
   const options = template.options.map((option) => {
-    const result = calculateOption(option, values, regionPrices);
+    const result = calculateOption(option, values, regionPrices, freeTier);
     if (compareRegionId && compareRegionId !== regionId) {
-      result.compareTotalUsd = calculateOption(option, values, prices.regions[compareRegionId]).totalUsd;
+      result.compareTotalUsd = calculateOption(option, values, prices.regions[compareRegionId], freeTier).totalUsd;
     }
     return { ...option, ...result };
   });

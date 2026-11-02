@@ -2,14 +2,18 @@
 // 담은 목록은 이 브라우저에만 저장된다 (localStorage, 실패해도 동작에는 지장 없음).
 import { calculateOption, formatKrw, formatUsd } from "./engine.js";
 import { SERVICES, fieldDef } from "./schema.js";
-import { afterLaunchHtml, esc, fieldHtml, fullUrl, keepOpen, linesHtml, readField, regionChipsHtml, shareLink, toast, warningsHtml } from "./ui.js";
+import { afterLaunchHtml, chipsHtml, esc, fieldHtml, fullUrl, keepOpen, linesHtml, readField, regionChipsHtml, shareLink, toast, warningsHtml } from "./ui.js";
 import { decodeCalc, encodeCalc } from "./share.js";
 
 const STORAGE_KEY = "aws-eolmaya:calculator";
-let state = null; // { region, items: [{ uid, type, values }] }
+let state = null; // { region, freeTier, items: [{ uid, type, values }] }
 let nextUid = 1;
 
 const serviceOf = (type) => SERVICES.find((s) => s.type === type);
+const FREE_CHOICES = [
+  { id: "off", name: "반영 안 함" },
+  { id: "on", name: "항상 무료 빼기" },
+];
 const defsOf = (service) => service.fields.map(([name, , override]) => fieldDef(name, override));
 
 function load(defaultRegion) {
@@ -17,19 +21,22 @@ function load(defaultRegion) {
   try {
     const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
     if (saved && Array.isArray(saved.items)) {
-      state = { region: saved.region, items: saved.items.filter((i) => serviceOf(i.type)) };
+      state = { region: saved.region, freeTier: saved.freeTier === true, items: saved.items.filter((i) => serviceOf(i.type)) };
     }
   } catch {
     /* 저장소를 못 쓰는 환경(사생활 보호 모드 등)이면 빈 상태로 시작 */
   }
-  state ??= { region: defaultRegion, items: [] };
+  state ??= { region: defaultRegion, freeTier: false, items: [] };
   for (const item of state.items) item.uid = nextUid++;
   return state;
 }
 
 function save() {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ region: state.region, items: state.items.map(({ type, values }) => ({ type, values })) }));
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({ region: state.region, freeTier: state.freeTier, items: state.items.map(({ type, values }) => ({ type, values })) })
+    );
   } catch {
     /* 저장 실패는 무시 */
   }
@@ -97,12 +104,27 @@ function itemHtml(item, regionPrices) {
     </article>`;
 }
 
-function totalHtml(regionPrices, krwPerUsd, vatRate) {
+/**
+ * 항상 무료 사용량은 계정 전체 한도라서 항목별이 아니라 담은 목록 전체에서 한 번만 뺀다.
+ * 항목 카드 금액은 그대로 두고, 합계에서만 뺀 금액을 보여준다.
+ */
+function freeSavingUsd(regionPrices, freeTier) {
+  if (!state.freeTier) return 0;
+  const ok = state.items.filter((i) => !calcItem(i, regionPrices).error);
+  if (!ok.length) return 0;
+  const all = calculateOption({ resources: ok.map((i) => ({ type: i.type, ...i.values })) }, {}, regionPrices, freeTier);
+  return all.lines.filter((l) => l.kind === "free").reduce((sum, l) => sum + l.usd, 0);
+}
+
+function totalHtml(regionPrices, krwPerUsd, vatRate, freeTier) {
   const results = state.items.map((i) => calcItem(i, regionPrices));
-  const total = results.reduce((sum, r) => sum + (r.error ? 0 : r.totalUsd), 0);
+  const saving = freeSavingUsd(regionPrices, freeTier);
+  const total = results.reduce((sum, r) => sum + (r.error ? 0 : r.totalUsd), 0) + saving;
   const errors = results.filter((r) => r.error).length;
   return `
-    <span class="label">월 합계${errors ? ` <small class="item-error">(${errors}개 확인 필요)</small>` : ""}</span>
+    <span class="label">월 합계${errors ? ` <small class="item-error">(${errors}개 확인 필요)</small>` : ""}${
+      saving < 0 ? `<small class="free-saving">항상 무료 ${formatUsd(saving)} 반영</small>` : ""
+    }</span>
     <span><span class="usd num" style="display:block;text-align:right">${formatUsd(total)}</span>
     <span class="krw num" style="display:block">${formatKrw(total, krwPerUsd, vatRate)} (부가세 포함)</span></span>`;
 }
@@ -125,11 +147,12 @@ function applySharedLink(params, data) {
     toast("공유 링크를 읽지 못했어요");
     return;
   }
-  const same = encodeCalc(state.region, state.items) === encodeCalc(shared.region, shared.items);
+  const same = encodeCalc(state.region, state.items, state.freeTier) === encodeCalc(shared.region, shared.items, shared.freeTier);
   if (same) return;
   if (state.items.length && !confirm("받은 구성으로 바꿀까요?\n지금 담아둔 목록은 사라져요.")) return;
   state.region = data.prices.regions[shared.region] ? shared.region : data.settings.defaultRegion;
   state.items = shared.items.map((it) => newItem(it.type, it.values));
+  state.freeTier = shared.freeTier;
   save();
   toast("받은 구성을 불러왔어요");
 }
@@ -151,7 +174,10 @@ export function renderCalculator(app, data, params) {
       <p class="page-sub">사양과 사용량을 입력하면 월 비용을 바로 계산해요.</p>
     </div>
     ${state.items.length ? `<div class="share-row"><button type="button" class="btn btn-soft btn-sm" id="share-calc">🔗 이 계산 공유하기</button></div>` : ""}
-    <div class="controls">${regionChipsHtml(data.prices, state.region, [data.settings.defaultRegion, data.settings.compareRegion])}</div>
+    <div class="controls">
+      ${regionChipsHtml(data.prices, state.region, [data.settings.defaultRegion, data.settings.compareRegion])}
+      ${chipsHtml("프리티어 (매달 무료 사용량)", FREE_CHOICES, state.freeTier ? "on" : "off").replace(/data-value/g, "data-free")}
+    </div>
     <div id="items">${state.items.map((i) => itemHtml(i, regionPrices)).join("")}</div>
     <section class="card">
       ${
@@ -167,20 +193,32 @@ export function renderCalculator(app, data, params) {
       <h2 class="card-title">계산 기준</h2>
       <ul>
         <li>${esc(data.prices.regions[state.region].name)} 리전 온디맨드 요금, 한 달 = 730시간이에요.</li>
-        <li>구간 요금은 첫 구간 단가만 써요. 프리티어·크레딧은 반영하지 않아요.</li>
+        <li>구간 요금은 첫 구간 단가만 써요. ${
+          state.freeTier
+            ? `프리티어 중 매달 무료인 사용량은 합계에서 한 번만 뺐어요 (정책 기준일 ${esc(data.freeTier.policyDate)}). 기간 한정 무료와 크레딧은 반영하지 않아요.`
+            : "프리티어·크레딧은 반영하지 않아요 (위 '프리티어'에서 매달 무료인 사용량을 뺄 수 있어요)."
+        }</li>
         <li>가격 갱신일 ${esc(data.prices.updatedAt)} · 1달러 = ${krwPerUsd.toLocaleString("ko-KR")}원 고정 환율</li>
         <li>달러는 부가세 별도, 원화는 부가세 10% 포함이에요 (한국 계정 청구 기준).</li>
       </ul>
     </section>
-    <div class="total-bar" id="total">${totalHtml(regionPrices, krwPerUsd, vatRate)}</div>`;
+    <div class="total-bar" id="total">${totalHtml(regionPrices, krwPerUsd, vatRate, data.freeTier)}</div>`;
 
   const rerender = () => renderCalculator(app, data);
   const itemsEl = app.querySelector("#items");
-  const updateTotal = () => (app.querySelector("#total").innerHTML = totalHtml(regionPrices, krwPerUsd, vatRate));
+  const updateTotal = () => (app.querySelector("#total").innerHTML = totalHtml(regionPrices, krwPerUsd, vatRate, data.freeTier));
 
   app.querySelectorAll(".chip[data-value]").forEach((b) =>
     b.addEventListener("click", () => {
       state.region = b.dataset.value;
+      save();
+      keepOpen(app, rerender);
+    })
+  );
+
+  app.querySelectorAll("[data-free]").forEach((b) =>
+    b.addEventListener("click", () => {
+      state.freeTier = b.dataset.free === "on";
       save();
       keepOpen(app, rerender);
     })
@@ -196,7 +234,7 @@ export function renderCalculator(app, data, params) {
   );
 
   app.querySelector("#share-calc")?.addEventListener("click", () =>
-    shareLink(fullUrl(`#/calc?s=${encodeCalc(state.region, state.items)}`), "내 AWS 구성 비용 · AWS 얼마야?")
+    shareLink(fullUrl(`#/calc?s=${encodeCalc(state.region, state.items, state.freeTier)}`), "내 AWS 구성 비용 · AWS 얼마야?")
   );
 
   app.querySelector("[data-clear]")?.addEventListener("click", () => {

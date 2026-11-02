@@ -490,6 +490,8 @@ main { padding-bottom: 48px; }
   gap: 12px;
 }
 .total-bar .label { color: var(--sub); font-weight: 600; }
+.lines .free-line .usd { color: var(--green); }
+.free-saving { display: block; color: var(--green); font-size: var(--fs-small); font-weight: 600; }
 .total-bar .usd { font-size: var(--fs-title); font-weight: 800; }
 .total-bar .krw { color: var(--muted); font-size: var(--fs-small); text-align: right; }
 

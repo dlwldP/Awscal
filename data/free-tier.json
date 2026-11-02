@@ -1,0 +1,13 @@
+{
+  "_comment": "항상 무료(Always Free) 사용량. 가입 기간과 상관없이 매달 빼주는 양만 넣는다 (12개월·6개월 무료, 신규 계정 크레딧은 정책이 자주 바뀌어서 넣지 않는다). 정책이 바뀌면 이 파일과 policyDate만 고친다. key는 engine.js 계산기의 free.key와 맞춘다.",
+  "policyDate": "2026-11-02",
+  "source": "https://aws.amazon.com/free/",
+  "allowances": [
+    { "key": "transferGb", "label": "인터넷 데이터 전송", "qty": 100, "unit": "GB", "note": "리전 서비스(EC2 등)에서 인터넷으로 나가는 전송량, 계정 전체 합산" },
+    { "key": "cloudfrontGb", "label": "CloudFront 전송", "qty": 1024, "unit": "GB", "note": "월 1TB" },
+    { "key": "cloudfrontRequests", "label": "CloudFront 요청", "qty": 10000000, "unit": "건", "note": "월 1,000만 건" },
+    { "key": "lambdaRequests", "label": "Lambda 호출", "qty": 1000000, "unit": "건", "note": "월 100만 건" },
+    { "key": "lambdaGbSeconds", "label": "Lambda 실행 시간", "qty": 400000, "unit": "GB-초", "note": "월 40만 GB-초" },
+    { "key": "dynamodbStorageGb", "label": "DynamoDB 저장", "qty": 25, "unit": "GB", "note": "25GB" }
+  ]
+}
