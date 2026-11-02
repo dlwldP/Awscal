@@ -135,3 +135,26 @@ test("다이어그램: 퍼블릭 IPv4는 주의 꼬리표, ALB에 붙은 IPv4는
   const alb = cols.flatMap((c) => c.nodes).find((n) => n.type === "alb");
   assert.ok(alb.notes.some((x) => x.warn && x.text.includes("× 2")));
 });
+
+test("놓치기 쉬운 비용: 금액 줄을 서비스별로 합치고, 금액으로 설명된 경고는 알아둘 점에서 뺀다", async () => {
+  const { hiddenCostsOf } = await import("../js/hidden-costs.js");
+  const region = settings.defaultRegion;
+  const t = templates.find((x) => x.id === "backend-webapp");
+  const { options } = calculateTemplate(t, t.presets[0].id, prices, region);
+  const ec2 = hiddenCostsOf(options.find((o) => o.id === "ec2-rds"));
+  const labels = ec2.included.map((h) => h.label);
+  for (const want of ["데이터 전송", "퍼블릭 IPv4", "디스크 (EBS)"]) assert.ok(labels.some((l) => l.includes(want)), want);
+  const ebsSum = options.find((o) => o.id === "ec2-rds").lines.filter((l) => l.service === "EBS").reduce((s, l) => s + l.usd, 0);
+  assert.ok(Math.abs(ec2.included.find((h) => h.label.includes("EBS")).usd - ebsSum) < 1e-9);
+  assert.ok(!ec2.notes.some((w) => w.id === "dataTransfer" || w.id === "publicIpv4"));
+  assert.ok(ec2.notes.some((w) => w.id === "alwaysOn"));
+  const lightsail = hiddenCostsOf(options.find((o) => o.id === "lightsail"));
+  assert.ok(lightsail.notes.some((w) => w.id === "lightsailStop"));
+  assert.ok(lightsail.included.some((h) => h.label.includes("데이터 전송") && h.usd === null), "Lightsail은 번들 포함으로 표시");
+  // CloudFront·Amplify 전송도 데이터 전송으로 묶는다
+  const st = templates.find((x) => x.id === "static-website");
+  for (const o of calculateTemplate(st, st.presets[0].id, prices, region).options) {
+    const transfer = o.lines.filter((l) => l.kind === "transfer").reduce((s, l) => s + l.usd, 0);
+    assert.ok(Math.abs(hiddenCostsOf(o).included.find((h) => h.label.includes("데이터 전송")).usd - transfer) < 1e-9, o.id);
+  }
+});

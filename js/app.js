@@ -14,7 +14,8 @@ import {
 import { parseDomain, parseOverrides, resultHash } from "./share.js";
 import { importResources, renderCalculator } from "./calculator.js";
 import { diagramHtml } from "./diagram.js";
-import { installGlossaryHandlers, renderGlossary, setGlossary } from "./glossary.js";
+import { hiddenCostsOf } from "./hidden-costs.js";
+import { glossarize, installGlossaryHandlers, renderGlossary, setGlossary } from "./glossary.js";
 
 const app = document.getElementById("app");
 let data; // { prices, templates, settings, priceChanges }
@@ -213,7 +214,7 @@ function optionsHtml(options, compareRegionId, values, regionPrices) {
   const cheapest = options.find((o) => o.isCheapest);
   const others = options.filter((o) => o !== main);
   const card = (o) => optionHtml(o, compareRegionId, values, regionPrices, o === main ? { cheapest } : null);
-  return `${card(main)}${
+  return `${card(main)}${hiddenCardHtml(main)}${
     others.length
       ? `<details class="others" data-key="others">
           <summary>다른 방법 ${others.length}가지도 보기</summary>
@@ -225,6 +226,32 @@ function optionsHtml(options, compareRegionId, values, regionPrices) {
         </details>`
       : ""
   }`;
+}
+
+const excludedOf = (o) => (domainOn ? o.excluded : [...o.excluded, "도메인 주소 (위 '바꾸기'에서 도메인을 켜면 포함돼요)"]);
+
+/** 맨 위 구성 바로 아래 "놓치기 쉬운 비용" 카드: 금액에 들어 있는 항목(금액 표시)과 안 들어 있는 항목을 나눠 보여준다. */
+function hiddenCardHtml(o) {
+  const { included, notes } = hiddenCostsOf(o);
+  return `
+    <section class="card hidden-costs">
+      <h2 class="card-title">⚠️ 놓치기 쉬운 비용</h2>
+      <p class="card-sub">처음 쓰는 사람이 자주 놀라는 항목이에요</p>
+      ${
+        included.length
+          ? `<div class="section-label">이 금액에 들어 있어요</div>
+            <ul class="hidden-lines">${included
+              .map(
+                (h) => `<li><span class="txt"><span class="ttl">${glossarize(esc(h.label))}</span><span class="dsc">${esc(h.tip)}</span></span>
+                  <span class="num">${h.usd === null ? "번들 포함" : `월 ${formatUsd(h.usd)}`}</span></li>`
+              )
+              .join("")}</ul>`
+          : ""
+      }
+      ${notes.length ? `<div class="section-label">알아둘 점</div>${warningsHtml(notes, 3)}` : ""}
+      <div class="section-label">이 금액에 안 들어 있어요</div>
+      <ul class="excluded">${excludedOf(o).map((x) => `<li>${esc(x)}</li>`).join("")}</ul>
+    </section>`;
 }
 
 /** 위쪽 한 줄 요약: "개인용 · 서울 · 도메인 없음" */
@@ -251,9 +278,9 @@ function barsHtml(options) {
 const DIFFICULTY_CLASS = { 쉬움: "tag-easy", 보통: "tag-mid", 어려움: "tag-hard" };
 
 /** main이 있으면 맨 위에 크게 보여주는 구성이다 ({ cheapest }: 더 싼 방법이 따로 있으면 알려준다).
- * 난이도 배지는 "처음이라면 이걸로"와 겹쳐서 접힌 "다른 방법" 카드에서만 보여준다. */
+ * 난이도 배지는 "처음이라면 이걸로"와 겹쳐서 접힌 "다른 방법" 카드에서만 보여준다.
+ * 맨 위 구성의 경고와 "포함 안 된 비용"은 바로 아래 "놓치기 쉬운 비용" 카드에서 보여준다. */
 function optionHtml(o, compareRegionId, values, regionPrices, main = null) {
-  const excluded = domainOn ? o.excluded : [...o.excluded, "도메인 주소 (위 '바꾸기'에서 도메인을 켜면 포함돼요)"];
   return `
     <article class="card ${main ? "option-main" : ""}">
       ${main ? `<p class="pick-label">${o.recommended ? "처음이라면 이걸로" : "이렇게 만들면"}</p>` : ""}
@@ -278,13 +305,17 @@ function optionHtml(o, compareRegionId, values, regionPrices, main = null) {
           : ""
       }
       ${diagramHtml(o.resources.map((r) => resolveResource(r, values)), regionPrices, o.id)}
-      ${warningsHtml(o.warnings)}
+      ${main ? "" : warningsHtml(o.warnings)}
       <details class="more" data-key="more-${o.id}">
         <summary>비용 내역 · 장단점</summary>
         <div class="section-label">항목별 내역 <span style="font-weight:500">(누르면 이유가 보여요)</span></div>
         ${linesHtml(o.lines)}
-        <div class="section-label">이 금액에 포함 안 된 비용</div>
-        <ul class="excluded">${excluded.map((x) => `<li>${esc(x)}</li>`).join("")}</ul>
+        ${
+          main
+            ? ""
+            : `<div class="section-label">이 금액에 포함 안 된 비용</div>
+              <ul class="excluded">${excludedOf(o).map((x) => `<li>${esc(x)}</li>`).join("")}</ul>`
+        }
         <div class="pros-cons">
           <div><div class="section-label">장점</div><ul class="pros">${o.pros.map((p) => `<li>${esc(p)}</li>`).join("")}</ul></div>
           <div><div class="section-label">단점</div><ul class="cons">${o.cons.map((c) => `<li>${esc(c)}</li>`).join("")}</ul></div>

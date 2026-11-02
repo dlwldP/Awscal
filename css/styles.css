@@ -505,6 +505,16 @@ main { padding-bottom: 48px; }
 .excluded { margin: 0; padding-left: 18px; color: var(--sub); font-size: 0.92rem; }
 .excluded li { margin: 2px 0; }
 
+/* ---- 결과: 놓치기 쉬운 비용 ---- */
+.hidden-costs .section-label:first-of-type { margin-top: 4px; }
+.hidden-lines { list-style: none; margin: 0; padding: 0; }
+.hidden-lines li { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+.hidden-lines li:last-child { border-bottom: 0; }
+.hidden-lines .txt { display: flex; flex-direction: column; }
+.hidden-lines .ttl { font-weight: 600; }
+.hidden-lines .dsc { color: var(--muted); font-size: 0.88rem; }
+.hidden-lines .num { flex: none; font-weight: 700; }
+
 /* ---- 용어 ---- */
 .term {
   border: 0;

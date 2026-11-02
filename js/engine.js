@@ -104,8 +104,9 @@ const WARNINGS = {
 
 // ---- 리소스 타입별 계산기 ----
 // 각 계산기는 { lines, warnings }를 돌려준다.
-//   lines: [{ service, label, usd, detail, why, tier? }]
+//   lines: [{ service, label, usd, detail, why, tier?, kind? }]
 //   tier: 구간 요금 항목이면 { path: [서비스, 단가 키], qty } — 첫 구간 한도를 넘는지 확인할 때 쓴다.
+//   kind: "transfer"면 사용자에게 나가는 전송 요금이다 (서비스가 달라도 "놓치기 쉬운 비용"에서 데이터 전송으로 묶는다).
 
 const CALCULATORS = {
   ec2(r, p) {
@@ -220,6 +221,7 @@ const CALCULATORS = {
         detail: `${unitPrice(perGb, "GB")} × ${num(r.gb)}GB`,
         why: "AWS에서 인터넷으로 나가는 데이터(사용자에게 보내는 응답, 이미지 등)에 GB당 요금이 붙어요. 들어오는 데이터는 무료예요.",
         tier: { path: ["dataTransferOut", "perGb"], qty: r.gb },
+        kind: "transfer",
       }],
       warnings: ["dataTransfer"],
     };
@@ -278,6 +280,7 @@ const CALCULATORS = {
           detail: `${unitPrice(perGb, "GB")} × ${num(r.gb)}GB`,
           why: "CloudFront는 전 세계 엣지에서 사이트를 전달하는 CDN이에요. S3 → CloudFront 전송은 무료이고, 사용자에게 나가는 전송량만 과금돼요 (리전 근처 사용자 기준 단가).",
           tier: { path: ["cloudfront", "perGb"], qty: r.gb },
+          kind: "transfer",
         },
         {
           service: "CloudFront",
@@ -317,6 +320,7 @@ const CALCULATORS = {
           usd: served * r.servedGb,
           detail: `${unitPrice(served, "GB")} × ${num(r.servedGb)}GB`,
           why: "사용자에게 사이트를 전달한 데이터 양만큼 과금돼요. CDN·HTTPS 요금이 포함된 단가예요.",
+          kind: "transfer",
         },
       ],
       warnings: [],
