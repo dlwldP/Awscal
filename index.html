@@ -42,7 +42,12 @@
   </header>
 
   <main id="app" class="container">
-    <p class="loading">불러오는 중…</p>
+    <!-- 데이터를 불러오는 동안 보여주는 자리 표시 (app.js가 그리면 사라진다) -->
+    <div class="skeleton" role="status" aria-label="불러오는 중">
+      <div class="sk sk-hero"></div>
+      <div class="sk sk-line" style="width:40%"></div>
+      <div class="sk-grid"><div class="sk sk-tile"></div><div class="sk sk-tile"></div><div class="sk sk-tile"></div></div>
+    </div>
   </main>
 
   <footer class="site-footer">
