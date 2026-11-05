@@ -424,6 +424,26 @@ main { padding-bottom: 48px; }
 .settings-line[open] .settings-btn::before { content: "닫기"; }
 .settings-line .controls { margin: 16px 0 0; }
 
+/* ---- 결과 화면 배치 ----
+   휴대폰: 계산 조건 → 결과 → 직접 조정 → 할 일·계산 기준 (aside를 풀어서 순서를 정한다)
+   PC: 왼쪽에 계산 조건·직접 조정(스크롤 따라옴), 오른쪽에 결과 */
+.result-layout { display: flex; flex-direction: column; }
+.result-side { display: contents; }
+.result-side > .settings-line { order: 1; }
+.result-top { order: 2; }
+.result-side > .adjust { order: 3; }
+.result-bottom { order: 4; }
+@media (min-width: 960px) {
+  body:has(.result-layout) .container { max-width: 1080px; }
+  .result-layout { display: grid; grid-template-columns: 340px minmax(0, 1fr); grid-template-rows: auto 1fr; grid-template-areas: "side top" "side bottom"; column-gap: 20px; align-items: start; }
+  .result-side { display: block; grid-area: side; position: sticky; top: 72px; max-height: calc(100vh - 88px); overflow-y: auto; }
+  .result-top { grid-area: top; }
+  .result-bottom { grid-area: bottom; }
+  .result-side .fields { grid-template-columns: 1fr; }
+  .result-side .settings-btn { display: none; }
+  .result-side .settings-line > summary { cursor: default; pointer-events: none; }
+}
+
 /* ---- 결과: 맨 위 구성 + 다른 방법 접기 ---- */
 .pick-label { color: var(--accent-text); font-weight: 800; font-size: var(--fs-body); margin: 0 0 6px; }
 .option-main .recommend-why { margin: 10px 0 0; }

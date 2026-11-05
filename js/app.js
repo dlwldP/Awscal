@@ -255,7 +255,7 @@ function optionsHtml(options, compareRegionId, values, regionPrices, templateId)
   }`;
 }
 
-const excludedOf = (o) => (domainOn ? o.excluded : [...o.excluded, "도메인 주소 (위 '바꾸기'에서 도메인을 켜면 포함돼요)"]);
+const excludedOf = (o) => (domainOn ? o.excluded : [...o.excluded, "도메인 주소 ('계산 조건'에서 도메인을 켜면 포함돼요)"]);
 
 /** 맨 위 구성 바로 아래 "놓치기 쉬운 비용" 카드: 금액에 들어 있는 항목(금액 표시)과 안 들어 있는 항목을 나눠 보여준다. */
 function hiddenCardHtml(o) {
@@ -352,7 +352,7 @@ function optionHtml(o, compareRegionId, values, regionPrices, main = null) {
     </article>`;
 }
 
-function adjustHtml(template, preset, values, regionPrices) {
+function adjustHtml(template, preset, values, regionPrices, open = false) {
   const keys = Object.keys(preset.values).filter((k) => FIELDS[k] && !HIDDEN_ADJUST_FIELDS.has(k));
   // 같은 화면에 비슷한 칸이 여럿이면 템플릿이 이름을 따로 붙인다 (예: "서버 사양 (EC2 단독)")
   const def = (k) => fieldDef(k, template.fieldLabels?.[k] ? { label: template.fieldLabels[k] } : {});
@@ -363,7 +363,7 @@ function adjustHtml(template, preset, values, regionPrices) {
   const moreOpen = more.some((k) => k in adjust.overrides);
   const fields = (list) => list.map((k) => fieldHtml(def(k), values[k], regionPrices, "adj")).join("");
   return `
-    <details class="card adjust" data-key="adjust" ${changed ? "open" : ""}>
+    <details class="card adjust" data-key="adjust" ${changed || open ? "open" : ""}>
       <summary>
         <span><span class="card-title" style="display:block;margin:0">직접 조정</span></span>
       </summary>
@@ -399,7 +399,7 @@ function notesHtml(preset, regionId) {
         <li>${
           freeOn
             ? `프리티어 중 매달 무료인 사용량(데이터 전송 100GB, Lambda 100만 건 등)을 뺐어요 (정책 기준일 ${esc(data.freeTier.policyDate)}). 기간 한정 무료와 신규 계정 크레딧은 반영하지 않았어요`
-            : "프리티어·크레딧은 반영하지 않았어요. 신규 계정이라면 실제로는 더 적게 나올 수 있어요 (위 '바꾸기'에서 매달 무료인 사용량을 뺄 수 있어요)"
+            : "프리티어·크레딧은 반영하지 않았어요. 신규 계정이라면 실제로는 더 적게 나올 수 있어요 ('계산 조건'에서 매달 무료인 사용량을 뺄 수 있어요)"
         } → <a href="https://aws.amazon.com/free/" target="_blank" rel="noopener">AWS 프리티어 안내</a></li>
         <li>예상치이며 실제 청구액과 다를 수 있어요. 정확한 견적은 <a href="https://calculator.aws/" target="_blank" rel="noopener">AWS Pricing Calculator</a>에서 확인하세요.</li>
       </ul>
@@ -443,13 +443,17 @@ function renderResult(template, presetId, regionId, params = new URLSearchParams
     { id: "on", name: "포함 (.com)" },
   ];
 
+  // 넓은 화면(PC)은 왼쪽에 계산 조건·직접 조정을 펼쳐 두고 오른쪽에 결과를 보여준다.
+  const wide = typeof matchMedia === "function" && matchMedia("(min-width: 960px)").matches;
   app.innerHTML = `
     <div class="page-head">
       <a class="back" href="#/t/${template.id}">‹ 다시 고르기</a>
       <p class="step">${glyph(template.icon, 16)}${esc(template.name)}</p>
       <h1 class="page-title">예상 월 비용이에요</h1>
     </div>
-    <details class="card settings-line" data-key="settings">
+    <div class="result-layout">
+    <aside class="result-side">
+    <details class="card settings-line" data-key="settings" ${wide ? "open" : ""}>
       <summary>
         <span><span class="settings-label">계산 조건</span><span id="settings-text">${settingsText(preset, regionId)}</span></span>
         <span class="settings-btn" aria-hidden="true"></span>
@@ -461,14 +465,20 @@ function renderResult(template, presetId, regionId, params = new URLSearchParams
         ${chipsHtml("프리티어 (매달 무료 사용량)", FREE_CHOICES, freeOn ? "on" : "off").replace(/data-value/g, "data-free")}
       </div>
     </details>
-    <div id="options">${optionsHtml(options, compareRegionId, values, regionPrices, template.id)}</div>
-    <div class="share-row">
-      <a class="quiz-link" href="#/quiz">${icon("circle-question-mark", 16)}얼마일까? 퀴즈</a>
-      <button type="button" class="btn btn-soft btn-sm" id="share">${icon("share-2", 16)}공유</button>
+    ${adjustHtml(template, preset, values, regionPrices, wide)}
+    </aside>
+    <div class="result-top">
+      <div id="options">${optionsHtml(options, compareRegionId, values, regionPrices, template.id)}</div>
+      <div class="share-row">
+        <a class="quiz-link" href="#/quiz">${icon("circle-question-mark", 16)}얼마일까? 퀴즈</a>
+        <button type="button" class="btn btn-soft btn-sm" id="share">${icon("share-2", 16)}공유</button>
+      </div>
     </div>
-    ${adjustHtml(template, preset, values, regionPrices)}
-    ${afterLaunchHtml()}
-    ${notesHtml(preset, regionId)}`;
+    <div class="result-bottom">
+      ${afterLaunchHtml()}
+      ${notesHtml(preset, regionId)}
+    </div>
+    </div>`;
 
   app.querySelectorAll("[data-preset]").forEach((b) =>
     // 규모를 바꾸면 직접 바꾼 값은 비우고(새 프리셋 기준), 도메인 선택은 유지한다.
