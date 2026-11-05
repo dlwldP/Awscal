@@ -78,7 +78,7 @@ function renderHome() {
       <p class="eyebrow">AWS 비용 계산기</p>
       <h1>AWS, 한 달에<br>얼마 나올까요?</h1>
       <p class="sub">만들고 싶은 걸 고르면 필요한 AWS 구성과 예상 월 비용을 원화로 알려드려요. AWS 계정 없이 무료예요.</p>
-      <button type="button" class="btn btn-primary hero-cta" id="go-templates">무엇을 만들지 고르기 ${icon("arrow-down", 18)}</button>
+      <button type="button" class="btn btn-primary hero-cta" id="go-templates">비용 계산 시작 ${icon("arrow-down", 18)}</button>
     </section>
 
     <div class="home-intro">
@@ -104,7 +104,6 @@ function renderHome() {
     <div class="home-grid">
     <section class="card" id="templates">
       <h2 class="card-title">무엇을 만들고 싶나요?</h2>
-      <p class="card-sub">고르면 구성 2~3가지를 비교해드려요</p>
       <ul class="list">
         ${data.templates
           .map(
@@ -125,22 +124,22 @@ function renderHome() {
       <ul class="list">
         <li><a class="row" href="#/calc">
           <span class="ico" aria-hidden="true">${icon("calculator", 22)}</span>
-          <span class="txt"><span class="ttl">직접 계산하기</span><span class="dsc">쓸 서비스를 알고 있다면 직접 담아서 계산해요</span></span>
+          <span class="txt"><span class="ttl">직접 계산하기</span><span class="dsc">서비스를 골라 직접 계산</span></span>
           <span class="chev" aria-hidden="true">›</span>
         </a></li>
         <li><a class="row" href="#/quiz">
           <span class="ico" aria-hidden="true">${icon("circle-question-mark", 22)}</span>
-          <span class="txt"><span class="ttl">얼마일까? 퀴즈</span><span class="dsc">이 구성은 한 달에 얼마? 3문제로 비용 감 잡기</span></span>
+          <span class="txt"><span class="ttl">얼마일까? 퀴즈</span><span class="dsc">3문제로 비용 감각 확인</span></span>
           <span class="chev" aria-hidden="true">›</span>
         </a></li>
         <li><a class="row" href="#/hidden-costs">
           <span class="ico" aria-hidden="true">${icon("triangle-alert", 22)}</span>
-          <span class="txt"><span class="ttl">놓치기 쉬운 비용</span><span class="dsc">데이터 전송, 퍼블릭 IP… 청구서에서 자주 놀라는 항목</span></span>
+          <span class="txt"><span class="ttl">놓치기 쉬운 비용</span><span class="dsc">청구서에서 자주 놀라는 항목</span></span>
           <span class="chev" aria-hidden="true">›</span>
         </a></li>
         <li><a class="row" href="#/glossary">
           <span class="ico" aria-hidden="true">${icon("book-open", 22)}</span>
-          <span class="txt"><span class="ttl">용어 사전</span><span class="dsc">vCPU, LCU, NAT Gateway… 어려운 말 쉽게 풀기</span></span>
+          <span class="txt"><span class="ttl">용어 사전</span><span class="dsc">어려운 AWS 용어 풀이</span></span>
           <span class="chev" aria-hidden="true">›</span>
         </a></li>
       </ul>
@@ -148,20 +147,19 @@ function renderHome() {
 
     <section class="card">
       <h2 class="card-title">의견 보내기</h2>
-      <p class="card-sub">있었으면 하는 템플릿이나 불편한 점을 알려주세요</p>
       <ul class="list">
         ${
           form
             ? `<li><a class="row" href="${esc(form)}" target="_blank" rel="noopener">
           <span class="ico" aria-hidden="true">${icon("message-square", 22)}</span>
-          <span class="txt"><span class="ttl">설문으로 보내기</span><span class="dsc">계정 없이 바로 작성할 수 있어요</span></span>
+          <span class="txt"><span class="ttl">설문으로 보내기</span><span class="dsc">계정 없이 작성</span></span>
           <span class="chev" aria-hidden="true">›</span>
         </a></li>`
             : ""
         }
         <li><a class="row" href="${esc(feedbackUrl())}" target="_blank" rel="noopener">
           <span class="ico" aria-hidden="true">${icon("git-branch", 22)}</span>
-          <span class="txt"><span class="ttl">GitHub 이슈로 보내기</span><span class="dsc">GitHub 계정이 있다면</span></span>
+          <span class="txt"><span class="ttl">GitHub 이슈로 보내기</span><span class="dsc">GitHub 계정 필요</span></span>
           <span class="chev" aria-hidden="true">›</span>
         </a></li>
       </ul>
@@ -242,7 +240,7 @@ function optionsHtml(options, compareRegionId, values, regionPrices, templateId)
   return `${card(main)}${hiddenCardHtml(main)}${
     others.length
       ? `<details class="others" data-key="others">
-          <summary>다른 방법 ${others.length}가지도 보기</summary>
+          <summary>다른 구성 ${others.length}개 비교</summary>
           <section class="card">
             <h2 class="card-title">구성별 비교</h2>
             ${barsHtml(options)}
@@ -261,7 +259,6 @@ function hiddenCardHtml(o) {
   return `
     <section class="card hidden-costs">
       <h2 class="card-title with-ico">${icon("triangle-alert", 20)}놓치기 쉬운 비용</h2>
-      <p class="card-sub">처음 쓰는 사람이 자주 놀라는 항목이에요</p>
       ${
         included.length
           ? `<div class="section-label">이 금액에 들어 있어요</div>
@@ -293,7 +290,7 @@ function barsHtml(options) {
         .map(
           (o) => `
         <div class="bar ${o.isCheapest ? "cheapest" : ""}">
-          <div class="bar-head"><span class="name">${esc(o.name)}</span><span class="val num">${won(o.totalUsd)}</span></div>
+          <div class="bar-head"><span class="name">${esc(o.name)}${o.difficulty ? `<small class="bar-meta">난이도 ${esc(o.difficulty)}</small>` : ""}</span><span class="val num">${won(o.totalUsd)}</span></div>
           <div class="bar-track"><div class="bar-fill" style="width:${(o.totalUsd / max) * 100}%"></div></div>
         </div>`
         )
@@ -301,7 +298,6 @@ function barsHtml(options) {
     </div>`;
 }
 
-const DIFFICULTY_CLASS = { 쉬움: "tag-easy", 보통: "tag-mid", 어려움: "tag-hard" };
 
 /** main이 있으면 맨 위에 크게 보여주는 구성이다 ({ cheapest }: 더 싼 방법이 따로 있으면 알려준다).
  * 난이도 배지는 "처음이라면 이걸로"와 겹쳐서 접힌 "다른 방법" 카드에서만 보여준다.
@@ -312,13 +308,11 @@ function optionHtml(o, compareRegionId, values, regionPrices, main = null) {
       ${main ? `<p class="pick-label">${o.recommended ? "처음이라면 이걸로" : "이렇게 만들면"}</p>` : ""}
       <div class="option-head">
         <h3 class="option-name">${esc(o.name)}</h3>
-        ${o.recommended && !main ? '<span class="tag tag-blue">처음이라면 추천</span>' : ""}
-        ${o.isCheapest ? '<span class="tag tag-green">가장 저렴</span>' : ""}
-        ${o.difficulty && !main ? `<span class="tag ${DIFFICULTY_CLASS[o.difficulty] ?? ""}">난이도 ${esc(o.difficulty)}</span>` : ""}
+        ${o.recommended && !main ? '<span class="tag tag-blue">추천</span>' : ""}
       </div>
       <p class="option-summary">${esc(o.summary)}</p>
       <div class="amount num"><span class="approx">약</span>${won(o.totalUsd)}<small>/ 월</small></div>
-      <div class="amount-usd num">${formatUsd(o.totalUsd)} · 원화는 부가세 10% 포함</div>
+      <div class="amount-usd num">${formatUsd(o.totalUsd)} · 원화는 부가세 10% 포함${o.isCheapest ? ' · <strong class="cheapest-note">가장 저렴</strong>' : ""}</div>
       ${
         o.compareTotalUsd !== undefined
           ? `<div class="amount-compare num">${esc(regionName(compareRegionId))}에 만들면 약 ${won(o.compareTotalUsd)}</div>`
@@ -327,11 +321,11 @@ function optionHtml(o, compareRegionId, values, regionPrices, main = null) {
       ${main && o.recommended ? `<p class="recommend-why">${icon("lightbulb", 16)}${esc(o.recommended)}</p>` : ""}
       ${
         main?.cheapest && main.cheapest !== o
-          ? `<p class="cheaper-hint">더 저렴한 방법도 있어요: <strong>${esc(main.cheapest.name)}</strong> 월 ${formatUsd(main.cheapest.totalUsd)} · 아래 '다른 방법'에서 비교해보세요</p>`
+          ? `<p class="cheaper-hint">더 저렴한 구성: <strong>${esc(main.cheapest.name)}</strong> 약 ${won(main.cheapest.totalUsd)}/월</p>`
           : ""
       }
       ${diagramHtml(o.resources.map((r) => resolveResource(r, values)), regionPrices, o.id)}
-      ${main?.guide ? `<a class="btn btn-soft btn-block guide-btn" href="#/guide/${main.guide}">${icon("hammer", 18)}이 구성 만들기 · 단계별 가이드</a>` : ""}
+      ${main?.guide ? `<a class="btn btn-soft btn-block guide-btn" href="#/guide/${main.guide}">${icon("hammer", 18)}만드는 방법</a>` : ""}
       ${main ? "" : warningsHtml(o.warnings)}
       <details class="more" data-key="more-${o.id}">
         <summary>비용 내역 · 장단점</summary>
@@ -367,8 +361,7 @@ function adjustHtml(template, preset, values, regionPrices) {
   return `
     <details class="card adjust" data-key="adjust" ${changed ? "open" : ""}>
       <summary>
-        <span><span class="card-title" style="display:block">값 직접 바꿔보기</span>
-        <span class="card-sub" style="display:block;margin:0">서버 사양, 트래픽 같은 값을 바꾸면 바로 다시 계산해요</span></span>
+        <span><span class="card-title" style="display:block;margin:0">직접 조정</span></span>
       </summary>
       <div class="fields">${fields(main)}</div>
       ${
@@ -395,7 +388,7 @@ function notesHtml(preset, regionId) {
   const changed = Object.keys(adjust.overrides).length;
   return `
     <section class="card notes">
-      <h2 class="card-title">이런 가정으로 계산했어요</h2>
+      <h2 class="card-title">계산 기준</h2>
       <p class="card-sub" style="margin:0">${esc(preset.name)} · ${esc(regionName(regionId))}${changed ? " · 직접 바꾼 값은 위 입력 칸 기준" : ""}</p>
       <ul>
         <li>${esc(preset.name)} 규모 (${esc(preset.description)}) 기준이에요.</li>
@@ -467,7 +460,7 @@ function renderResult(template, presetId, regionId, params = new URLSearchParams
     <div id="options">${optionsHtml(options, compareRegionId, values, regionPrices, template.id)}</div>
     <div class="share-row">
       <a class="quiz-link" href="#/quiz">${icon("circle-question-mark", 16)}얼마일까? 퀴즈</a>
-      <button type="button" class="btn btn-soft btn-sm" id="share">${icon("share-2", 16)}이 결과 공유하기</button>
+      <button type="button" class="btn btn-soft btn-sm" id="share">${icon("share-2", 16)}공유</button>
     </div>
     ${adjustHtml(template, preset, values, regionPrices)}
     ${afterLaunchHtml()}
@@ -552,8 +545,7 @@ function renderHiddenCosts() {
     ${guideHtml(data.hiddenCosts, data.prices.regions[region])}
     <section class="card">
       <h2 class="card-title">내 구성은 얼마나 나올까요?</h2>
-      <p class="card-sub">만들고 싶은 걸 고르면 이런 비용까지 포함해서 계산해드려요</p>
-      <a class="btn btn-primary" href="#/">구성 추천 받기</a>
+      <a class="btn btn-primary" href="#/">비용 계산 시작</a>
     </section>`;
 }
 

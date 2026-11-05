@@ -39,7 +39,7 @@ function page(t) {
       <thead><tr><th>구성</th>${results.map((r) => `<th>${esc(r.preset.name)}<br><small>${esc(r.preset.description)}</small></th>`).join("")}</tr></thead>
       <tbody>${t.options
         .map(
-          (o, i) => `<tr><th>${esc(o.name)}${o.recommended ? ' <span class="tag tag-blue">처음이라면 추천</span>' : ""}</th>${results
+          (o, i) => `<tr><th>${esc(o.name)}${o.recommended ? ' <span class="tag tag-blue">추천</span>' : ""}</th>${results
             .map((r) => `<td class="num">${formatUsd(r.options[i].totalUsd)}</td>`)
             .join("")}</tr>`
         )
@@ -52,7 +52,7 @@ function page(t) {
     <article class="card">
       <div class="option-head">
         <h2 class="option-name">${esc(o.name)}</h2>
-        ${o.recommended ? '<span class="tag tag-blue">처음이라면 추천</span>' : ""}
+        ${o.recommended ? '<span class="tag tag-blue">추천</span>' : ""}
         <span class="tag">난이도 ${esc(o.difficulty)}</span>
       </div>
       <p class="option-summary">${esc(o.summary)}</p>
@@ -131,8 +131,7 @@ function hiddenCostsPage() {
     ${guideHtml(hiddenCosts, prices.regions[region])}
     <section class="card">
       <h2 class="card-title">내 구성은 얼마나 나올까요?</h2>
-      <p class="card-sub">만들고 싶은 걸 고르면 이런 비용까지 포함해서 계산해드려요</p>
-      <a class="btn btn-primary" href="../#/">구성 추천 받기</a>
+      <a class="btn btn-primary" href="../#/">비용 계산 시작</a>
     </section>`,
     footer: `
     구성별 비용 보기

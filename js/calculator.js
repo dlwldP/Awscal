@@ -173,9 +173,8 @@ export function renderCalculator(app, data, params) {
       <a class="back" href="#/">‹ 처음으로</a>
       <p class="step">${icon("calculator", 16)}직접 계산</p>
       <h1 class="page-title">쓸 서비스를 담아보세요</h1>
-      <p class="page-sub">사양과 사용량을 입력하면 월 비용을 바로 계산해요.</p>
     </div>
-    ${state.items.length ? `<div class="share-row"><button type="button" class="btn btn-soft btn-sm" id="share-calc">${icon("share-2", 16)}이 계산 공유하기</button></div>` : ""}
+    ${state.items.length ? `<div class="share-row"><button type="button" class="btn btn-soft btn-sm" id="share-calc">${icon("share-2", 16)}공유</button></div>` : ""}
     <div class="controls">
       ${regionChipsHtml(data.prices, state.region, [data.settings.defaultRegion, data.settings.compareRegion])}
       ${chipsHtml("프리티어 (매달 무료 사용량)", FREE_CHOICES, state.freeTier ? "on" : "off").replace(/data-value/g, "data-free")}

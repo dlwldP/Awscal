@@ -358,6 +358,8 @@ main { padding-bottom: 48px; }
 .pick-label { color: var(--accent-text); font-weight: 800; font-size: var(--fs-body); margin: 0 0 6px; }
 .option-main .recommend-why { margin: 10px 0 0; }
 .cheaper-hint { color: var(--sub); font-size: var(--fs-small); margin: 8px 0 0; }
+.cheapest-note { color: var(--green); font-weight: 700; }
+.bar-meta { margin-left: 8px; color: var(--muted); font-size: var(--fs-small); font-weight: 500; }
 .others > summary {
   cursor: pointer;
   list-style: none;
@@ -567,10 +569,6 @@ main { padding-bottom: 48px; }
 .theme-btn:hover { background: var(--bg); }
 
 /* ---- 추천·난이도 배지 ---- */
-.tag-green { background: var(--green-bg); color: var(--green); }
-.tag-easy { background: var(--green-bg); color: var(--green); }
-.tag-mid { background: var(--bg); color: var(--sub); }
-.tag-hard { background: var(--warn-bg); color: var(--warn); }
 .recommend-why { color: var(--sub); font-size: var(--fs-small); }
 .vat { color: var(--muted); font-size: var(--fs-small); font-weight: 500; }
 

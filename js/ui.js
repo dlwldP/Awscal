@@ -192,7 +192,7 @@ const AFTER_LAUNCH = [
 export function afterLaunchHtml() {
   return `<section class="card after-launch">
       <h2 class="card-title">만든 다음 꼭 할 일</h2>
-      <p class="card-sub">요금 폭탄은 대부분 이 네 가지를 놓쳐서 생겨요 · 누르면 자세히 보여요</p>
+      <p class="card-sub">요금 폭탄은 대부분 이 네 가지를 놓쳐서 생겨요</p>
       <ol>${AFTER_LAUNCH.map(
         ([title, text], i) => `<li><details data-key="after-launch-${i}">
           <summary>${esc(title)}</summary>

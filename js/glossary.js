@@ -113,7 +113,7 @@ export function renderGlossary(app) {
       <a class="back" href="#/">‹ 처음으로</a>
       <p class="step">${icon("book-open", 16)}용어 사전</p>
       <h1 class="page-title">AWS 용어, 쉽게 풀어봤어요</h1>
-      <p class="page-sub">분류를 누르면 용어와 뜻이 펼쳐져요. 설명 속 <span class="term-sample">밑줄 친 단어</span>도 누르면 어디서든 뜻을 볼 수 있어요.</p>
+      <p class="page-sub">설명 속 <span class="term-sample">밑줄 친 단어</span>는 어디서든 눌러서 뜻을 볼 수 있어요.</p>
     </div>
     <div class="field" style="margin-bottom:12px">
       <label for="glossary-q" class="sr-only">용어 검색</label>
