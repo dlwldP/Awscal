@@ -109,7 +109,7 @@ function page(t) {
     </section>`,
     footer: `
     다른 구성도 보기
-    <nav aria-label="다른 템플릿">${others}<a href="hidden-costs.html">놓치기 쉬운 비용</a><a href="../#/glossary">용어 사전</a></nav>`,
+    <nav class="static-links" aria-label="다른 템플릿">${others}<a href="hidden-costs.html">놓치기 쉬운 비용</a><a href="../#/glossary">용어 사전</a></nav>`,
   });
 }
 
@@ -135,7 +135,7 @@ function hiddenCostsPage() {
     </section>`,
     footer: `
     구성별 비용 보기
-    <nav aria-label="템플릿">${templates.map((x) => `<a href="${x.id}.html">${esc(x.name)} 비용</a>`).join("")}<a href="../#/glossary">용어 사전</a></nav>`,
+    <nav class="static-links" aria-label="템플릿">${templates.map((x) => `<a href="${x.id}.html">${esc(x.name)} 비용</a>`).join("")}<a href="../#/glossary">용어 사전</a></nav>`,
   });
 }
 
@@ -171,11 +171,13 @@ function shell({ title, description, url, main, footer }) {
   </header>
   <main class="container">${main}
   </main>
-  <footer class="site-footer container">${footer}
+  <footer class="site-footer">
+    <div class="container">${footer}
     <details class="privacy">
       <summary>개인정보 안내</summary>
       <p>이 사이트는 회원가입이나 개인정보 수집이 없어요. 직접 계산기에 담은 목록은 이 브라우저에만 저장돼요. 의견 보내기 설문은 Google Forms, 사이트 호스팅은 GitHub Pages, 글꼴은 jsDelivr를 쓰고, 각 서비스의 개인정보 정책을 따라요.</p>
     </details>
+    </div>
   </footer>
 </body>
 </html>

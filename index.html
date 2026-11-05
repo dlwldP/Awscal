@@ -45,38 +45,43 @@
     <p class="loading">불러오는 중…</p>
   </main>
 
-  <footer class="site-footer container">
-    <p class="footer-note">
-      AWS 계정 연동 없이 공개 가격표(AWS Price List API)로 계산한 예상치예요. 실제 청구액과 다를 수 있어요.
-      가격 매주 자동 갱신<span id="footer-updated"></span> · <a href="#/prices">변동 내역</a>
-    </p>
-    <!-- 검색엔진이 따라갈 수 있도록 정적 링크로 둔다 (pages/는 배포할 때 생성) -->
-    <nav class="footer-links" aria-label="바로가기">
-      <div class="footer-group">
-        <span class="footer-label">구성별 비용</span>
-        <span class="footer-items">
-          <a href="pages/static-website.html">정적 웹사이트</a>
-          <a href="pages/backend-webapp.html">백엔드 웹앱</a>
-          <a href="pages/wordpress.html">WordPress 블로그</a>
-          <a href="pages/serverless-api.html">서버리스 API</a>
-          <a href="pages/dev-server.html">개발용 서버</a>
-          <a href="pages/ai-chatbot.html">AI 챗봇</a>
-        </span>
+  <footer class="site-footer">
+    <div class="container footer-grid">
+      <div class="footer-brand">
+        <a href="#/" class="logo"><img src="assets/logo.svg" width="24" height="24" alt=""><span>AWS 얼마야?</span></a>
+        <p class="footer-note">초보자를 위한 AWS 비용 계산기. AWS 계정 연동 없이 공개 가격표(AWS Price List API)로 계산한 예상치예요. 실제 청구액과 다를 수 있어요.</p>
+        <p class="footer-note">가격 매주 자동 갱신<span id="footer-updated"></span> · <a href="#/prices">변동 내역</a></p>
       </div>
-      <div class="footer-group">
-        <span class="footer-label">더 보기</span>
-        <span class="footer-items">
-          <a href="pages/hidden-costs.html">놓치기 쉬운 비용</a>
-          <a href="#/glossary">용어 사전</a>
-          <a href="https://docs.google.com/forms/d/e/1FAIpQLSeTXOySenpd1lNgCVpwGEnbIcfEgu_OjYe5EK0OzQ-sZXRwqg/viewform" target="_blank" rel="noopener">의견 보내기</a>
-          <a href="https://github.com/dlwldP/Awscal" target="_blank" rel="noopener">GitHub</a>
-        </span>
-      </div>
-    </nav>
-    <details class="privacy">
-      <summary>개인정보 안내</summary>
-      <p>이 사이트는 회원가입이나 개인정보 수집이 없어요. 직접 계산기에 담은 목록은 이 브라우저에만 저장돼요. 의견 보내기 설문은 Google Forms, 사이트 호스팅은 GitHub Pages, 글꼴은 jsDelivr를 쓰고, 각 서비스의 개인정보 정책을 따라요.</p>
-    </details>
+      <!-- 검색엔진이 따라갈 수 있도록 정적 링크로 둔다 (pages/는 배포할 때 생성) -->
+      <nav class="footer-col" aria-label="구성별 비용">
+        <h2>구성별 비용</h2>
+        <a href="pages/static-website.html">정적 웹사이트</a>
+        <a href="pages/backend-webapp.html">백엔드 웹앱</a>
+        <a href="pages/wordpress.html">WordPress 블로그</a>
+        <a href="pages/serverless-api.html">서버리스 API</a>
+        <a href="pages/dev-server.html">개발용 서버</a>
+        <a href="pages/ai-chatbot.html">AI 챗봇</a>
+      </nav>
+      <nav class="footer-col" aria-label="더 보기">
+        <h2>더 보기</h2>
+        <a href="pages/hidden-costs.html">놓치기 쉬운 비용</a>
+        <a href="#/calc">직접 계산하기</a>
+        <a href="#/quiz">얼마일까? 퀴즈</a>
+        <a href="#/glossary">용어 사전</a>
+      </nav>
+      <nav class="footer-col" aria-label="프로젝트">
+        <h2>프로젝트</h2>
+        <a href="https://github.com/dlwldP/Awscal" target="_blank" rel="noopener">GitHub</a>
+        <a href="https://docs.google.com/forms/d/e/1FAIpQLSeTXOySenpd1lNgCVpwGEnbIcfEgu_OjYe5EK0OzQ-sZXRwqg/viewform" target="_blank" rel="noopener">의견 보내기</a>
+      </nav>
+    </div>
+    <div class="container footer-bottom">
+      <span>© 2026 dlwldP · AWS는 Amazon.com, Inc. 또는 계열사의 상표이며, 이 사이트는 AWS와 관련이 없는 개인 프로젝트예요.</span>
+      <details class="privacy">
+        <summary>개인정보 안내</summary>
+        <p>이 사이트는 회원가입이나 개인정보 수집이 없어요. 직접 계산기에 담은 목록은 이 브라우저에만 저장돼요. 의견 보내기 설문은 Google Forms, 사이트 호스팅은 GitHub Pages, 글꼴은 jsDelivr를 쓰고, 각 서비스의 개인정보 정책을 따라요.</p>
+      </details>
+    </div>
   </footer>
 
   <script type="module" src="js/app.js"></script>

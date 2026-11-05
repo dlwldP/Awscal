@@ -70,102 +70,106 @@ function feedbackUrl() {
 }
 
 // ---- 메인 ----
+/** 템플릿별 "월 약 N원부터": 기본 리전·첫 규모에서 가장 싼 구성 */
+function fromPrice(t) {
+  const { options } = calculateTemplate(t, t.presets[0].id, data.prices, data.settings.defaultRegion);
+  return won(Math.min(...options.map((o) => o.totalUsd)));
+}
+
+/** 메인 히어로 오른쪽 미리보기: 실제 계산 결과 (백엔드 웹앱 · 첫 규모 · 기본 리전) */
+function heroPreviewHtml() {
+  const t = data.templates.find((x) => x.id === "backend-webapp") ?? data.templates[0];
+  const { preset, options } = calculateTemplate(t, t.presets[0].id, data.prices, data.settings.defaultRegion);
+  const pick = mainOptionOf(options);
+  const max = Math.max(...options.map((o) => o.totalUsd), 0.01);
+  return `
+    <div class="hero-preview" aria-hidden="true">
+      <p class="hp-meta">${esc(t.name)} · ${esc(preset.name)} · ${esc(regionName(data.settings.defaultRegion))}</p>
+      <p class="hp-pick">처음이라면 ${esc(pick.name)}</p>
+      <p class="hp-amount num">약 ${won(pick.totalUsd)}<small>/ 월</small></p>
+      ${options
+        .map(
+          (o) => `<div class="hp-row ${o === pick ? "is-pick" : ""}"><span>${esc(o.name)}</span><span class="num">${won(o.totalUsd)}</span></div>
+          <div class="hp-bar"><i style="width:${(o.totalUsd / max) * 100}%"></i></div>`
+        )
+        .join("")}
+    </div>`;
+}
+
 function renderHome() {
   document.title = "AWS 얼마야? · 초보자용 AWS 비용 계산기";
   const form = data.settings.feedback.googleFormUrl;
+  const more = [
+    ["#/calc", "calculator", "직접 계산하기", "서비스를 골라 직접 계산"],
+    ["#/quiz", "circle-question-mark", "얼마일까? 퀴즈", "3문제로 비용 감각 확인"],
+    ["#/hidden-costs", "triangle-alert", "놓치기 쉬운 비용", "청구서에서 자주 놀라는 항목"],
+    ["#/glossary", "book-open", "용어 사전", "어려운 AWS 용어 풀이"],
+  ];
   app.innerHTML = `
-    <section class="hero">
-      <p class="eyebrow">AWS 비용 계산기</p>
-      <h1>AWS, 한 달에<br>얼마 나올까요?</h1>
-      <p class="sub">만들고 싶은 걸 고르면 필요한 AWS 구성과 예상 월 비용을 원화로 알려드려요. AWS 계정 없이 무료예요.</p>
-      <button type="button" class="btn btn-primary hero-cta" id="go-templates">비용 계산 시작 ${icon("arrow-down", 18)}</button>
+    <section class="hero-band">
+      <div class="hero-inner">
+        <div class="hero-copy">
+          <p class="eyebrow">AWS 비용 계산기</p>
+          <h1>AWS, 한 달에<br><em>얼마</em> 나올까요?</h1>
+          <p class="sub">만들고 싶은 걸 고르면 필요한 AWS 구성과 예상 월 비용을 원화로 알려드려요.</p>
+          <ul class="hero-points">
+            <li>${icon("check", 16)}AWS 계정 없이 무료</li>
+            <li>${icon("check", 16)}부가세 포함 원화</li>
+            <li>${icon("check", 16)}숨은 비용까지</li>
+          </ul>
+          <button type="button" class="btn btn-primary hero-cta" id="go-templates">비용 계산 시작 ${icon("arrow-down", 18)}</button>
+        </div>
+        ${heroPreviewHtml()}
+      </div>
     </section>
 
-    <div class="home-intro">
-    <section class="card">
-      <h2 class="card-title">이렇게 써요</h2>
+    <section class="home-section how">
       <ol class="how-steps">
-        <li><span class="ttl">만들고 싶은 것 고르기</span><span class="dsc">예: 블로그, 웹 서비스</span></li>
+        <li><span class="ttl">만들고 싶은 것 고르기</span><span class="dsc">블로그, 웹 서비스, AI 챗봇 등</span></li>
         <li><span class="ttl">규모 고르기</span><span class="dsc">혼자 쓰는지, 방문자가 많은지</span></li>
-        <li><span class="ttl">예상 비용 확인</span><span class="dsc">추천 구성 + 숨은 비용 경고</span></li>
+        <li><span class="ttl">예상 비용 확인</span><span class="dsc">추천 구성과 놓치기 쉬운 비용</span></li>
       </ol>
     </section>
 
-    <section class="card">
-      <h2 class="card-title">이런 걸 알려줘요</h2>
-      <ul class="features">
-        <li><span class="ico" aria-hidden="true">${icon("wallet")}</span><span>원화 월 비용 <small>(부가세 포함)</small></span></li>
-        <li><span class="ico" aria-hidden="true">${icon("triangle-alert")}</span><span>초보자가 놓치는 숨은 비용</span></li>
-        <li><span class="ico" aria-hidden="true">${icon("list-checks")}</span><span>만든 다음 꼭 할 일</span></li>
-      </ul>
-    </section>
-    </div>
-
-    <div class="home-grid">
-    <section class="card" id="templates">
-      <h2 class="card-title">무엇을 만들고 싶나요?</h2>
-      <ul class="list">
+    <section class="home-section" id="templates">
+      <h2 class="section-title">무엇을 만들고 싶나요?</h2>
+      <ul class="tpl-grid">
         ${data.templates
           .map(
             (t) => `
-          <li><a class="row" href="#/t/${t.id}">
-            <span class="ico" aria-hidden="true">${glyph(t.icon, 24)}</span>
-            <span class="txt"><span class="ttl">${esc(t.name)}</span><span class="dsc">${esc(t.summary)}</span></span>
-            <span class="chev" aria-hidden="true">›</span>
+          <li><a class="tpl" href="#/t/${t.id}">
+            <span class="tpl-ico" aria-hidden="true">${glyph(t.icon, 24)}</span>
+            <span class="tpl-name">${esc(t.name)}</span>
+            <span class="tpl-dsc">${esc(t.summary)}</span>
+            <span class="tpl-price num">월 약 ${fromPrice(t)}부터</span>
           </a></li>`
           )
           .join("")}
       </ul>
     </section>
 
-    <div class="home-side">
-    <section class="card">
-      <h2 class="card-title">더 알아보기</h2>
-      <ul class="list">
-        <li><a class="row" href="#/calc">
-          <span class="ico" aria-hidden="true">${icon("calculator", 22)}</span>
-          <span class="txt"><span class="ttl">직접 계산하기</span><span class="dsc">서비스를 골라 직접 계산</span></span>
-          <span class="chev" aria-hidden="true">›</span>
-        </a></li>
-        <li><a class="row" href="#/quiz">
-          <span class="ico" aria-hidden="true">${icon("circle-question-mark", 22)}</span>
-          <span class="txt"><span class="ttl">얼마일까? 퀴즈</span><span class="dsc">3문제로 비용 감각 확인</span></span>
-          <span class="chev" aria-hidden="true">›</span>
-        </a></li>
-        <li><a class="row" href="#/hidden-costs">
-          <span class="ico" aria-hidden="true">${icon("triangle-alert", 22)}</span>
-          <span class="txt"><span class="ttl">놓치기 쉬운 비용</span><span class="dsc">청구서에서 자주 놀라는 항목</span></span>
-          <span class="chev" aria-hidden="true">›</span>
-        </a></li>
-        <li><a class="row" href="#/glossary">
-          <span class="ico" aria-hidden="true">${icon("book-open", 22)}</span>
-          <span class="txt"><span class="ttl">용어 사전</span><span class="dsc">어려운 AWS 용어 풀이</span></span>
-          <span class="chev" aria-hidden="true">›</span>
-        </a></li>
+    <section class="home-section">
+      <h2 class="section-title">더 알아보기</h2>
+      <ul class="more-grid">
+        ${more
+          .map(
+            ([href, ic, ttl, dsc]) => `<li><a class="more-link" href="${href}">
+              <span class="ico" aria-hidden="true">${icon(ic, 20)}</span>
+              <span class="txt"><span class="ttl">${ttl}</span><span class="dsc">${dsc}</span></span>
+              ${icon("chevron-right", 16, "chev")}
+            </a></li>`
+          )
+          .join("")}
       </ul>
     </section>
 
-    <section class="card">
-      <h2 class="card-title">의견 보내기</h2>
-      <ul class="list">
-        ${
-          form
-            ? `<li><a class="row" href="${esc(form)}" target="_blank" rel="noopener">
-          <span class="ico" aria-hidden="true">${icon("message-square", 22)}</span>
-          <span class="txt"><span class="ttl">설문으로 보내기</span><span class="dsc">계정 없이 작성</span></span>
-          <span class="chev" aria-hidden="true">›</span>
-        </a></li>`
-            : ""
-        }
-        <li><a class="row" href="${esc(feedbackUrl())}" target="_blank" rel="noopener">
-          <span class="ico" aria-hidden="true">${icon("git-branch", 22)}</span>
-          <span class="txt"><span class="ttl">GitHub 이슈로 보내기</span><span class="dsc">GitHub 계정 필요</span></span>
-          <span class="chev" aria-hidden="true">›</span>
-        </a></li>
-      </ul>
+    <section class="home-section feedback-line">
+      <span>${icon("message-square", 18)}있었으면 하는 템플릿이나 불편한 점이 있나요?</span>
+      <span class="feedback-links">
+        ${form ? `<a href="${esc(form)}" target="_blank" rel="noopener">설문으로 보내기</a>` : ""}
+        <a href="${esc(feedbackUrl())}" target="_blank" rel="noopener">GitHub 이슈</a>
+      </span>
     </section>
-    </div>
-    </div>
 `;
   // 주소(#/...)로 화면을 나누고 있어서 #templates 링크 대신 버튼으로 스크롤한다.
   app.querySelector("#go-templates").addEventListener("click", () =>
@@ -329,8 +333,8 @@ function optionHtml(o, compareRegionId, values, regionPrices, main = null) {
       ${main ? "" : warningsHtml(o.warnings)}
       <details class="more" data-key="more-${o.id}">
         <summary>비용 내역 · 장단점</summary>
-        <div class="section-label">항목별 내역 <span style="font-weight:500">(누르면 이유가 보여요)</span></div>
-        ${linesHtml(o.lines)}
+        <div class="section-label">항목별 내역</div>
+        ${linesHtml(o.lines, o.totalUsd)}
         ${
           main
             ? ""

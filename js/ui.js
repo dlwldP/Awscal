@@ -62,8 +62,10 @@ export function readField(el, def) {
   return { value, valid };
 }
 
-export function linesHtml(lines) {
-  return `<ul class="lines">${lines
+/** 비용 내역. totalUsd를 주면 표처럼 머리줄(항목 | 월 금액)과 합계 줄을 붙인다. */
+export function linesHtml(lines, totalUsd) {
+  const table = totalUsd !== undefined;
+  return `<ul class="lines ${table ? "lines-table" : ""}">${table ? `<li class="lines-head" aria-hidden="true"><span>항목</span><span>월 금액</span></li>` : ""}${lines
     .map(
       (l) => `
       <li${l.kind === "free" ? ' class="free-line"' : ""}><details>
@@ -71,7 +73,7 @@ export function linesHtml(lines) {
         <div class="why">${glossarize(esc(l.why))}<span class="formula">${esc(l.detail)}</span></div>
       </details></li>`
     )
-    .join("")}</ul>`;
+    .join("")}${table ? `<li class="lines-total"><span>합계</span><span class="usd num">${formatUsd(totalUsd)}</span></li>` : ""}</ul>`;
 }
 
 // 경고는 돈이 많이 새는 순서로 보여준다. 처음엔 앞의 몇 개만 보이고 나머지는 접어둔다.
