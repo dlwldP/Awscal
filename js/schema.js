@@ -55,25 +55,25 @@ export const FIELDS = {
 /** 결과 화면 "값 직접 바꿔보기"에 보이지 않는 프리셋 값 (별도 UI로 다룸) */
 export const HIDDEN_ADJUST_FIELDS = new Set(["domain"]);
 
-/** 직접 계산기에서 추가할 수 있는 서비스. fields는 [필드 이름, 기본값] 목록. */
+/** 직접 계산기에서 추가할 수 있는 서비스. fields는 [필드 이름, 기본값] 목록. icon은 "aws:이름"(AWS 공식 아이콘) 또는 Lucide 이름. */
 export const SERVICES = [
-  { type: "ec2", icon: "🖥️", name: "EC2", desc: "가상 서버", fields: [["instance", "t4g.small"], ["count", 1], ["hours", 730]] },
-  { type: "ebs", icon: "💽", name: "EBS", desc: "서버 디스크", fields: [["sizeGb", 20], ["count", 1, { label: "개수", unit: "개" }]] },
-  { type: "publicIpv4", icon: "🌍", name: "퍼블릭 IPv4", desc: "인터넷 접속용 주소", fields: [["count", 1, { label: "개수", unit: "개" }], ["hours", 730]] },
-  { type: "lightsail", icon: "💡", name: "Lightsail", desc: "월 정액 서버", fields: [["bundle", "1GB"], ["count", 1]] },
-  { type: "rds", icon: "🗄️", name: "RDS (MySQL)", desc: "관리형 데이터베이스", fields: [["instance", "db.t4g.micro", { label: "DB 사양", source: "rds", help: "" }], ["storageGb", 20, { min: 20, help: "RDS MySQL gp3는 최소 20GB예요." }], ["multiAz", false], ["hours", 730]] },
-  { type: "dynamodb", icon: "📇", name: "DynamoDB", desc: "서버리스 NoSQL DB", fields: [["reads", 1000000], ["writes", 200000], ["storageGb", 1]] },
-  { type: "s3", icon: "🪣", name: "S3", desc: "파일 저장소", fields: [["storageGb", 5], ["putRequests", 10000], ["getRequests", 100000]] },
-  { type: "cloudfront", icon: "⚡", name: "CloudFront", desc: "CDN (콘텐츠 전송)", fields: [["gb", 50], ["requests", 1000000]] },
-  { type: "amplify", icon: "🚀", name: "Amplify Hosting", desc: "웹사이트 자동 배포", fields: [["buildMinutes", 60], ["storageGb", 1], ["servedGb", 10]] },
-  { type: "lambda", icon: "λ", name: "Lambda", desc: "서버리스 함수", fields: [["requests", 1000000], ["memoryMb", 256], ["durationMs", 100]] },
-  { type: "apiGatewayHttp", icon: "🚪", name: "API Gateway", desc: "HTTP API", fields: [["requests", 1000000]] },
-  { type: "fargate", icon: "📦", name: "ECS Fargate", desc: "서버 없는 컨테이너", fields: [["vcpu", 0.5], ["memoryGb", 1], ["count", 1], ["hours", 730]] },
-  { type: "alb", icon: "⚖️", name: "로드밸런서 (ALB)", desc: "요청 분산", fields: [["count", 1, { label: "개수", unit: "개" }], ["lcu", 0.5]] },
-  { type: "natGateway", icon: "🚧", name: "NAT Gateway", desc: "프라이빗 서브넷 인터넷 연결", fields: [["count", 1, { label: "개수", unit: "개" }], ["gb", 10, { label: "월 처리량" }]] },
-  { type: "dataTransferOut", icon: "📤", name: "데이터 전송", desc: "인터넷으로 나가는 트래픽", fields: [["gb", 30]] },
-  { type: "bedrock", icon: "🤖", name: "Bedrock (AI 모델)", desc: "챗봇 등 AI 답변 생성", fields: [["model", "claude-haiku-5.5"], ["dailyChats", 50], ["inputTokens", 1000], ["outputTokens", 300]] },
-  { type: "domain", icon: "🔗", name: "도메인 (Route 53)", desc: ".com 주소 + DNS 연결", fields: [["count", 1, { label: "도메인 개수", unit: "개" }]] },
+  { type: "ec2", icon: "aws:ec2", name: "EC2", desc: "가상 서버", fields: [["instance", "t4g.small"], ["count", 1], ["hours", 730]] },
+  { type: "ebs", icon: "aws:ebs", name: "EBS", desc: "서버 디스크", fields: [["sizeGb", 20], ["count", 1, { label: "개수", unit: "개" }]] },
+  { type: "publicIpv4", icon: "globe", name: "퍼블릭 IPv4", desc: "인터넷 접속용 주소", fields: [["count", 1, { label: "개수", unit: "개" }], ["hours", 730]] },
+  { type: "lightsail", icon: "aws:lightsail", name: "Lightsail", desc: "월 정액 서버", fields: [["bundle", "1GB"], ["count", 1]] },
+  { type: "rds", icon: "aws:rds", name: "RDS (MySQL)", desc: "관리형 데이터베이스", fields: [["instance", "db.t4g.micro", { label: "DB 사양", source: "rds", help: "" }], ["storageGb", 20, { min: 20, help: "RDS MySQL gp3는 최소 20GB예요." }], ["multiAz", false], ["hours", 730]] },
+  { type: "dynamodb", icon: "aws:dynamodb", name: "DynamoDB", desc: "서버리스 NoSQL DB", fields: [["reads", 1000000], ["writes", 200000], ["storageGb", 1]] },
+  { type: "s3", icon: "aws:s3", name: "S3", desc: "파일 저장소", fields: [["storageGb", 5], ["putRequests", 10000], ["getRequests", 100000]] },
+  { type: "cloudfront", icon: "aws:cloudfront", name: "CloudFront", desc: "CDN (콘텐츠 전송)", fields: [["gb", 50], ["requests", 1000000]] },
+  { type: "amplify", icon: "aws:amplify", name: "Amplify Hosting", desc: "웹사이트 자동 배포", fields: [["buildMinutes", 60], ["storageGb", 1], ["servedGb", 10]] },
+  { type: "lambda", icon: "aws:lambda", name: "Lambda", desc: "서버리스 함수", fields: [["requests", 1000000], ["memoryMb", 256], ["durationMs", 100]] },
+  { type: "apiGatewayHttp", icon: "aws:apigateway", name: "API Gateway", desc: "HTTP API", fields: [["requests", 1000000]] },
+  { type: "fargate", icon: "aws:fargate", name: "ECS Fargate", desc: "서버 없는 컨테이너", fields: [["vcpu", 0.5], ["memoryGb", 1], ["count", 1], ["hours", 730]] },
+  { type: "alb", icon: "aws:elb", name: "로드밸런서 (ALB)", desc: "요청 분산", fields: [["count", 1, { label: "개수", unit: "개" }], ["lcu", 0.5]] },
+  { type: "natGateway", icon: "aws:vpc", name: "NAT Gateway", desc: "프라이빗 서브넷 인터넷 연결", fields: [["count", 1, { label: "개수", unit: "개" }], ["gb", 10, { label: "월 처리량" }]] },
+  { type: "dataTransferOut", icon: "upload", name: "데이터 전송", desc: "인터넷으로 나가는 트래픽", fields: [["gb", 30]] },
+  { type: "bedrock", icon: "aws:bedrock", name: "Bedrock (AI 모델)", desc: "챗봇 등 AI 답변 생성", fields: [["model", "claude-haiku-5.5"], ["dailyChats", 50], ["inputTokens", 1000], ["outputTokens", 300]] },
+  { type: "domain", icon: "aws:route53", name: "도메인 (Route 53)", desc: ".com 주소 + DNS 연결", fields: [["count", 1, { label: "도메인 개수", unit: "개" }]] },
 ];
 
 /** 필드 정의 + 서비스별 덮어쓰기를 합친다. */

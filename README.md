@@ -87,6 +87,9 @@ data/free-tier.json         항상 무료 사용량 (정책이 바뀌면 이 파
 data/build-guides.json      이 구성 만들기 가이드 (키: 템플릿/구성안, `명령어`는 코드로 표시)
 data/settings.json          환율·부가세, 기본/비교 리전, 피드백 링크, 사이트 주소
 assets/og.png               링크 미리보기 이미지 (원본: scripts/og-image.html)
+assets/logo.svg, favicon.svg 로고·파비콘
+assets/icons/aws/           AWS 공식 아키텍처 아이콘 (aws-icons 패키지, 다이어그램·직접 계산기에 사용)
+js/icons.js                 Lucide 아이콘(ISC)에서 쓰는 것만 옮긴 SVG + AWS 아이콘 그리기
 scripts/fetch_prices.py     가격 수집 + 변동 기록
 scripts/build-pages.js      검색엔진용 템플릿 소개·놓치기 쉬운 비용 페이지 + sitemap.xml 생성 (배포 때 실행)
 scripts/validation-report.js  공식 계산기 교차 검증 체크리스트 생성

@@ -2,6 +2,7 @@
 import { formatUsd } from "./engine.js";
 import { choicesFor } from "./schema.js";
 import { glossarize } from "./glossary.js";
+import { icon } from "./icons.js";
 
 export const esc = (s) =>
   String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
@@ -83,7 +84,7 @@ export function warningsHtml(warnings, limit = 2) {
   if (!warnings.length) return "";
   const rank = (w) => (WARNING_PRIORITY.includes(w.id) ? WARNING_PRIORITY.indexOf(w.id) : 99);
   const sorted = [...warnings].sort((a, b) => rank(a) - rank(b));
-  const chip = (w) => `<details class="warn"><summary>${esc(w.title)}</summary><p>${glossarize(esc(w.text))}</p></details>`;
+  const chip = (w) => `<details class="warn"><summary>${icon("triangle-alert", 14)}${esc(w.title)}</summary><p>${glossarize(esc(w.text))}</p></details>`;
   const rest = sorted.slice(limit);
   return `<div class="warn-chips">${sorted.slice(0, limit).map(chip).join("")}${
     rest.length ? `<span class="warn-extra" hidden>${rest.map(chip).join("")}</span><button type="button" class="chip-more" data-expand>+${rest.length}개 더</button>` : ""

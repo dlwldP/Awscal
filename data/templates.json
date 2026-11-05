@@ -2,7 +2,7 @@
   "templates": [
     {
       "id": "static-website",
-      "icon": "🌐",
+      "icon": "globe",
       "name": "정적 웹사이트",
       "summary": "포트폴리오, 문서, 랜딩 페이지처럼 HTML/CSS/JS 파일만 있는 사이트",
       "presets": [
@@ -148,7 +148,7 @@
     },
     {
       "id": "backend-webapp",
-      "icon": "☕",
+      "icon": "server",
       "name": "백엔드 웹앱",
       "summary": "Spring Boot, Django, Express 같은 서버 + 데이터베이스(MySQL)",
       "presets": [
@@ -398,7 +398,7 @@
     },
     {
       "id": "wordpress",
-      "icon": "📝",
+      "icon": "file-text",
       "name": "WordPress 블로그",
       "summary": "워드프레스로 만드는 블로그·홈페이지·작은 쇼핑몰",
       "defaultDomain": true,
@@ -636,7 +636,7 @@
     },
     {
       "id": "serverless-api",
-      "icon": "⚡",
+      "icon": "zap",
       "name": "서버리스 API",
       "summary": "서버 없이 요청이 올 때만 코드가 실행되는 REST API",
       "presets": [
@@ -764,7 +764,7 @@
     },
     {
       "id": "dev-server",
-      "icon": "🛠️",
+      "icon": "terminal",
       "name": "개발용 단일 서버",
       "summary": "실습, 개발 환경, 디스코드 봇처럼 리눅스 서버 한 대가 필요할 때",
       "presets": [
@@ -911,7 +911,7 @@
     },
     {
       "id": "ai-chatbot",
-      "icon": "🤖",
+      "icon": "bot",
       "name": "AI 챗봇",
       "summary": "Bedrock의 AI 모델(Claude, Nova)로 질문에 답하는 챗봇 API",
       "presets": [

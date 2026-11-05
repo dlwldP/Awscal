@@ -19,6 +19,7 @@ import { importResources, renderCalculator } from "./calculator.js";
 import { diagramHtml } from "./diagram.js";
 import { guideHtml, hiddenCostsOf } from "./hidden-costs.js";
 import { makeQuestions } from "./quiz.js";
+import { glyph, icon } from "./icons.js";
 import { glossarize, installGlossaryHandlers, renderGlossary, setGlossary } from "./glossary.js";
 
 const app = document.getElementById("app");
@@ -75,7 +76,7 @@ function renderHome() {
       <p class="eyebrow">AWS 비용 계산기</p>
       <h1>AWS, 한 달에<br>얼마 나올까요?</h1>
       <p class="sub">만들고 싶은 걸 고르면 필요한 AWS 구성과 예상 월 비용을 원화로 알려드려요. AWS 계정 없이 무료예요.</p>
-      <button type="button" class="btn btn-primary hero-cta" id="go-templates">무엇을 만들지 고르기 ↓</button>
+      <button type="button" class="btn btn-primary hero-cta" id="go-templates">무엇을 만들지 고르기 ${icon("arrow-down", 18)}</button>
     </section>
 
     <div class="home-intro">
@@ -91,9 +92,9 @@ function renderHome() {
     <section class="card">
       <h2 class="card-title">이런 걸 알려줘요</h2>
       <ul class="features">
-        <li><span class="ico" aria-hidden="true">💸</span><span>원화 월 비용 <small>(부가세 포함)</small></span></li>
-        <li><span class="ico" aria-hidden="true">⚠️</span><span>초보자가 놓치는 숨은 비용</span></li>
-        <li><span class="ico" aria-hidden="true">✅</span><span>만든 다음 꼭 할 일</span></li>
+        <li><span class="ico" aria-hidden="true">${icon("wallet")}</span><span>원화 월 비용 <small>(부가세 포함)</small></span></li>
+        <li><span class="ico" aria-hidden="true">${icon("triangle-alert")}</span><span>초보자가 놓치는 숨은 비용</span></li>
+        <li><span class="ico" aria-hidden="true">${icon("list-checks")}</span><span>만든 다음 꼭 할 일</span></li>
       </ul>
     </section>
     </div>
@@ -107,7 +108,7 @@ function renderHome() {
           .map(
             (t) => `
           <li><a class="row" href="#/t/${t.id}">
-            <span class="ico" aria-hidden="true">${t.icon}</span>
+            <span class="ico" aria-hidden="true">${glyph(t.icon, 24)}</span>
             <span class="txt"><span class="ttl">${esc(t.name)}</span><span class="dsc">${esc(t.summary)}</span></span>
             <span class="chev" aria-hidden="true">›</span>
           </a></li>`
@@ -121,22 +122,22 @@ function renderHome() {
       <h2 class="card-title">더 알아보기</h2>
       <ul class="list">
         <li><a class="row" href="#/calc">
-          <span class="ico" aria-hidden="true">🧮</span>
+          <span class="ico" aria-hidden="true">${icon("calculator", 22)}</span>
           <span class="txt"><span class="ttl">직접 계산하기</span><span class="dsc">쓸 서비스를 알고 있다면 직접 담아서 계산해요</span></span>
           <span class="chev" aria-hidden="true">›</span>
         </a></li>
         <li><a class="row" href="#/quiz">
-          <span class="ico" aria-hidden="true">🎯</span>
+          <span class="ico" aria-hidden="true">${icon("circle-question-mark", 22)}</span>
           <span class="txt"><span class="ttl">얼마일까? 퀴즈</span><span class="dsc">이 구성은 한 달에 얼마? 3문제로 비용 감 잡기</span></span>
           <span class="chev" aria-hidden="true">›</span>
         </a></li>
         <li><a class="row" href="#/hidden-costs">
-          <span class="ico" aria-hidden="true">⚠️</span>
+          <span class="ico" aria-hidden="true">${icon("triangle-alert", 22)}</span>
           <span class="txt"><span class="ttl">놓치기 쉬운 비용</span><span class="dsc">데이터 전송, 퍼블릭 IP… 청구서에서 자주 놀라는 항목</span></span>
           <span class="chev" aria-hidden="true">›</span>
         </a></li>
         <li><a class="row" href="#/glossary">
-          <span class="ico" aria-hidden="true">📖</span>
+          <span class="ico" aria-hidden="true">${icon("book-open", 22)}</span>
           <span class="txt"><span class="ttl">용어 사전</span><span class="dsc">vCPU, LCU, NAT Gateway… 어려운 말 쉽게 풀기</span></span>
           <span class="chev" aria-hidden="true">›</span>
         </a></li>
@@ -150,14 +151,14 @@ function renderHome() {
         ${
           form
             ? `<li><a class="row" href="${esc(form)}" target="_blank" rel="noopener">
-          <span class="ico" aria-hidden="true">📝</span>
+          <span class="ico" aria-hidden="true">${icon("message-square", 22)}</span>
           <span class="txt"><span class="ttl">설문으로 보내기</span><span class="dsc">계정 없이 바로 작성할 수 있어요</span></span>
           <span class="chev" aria-hidden="true">›</span>
         </a></li>`
             : ""
         }
         <li><a class="row" href="${esc(feedbackUrl())}" target="_blank" rel="noopener">
-          <span class="ico" aria-hidden="true">💬</span>
+          <span class="ico" aria-hidden="true">${icon("git-branch", 22)}</span>
           <span class="txt"><span class="ttl">GitHub 이슈로 보내기</span><span class="dsc">GitHub 계정이 있다면</span></span>
           <span class="chev" aria-hidden="true">›</span>
         </a></li>
@@ -179,12 +180,12 @@ function renderSetup(template) {
     <label class="choice">
       <input type="radio" name="${name}" value="${value}" ${checked ? "checked" : ""}>
       <span class="txt"><span class="ttl">${esc(title)}</span><span class="dsc">${esc(desc)}</span></span>
-      <span class="check" aria-hidden="true">✓</span>
+      <span class="check" aria-hidden="true">${icon("check", 14)}</span>
     </label>`;
   app.innerHTML = `
     <div class="page-head">
       <a class="back" href="#/">‹ 처음으로</a>
-      <p class="step">${template.icon} ${esc(template.name)}</p>
+      <p class="step">${glyph(template.icon, 16)}${esc(template.name)}</p>
       <h1 class="page-title">얼마나 많이 쓰나요?</h1>
     </div>
     <form id="setup">
@@ -257,7 +258,7 @@ function hiddenCardHtml(o) {
   const { included, notes, excluded } = hiddenCostsOf(o, excludedOf(o));
   return `
     <section class="card hidden-costs">
-      <h2 class="card-title">⚠️ 놓치기 쉬운 비용</h2>
+      <h2 class="card-title with-ico">${icon("triangle-alert", 20)}놓치기 쉬운 비용</h2>
       <p class="card-sub">처음 쓰는 사람이 자주 놀라는 항목이에요</p>
       ${
         included.length
@@ -321,14 +322,14 @@ function optionHtml(o, compareRegionId, values, regionPrices, main = null) {
           ? `<div class="amount-compare num">${esc(regionName(compareRegionId))}에 만들면 ${formatUsd(o.compareTotalUsd)}</div>`
           : ""
       }
-      ${main && o.recommended ? `<p class="recommend-why">💡 ${esc(o.recommended)}</p>` : ""}
+      ${main && o.recommended ? `<p class="recommend-why">${icon("lightbulb", 16)}${esc(o.recommended)}</p>` : ""}
       ${
         main?.cheapest && main.cheapest !== o
           ? `<p class="cheaper-hint">더 저렴한 방법도 있어요: <strong>${esc(main.cheapest.name)}</strong> 월 ${formatUsd(main.cheapest.totalUsd)} · 아래 '다른 방법'에서 비교해보세요</p>`
           : ""
       }
       ${diagramHtml(o.resources.map((r) => resolveResource(r, values)), regionPrices, o.id)}
-      ${main?.guide ? `<a class="btn btn-soft btn-block guide-btn" href="#/guide/${main.guide}">🛠 이 구성 만들기 · 단계별 가이드 ›</a>` : ""}
+      ${main?.guide ? `<a class="btn btn-soft btn-block guide-btn" href="#/guide/${main.guide}">${icon("hammer", 18)}이 구성 만들기 · 단계별 가이드</a>` : ""}
       ${main ? "" : warningsHtml(o.warnings)}
       <details class="more" data-key="more-${o.id}">
         <summary>비용 내역 · 장단점</summary>
@@ -446,7 +447,7 @@ function renderResult(template, presetId, regionId, params = new URLSearchParams
   app.innerHTML = `
     <div class="page-head">
       <a class="back" href="#/t/${template.id}">‹ 다시 고르기</a>
-      <p class="step">${template.icon} ${esc(template.name)}</p>
+      <p class="step">${glyph(template.icon, 16)}${esc(template.name)}</p>
       <h1 class="page-title">예상 월 비용이에요</h1>
     </div>
     <details class="card settings-line" data-key="settings">
@@ -463,8 +464,8 @@ function renderResult(template, presetId, regionId, params = new URLSearchParams
     </details>
     <div id="options">${optionsHtml(options, compareRegionId, values, regionPrices, template.id)}</div>
     <div class="share-row">
-      <a class="quiz-link" href="#/quiz">🎯 얼마일까? 퀴즈</a>
-      <button type="button" class="btn btn-soft btn-sm" id="share">🔗 이 결과 공유하기</button>
+      <a class="quiz-link" href="#/quiz">${icon("circle-question-mark", 16)}얼마일까? 퀴즈</a>
+      <button type="button" class="btn btn-soft btn-sm" id="share">${icon("share-2", 16)}이 결과 공유하기</button>
     </div>
     ${adjustHtml(template, preset, values, regionPrices)}
     ${afterLaunchHtml()}
@@ -542,7 +543,7 @@ function renderHiddenCosts() {
   app.innerHTML = `
     <div class="page-head">
       <a class="back" href="#/">‹ 처음으로</a>
-      <p class="step">⚠️ 놓치기 쉬운 비용</p>
+      <p class="step">${icon("triangle-alert", 16)}놓치기 쉬운 비용</p>
       <h1 class="page-title">놓치기 쉬운 AWS 비용 ${data.hiddenCosts.length}가지</h1>
       <p class="page-sub">처음 쓰는 사람이 청구서를 보고 자주 놀라는 항목이에요. 금액은 ${esc(regionName(region))} 리전 기준이에요 (부가세 별도).</p>
     </div>
@@ -566,7 +567,7 @@ function renderQuiz() {
   const head = `
     <div class="page-head">
       <a class="back" href="#/">‹ 처음으로</a>
-      <p class="step">🎯 얼마일까? 퀴즈</p>
+      <p class="step">${icon("circle-question-mark", 16)}얼마일까? 퀴즈</p>
       <h1 class="page-title">이 구성, 한 달에 얼마일까요?</h1>
       <p class="page-sub">${esc(regionName(region))} 리전, 원화는 부가세 포함이에요. 감으로 골라보세요.</p>
     </div>`;
@@ -580,7 +581,7 @@ function renderQuiz() {
     return `
       <section class="card quiz-card">
         <p class="quiz-count">${quiz.i + 1} / ${quiz.questions.length}</p>
-        <h2 class="card-title">${q.template.icon} ${esc(q.template.name)} · ${esc(q.option.name)}</h2>
+        <h2 class="card-title with-ico">${glyph(q.template.icon, 20)}${esc(q.template.name)} · ${esc(q.option.name)}</h2>
         <p class="option-summary">${esc(q.option.summary)}</p>
         <p class="quiz-preset">규모: <strong>${esc(q.preset.name)}</strong> (${esc(q.preset.description)})</p>
         <div class="quiz-choices">${q.choices
@@ -592,7 +593,7 @@ function renderQuiz() {
         ${
           answered
             ? `<div class="quiz-result">
-                <strong>${pick === q.answer ? "정답이에요! 🎉" : "아쉬워요"}</strong>
+                <strong>${pick === q.answer ? "정답이에요!" : "아쉬워요"}</strong>
                 <p>실제로는 월 ${formatUsd(q.answerUsd)}, ${formatKrw(q.answerUsd, ex().krwPerUsd, ex().vatRate)}(부가세 포함)이에요.${
                   tips.length ? ` 놓치기 쉬운 비용: ${esc(tips.join(", "))}.` : ""
                 }</p>
@@ -616,7 +617,7 @@ function renderQuiz() {
         }</p>
         <div class="quiz-actions">
           <a class="btn btn-primary btn-block" href="#/">내 구성 계산해보기</a>
-          <button type="button" class="btn btn-soft btn-block" data-share>🔗 퀴즈 공유하기</button>
+          <button type="button" class="btn btn-soft btn-block" data-share>${icon("share-2", 16)}퀴즈 공유하기</button>
           <button type="button" class="btn btn-ghost btn-block" data-retry>다시 풀기</button>
         </div>
       </section>`;
@@ -668,7 +669,7 @@ function renderGuide(templateId, optionId) {
   app.innerHTML = `
     <div class="page-head">
       <a class="back" href="#/t/${template.id}">‹ ${esc(template.name)} 비용 다시 보기</a>
-      <p class="step">🛠 이 구성 만들기 · ${esc(option.name)}</p>
+      <p class="step">${icon("hammer", 16)}이 구성 만들기 · ${esc(option.name)}</p>
       <h1 class="page-title">${esc(g.title)}</h1>
       <p class="page-sub">${esc(g.summary)} 걸리는 시간 ${esc(g.time)}.</p>
     </div>
@@ -721,7 +722,7 @@ function renderPriceChanges() {
   app.innerHTML = `
     <div class="page-head">
       <a class="back" href="#/">‹ 처음으로</a>
-      <p class="step">📈 가격 변동</p>
+      <p class="step">${icon("trending-up", 16)}가격 변동</p>
       <h1 class="page-title">지난 갱신 대비 바뀐 가격</h1>
       <p class="page-sub">매주 월요일 AWS 공개 가격표를 다시 받아서 비교해요.</p>
     </div>
@@ -759,7 +760,7 @@ function installThemeToggle() {
   if (!btn) return;
   const sync = () => {
     const dark = effectiveTheme() === "dark";
-    btn.textContent = dark ? "☀️" : "🌙";
+    btn.innerHTML = icon(dark ? "sun" : "moon", 20);
     btn.setAttribute("aria-label", dark ? "밝은 화면으로" : "어두운 화면으로");
   };
   btn.addEventListener("click", () => {

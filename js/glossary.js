@@ -1,6 +1,8 @@
 // 용어 사전: 설명 문장 속 어려운 용어를 눌러서 뜻을 볼 수 있게 한다.
 //   glossarize(html)  이미 이스케이프된 문장에서 용어를 찾아 버튼으로 감싼다
 //   renderGlossary()  #/glossary 전체 용어 사전 화면
+import { icon } from "./icons.js";
+
 let entries = []; // [{ term, aliases, category, desc }]
 let pattern = null;
 const byWord = new Map(); // 용어·별칭 → 항목
@@ -109,7 +111,7 @@ export function renderGlossary(app) {
   app.innerHTML = `
     <div class="page-head">
       <a class="back" href="#/">‹ 처음으로</a>
-      <p class="step">📖 용어 사전</p>
+      <p class="step">${icon("book-open", 16)}용어 사전</p>
       <h1 class="page-title">AWS 용어, 쉽게 풀어봤어요</h1>
       <p class="page-sub">분류를 누르면 용어와 뜻이 펼쳐져요. 설명 속 <span class="term-sample">밑줄 친 단어</span>도 누르면 어디서든 뜻을 볼 수 있어요.</p>
     </div>

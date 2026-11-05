@@ -2,6 +2,7 @@
 //   hiddenCostsOf(option)          결과 화면 "놓치기 쉬운 비용" 카드에 쓸 { included, notes }
 //   guideHtml(items, regionPrices) 안내 페이지 본문 (앱 #/hidden-costs와 정적 pages/hidden-costs.html이 같이 쓴다)
 import { formatUsd, HOURS_PER_MONTH } from "./engine.js";
+import { icon } from "./icons.js";
 
 const esc = (s) =>
   String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
@@ -82,7 +83,7 @@ export function guideHtml(items, regionPrices) {
     .map(
       (it, i) => `
     <section class="card guide-item">
-      <h2 class="card-title"><span aria-hidden="true">${esc(it.icon)}</span> ${i + 1}. ${esc(it.title)}</h2>
+      <h2 class="card-title with-ico">${icon(it.icon, 20)}${i + 1}. ${esc(it.title)}</h2>
       <p class="guide-cost">${esc(fillGuideText(it.cost, regionPrices))}</p>
       <p>${esc(it.why)}</p>
       <p class="guide-avoid"><strong>이렇게 피해요</strong> ${esc(it.avoid)}</p>

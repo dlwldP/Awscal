@@ -8,6 +8,7 @@ import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { calculateTemplate, formatKrw, formatUsd } from "../js/engine.js";
 import { guideHtml } from "../js/hidden-costs.js";
+import { icon } from "../js/icons.js";
 
 const outDir = process.argv[2] ?? "_site";
 const load = (p) => JSON.parse(readFileSync(new URL(`../data/${p}`, import.meta.url)));
@@ -87,7 +88,7 @@ function page(t) {
     url,
     main: `
     <div class="page-head">
-      <p class="step">${t.icon} 구성별 비용 정리</p>
+      <p class="step">${icon(t.icon, 16)}구성별 비용 정리</p>
       <h1 class="page-title">${esc(t.name)}, AWS로 한 달에 얼마?</h1>
       <p class="page-sub">${esc(t.summary)}. ${esc(regionName)} 리전 온디맨드 요금 기준으로 구성 ${t.options.length}가지를 비교했어요.</p>
     </div>
@@ -123,7 +124,7 @@ function hiddenCostsPage() {
     url: `${site}pages/hidden-costs.html`,
     main: `
     <div class="page-head">
-      <p class="step">⚠️ 놓치기 쉬운 비용</p>
+      <p class="step">${icon("triangle-alert", 16)}놓치기 쉬운 비용</p>
       <h1 class="page-title">놓치기 쉬운 AWS 비용 ${hiddenCosts.length}가지</h1>
       <p class="page-sub">처음 쓰는 사람이 청구서를 보고 자주 놀라는 항목이에요. 금액은 ${esc(regionName)} 리전 기준이에요 (부가세 별도, 가격 갱신일 ${esc(prices.updatedAt)}).</p>
     </div>
@@ -157,7 +158,7 @@ function shell({ title, description, url, main, footer }) {
   <meta property="og:image" content="${site}assets/og.png">
   <meta property="og:locale" content="ko_KR">
   <meta name="twitter:card" content="summary_large_image">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💸</text></svg>">
+  <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
   <script>try { var t = localStorage.getItem("theme"); if (t === "dark" || t === "light") document.documentElement.dataset.theme = t; } catch (e) {}</script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
   <link rel="stylesheet" href="../css/styles.css">
@@ -165,7 +166,7 @@ function shell({ title, description, url, main, footer }) {
 <body>
   <header class="topbar">
     <div class="container">
-      <a href="../" class="logo">💸 AWS 얼마야?</a>
+      <a href="../" class="logo"><img src="../assets/logo.svg" width="28" height="28" alt=""><span>AWS 얼마야?</span></a>
       <nav class="topnav"><a href="../#/">구성 추천</a><a href="../#/calc">직접 계산</a></nav>
     </div>
   </header>
