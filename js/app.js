@@ -46,6 +46,8 @@ const regionName = (id) => data.prices.regions[id]?.name ?? id;
 const ex = () => data.settings.exchangeRate;
 /** 원화는 항상 부가세 포함으로 보여준다. */
 const krw = (usd) => `${formatKrw(usd, ex().krwPerUsd, ex().vatRate)} <small class="vat">(부가세 포함)</small>`;
+/** 큰 금액은 원화(부가세 포함)로, 달러는 아래 작은 줄로 보여준다. */
+const won = (usd) => formatKrw(usd, ex().krwPerUsd, ex().vatRate).replace(/^약 /, "");
 /** 비교 리전: 기본 리전(서울)을 보고 있으면 버지니아, 그 외에는 서울과 비교한다. */
 const compareRegionOf = (regionId) =>
   regionId === data.settings.defaultRegion ? data.settings.compareRegion : data.settings.defaultRegion;
@@ -291,7 +293,7 @@ function barsHtml(options) {
         .map(
           (o) => `
         <div class="bar ${o.isCheapest ? "cheapest" : ""}">
-          <div class="bar-head"><span class="name">${esc(o.name)}</span><span class="val num">${formatUsd(o.totalUsd)}</span></div>
+          <div class="bar-head"><span class="name">${esc(o.name)}</span><span class="val num">${won(o.totalUsd)}</span></div>
           <div class="bar-track"><div class="bar-fill" style="width:${(o.totalUsd / max) * 100}%"></div></div>
         </div>`
         )
@@ -315,11 +317,11 @@ function optionHtml(o, compareRegionId, values, regionPrices, main = null) {
         ${o.difficulty && !main ? `<span class="tag ${DIFFICULTY_CLASS[o.difficulty] ?? ""}">난이도 ${esc(o.difficulty)}</span>` : ""}
       </div>
       <p class="option-summary">${esc(o.summary)}</p>
-      <div class="amount num">${formatUsd(o.totalUsd)} <small>/ 월</small></div>
-      <div class="amount-krw num">${krw(o.totalUsd)}</div>
+      <div class="amount num"><span class="approx">약</span>${won(o.totalUsd)}<small>/ 월</small></div>
+      <div class="amount-usd num">${formatUsd(o.totalUsd)} · 원화는 부가세 10% 포함</div>
       ${
         o.compareTotalUsd !== undefined
-          ? `<div class="amount-compare num">${esc(regionName(compareRegionId))}에 만들면 ${formatUsd(o.compareTotalUsd)}</div>`
+          ? `<div class="amount-compare num">${esc(regionName(compareRegionId))}에 만들면 약 ${won(o.compareTotalUsd)}</div>`
           : ""
       }
       ${main && o.recommended ? `<p class="recommend-why">${icon("lightbulb", 16)}${esc(o.recommended)}</p>` : ""}
@@ -556,7 +558,7 @@ function renderHiddenCosts() {
 }
 
 // ---- "얼마일까?" 퀴즈 ----
-const won = (krw) => `약 ${krw.toLocaleString("ko-KR")}원`;
+const krwText = (krw) => `약 ${krw.toLocaleString("ko-KR")}원`;
 let quizClick = null; // 퀴즈 화면의 클릭 처리 (다시 들어오면 이전 것을 떼고 새로 건다)
 
 function renderQuiz() {
@@ -587,7 +589,7 @@ function renderQuiz() {
         <div class="quiz-choices">${q.choices
           .map((c) => {
             const cls = !answered ? "" : c === q.answer ? "correct" : c === pick ? "wrong" : "";
-            return `<button type="button" class="quiz-choice ${cls}" data-choice="${c}" ${answered ? "disabled" : ""}>${won(c)}</button>`;
+            return `<button type="button" class="quiz-choice ${cls}" data-choice="${c}" ${answered ? "disabled" : ""}>${krwText(c)}</button>`;
           })
           .join("")}</div>
         ${

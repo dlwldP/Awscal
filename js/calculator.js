@@ -127,8 +127,8 @@ function totalHtml(regionPrices, krwPerUsd, vatRate, freeTier) {
     <span class="label">월 합계${errors ? ` <small class="item-error">(${errors}개 확인 필요)</small>` : ""}${
       saving < 0 ? `<small class="free-saving">항상 무료 ${formatUsd(saving)} 반영</small>` : ""
     }</span>
-    <span><span class="usd num" style="display:block;text-align:right">${formatUsd(total)}</span>
-    <span class="krw num" style="display:block">${formatKrw(total, krwPerUsd, vatRate)} (부가세 포함)</span></span>`;
+    <span class="total-amount"><span class="krw-big num">${formatKrw(total, krwPerUsd, vatRate)}</span>
+    <span class="usd-small num">${formatUsd(total)} · 부가세 포함 원화</span></span>`;
 }
 
 /** 처음(빈 목록)에는 설명까지 크게, 하나라도 담은 뒤에는 이름만 있는 작은 버튼으로 보여준다 (설명은 담은 카드와 title에 그대로). */
