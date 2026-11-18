@@ -321,6 +321,7 @@ main { padding-bottom: 48px; }
 .more-link .ttl { display: block; font-weight: 700; }
 .more-link .dsc { display: block; color: var(--muted); font-size: var(--fs-small); }
 .more-link .chev { color: var(--chev); }
+.series-link { margin-top: 12px; }
 
 .feedback-line { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; padding: 16px 18px; border-radius: 12px; background: var(--primary-bg); color: var(--sub); font-size: var(--fs-small); }
 .feedback-line > span:first-child { display: inline-flex; align-items: center; gap: 8px; }
@@ -337,8 +338,8 @@ main { padding-bottom: 48px; }
   .how-steps { grid-template-columns: repeat(3, 1fr); gap: 24px; }
   .tpl-grid { grid-template-columns: repeat(3, 1fr); }
   .more-grid { grid-template-columns: repeat(4, 1fr); }
-  .more-link { flex-direction: column; align-items: flex-start; }
-  .more-link .chev { display: none; }
+  .more-grid .more-link { flex-direction: column; align-items: flex-start; }
+  .more-grid .more-link .chev { display: none; }
 }
 
 /* ---- 선택지 (라디오 행) ---- */

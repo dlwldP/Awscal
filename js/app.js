@@ -428,6 +428,16 @@ const FREE_CHOICES = [
   { id: "on", name: "항상 무료 빼기" },
 ];
 
+// 같은 시리즈의 다른 도구 (유입 확인용 utm_source=awscal)
+const WHICH_AI_URL = "https://dlwldp.github.io/which-ai/?utm_source=awscal";
+function seriesLinkHtml() {
+  return `<a class="more-link series-link" href="${WHICH_AI_URL}" target="_blank" rel="noopener">
+      <span class="ico" aria-hidden="true">${icon("sparkles", 20)}</span>
+      <span class="txt"><span class="ttl">배포 도구 더 찾아보기</span><span class="dsc">which-ai 개발자 버전에서 나에게 맞는 도구 고르기</span></span>
+      ${icon("external-link", 16, "chev")}
+    </a>`;
+}
+
 function renderResult(template, presetId, regionId, params = new URLSearchParams()) {
   const compareRegionId = compareRegionOf(regionId);
   const regionPrices = data.prices.regions[regionId];
@@ -484,6 +494,7 @@ function renderResult(template, presetId, regionId, params = new URLSearchParams
     <div class="result-bottom">
       ${afterLaunchHtml()}
       ${notesHtml(preset, regionId)}
+      ${seriesLinkHtml()}
     </div>
     </div>`;
 
@@ -562,6 +573,7 @@ function renderResult(template, presetId, regionId, params = new URLSearchParams
     line.querySelector("span").textContent = quoteName;
     syncUrl();
   });
+  app.querySelector(".series-link").addEventListener("click", () => trackEvent(`outbound/which-ai/${template.id}`, "which-ai 이동"));
   app.querySelector("#copy-summary").addEventListener("click", () => {
     const { options: now } = calc();
     const main = mainOptionOf(now);
