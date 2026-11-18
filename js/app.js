@@ -20,6 +20,7 @@ import { diagramHtml } from "./diagram.js";
 import { guideHtml, hiddenCostsOf } from "./hidden-costs.js";
 import { makeQuestions } from "./quiz.js";
 import { glyph, icon } from "./icons.js";
+import { initAnalytics, trackEvent, trackPage } from "./analytics.js";
 import { glossarize, installGlossaryHandlers, renderGlossary, setGlossary } from "./glossary.js";
 
 const app = document.getElementById("app");
@@ -175,6 +176,9 @@ function renderHome() {
   app.querySelector("#go-templates").addEventListener("click", () =>
     app.querySelector("#templates").scrollIntoView({ behavior: "smooth", block: "start" })
   );
+  app.querySelectorAll("a.tpl").forEach((a) =>
+    a.addEventListener("click", () => trackEvent(`select-template/${a.getAttribute("href").split("/").pop()}`, "템플릿 선택"))
+  );
 }
 
 // ---- 설정 ----
@@ -226,6 +230,7 @@ function renderSetup(template) {
     e.preventDefault();
     const f = new FormData(form);
     if (!f.get("preset") || !f.get("region")) return;
+    trackEvent(`setup/${template.id}/${f.get("preset")}/${f.get("region")}`, "규모·리전 선택");
     location.hash = `#/t/${template.id}/${f.get("preset")}/${f.get("region")}`;
   });
 }
@@ -482,10 +487,16 @@ function renderResult(template, presetId, regionId, params = new URLSearchParams
 
   app.querySelectorAll("[data-preset]").forEach((b) =>
     // 규모를 바꾸면 직접 바꾼 값은 비우고(새 프리셋 기준), 도메인 선택은 유지한다.
-    b.addEventListener("click", () => (location.hash = hashFor(b.dataset.preset, regionId, {})))
+    b.addEventListener("click", () => {
+      trackEvent(`change-preset/${template.id}/${b.dataset.preset}`, "규모 변경");
+      location.hash = hashFor(b.dataset.preset, regionId, {});
+    })
   );
   app.querySelectorAll("[data-region]").forEach((b) =>
-    b.addEventListener("click", () => (location.hash = hashFor(presetId, b.dataset.region, adjust.overrides)))
+    b.addEventListener("click", () => {
+      trackEvent(`change-region/${b.dataset.region}`, "리전 변경");
+      location.hash = hashFor(presetId, b.dataset.region, adjust.overrides);
+    })
   );
   // 프리티어는 계산 기준 문구도 바뀌어서 화면을 다시 그린다.
   app.querySelectorAll("[data-free]").forEach((b) =>
@@ -807,6 +818,7 @@ function route() {
   else if (template) renderSetup(template);
   else renderHome();
   window.scrollTo(0, 0);
+  trackPage();
 }
 
 async function main() {
@@ -824,6 +836,7 @@ async function main() {
       loadJson("data/free-tier.json"),
     ]);
     data = { prices, templates: templates.templates, settings, priceChanges, hiddenCosts: hiddenCosts.items, buildGuides, freeTier };
+    initAnalytics(settings.analytics);
     setGlossary(glossary.terms);
     // 꼬리말은 모든 화면에 같이 나오는 정적 HTML이라 가격 갱신일만 여기서 채운다.
     document.getElementById("footer-updated").textContent = ` (${prices.updatedAt})`;

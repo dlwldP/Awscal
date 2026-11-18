@@ -11,5 +11,10 @@
     "githubIssueUrl": "https://github.com/dlwldP/Awscal/issues/new",
     "googleFormUrl": "https://docs.google.com/forms/d/e/1FAIpQLSeTXOySenpd1lNgCVpwGEnbIcfEgu_OjYe5EK0OzQ-sZXRwqg/viewform"
   },
-  "siteUrl": "https://dlwldp.github.io/Awscal/"
+  "siteUrl": "https://dlwldp.github.io/Awscal/",
+  "analytics": {
+    "_comment": "비어 있으면 분석 스크립트를 불러오지 않는다. goatcounterCode: goatcounter.com 사이트 코드(예: awscal → awscal.goatcounter.com), cloudflareToken: Cloudflare Web Analytics의 사이트 토큰",
+    "goatcounterCode": "",
+    "cloudflareToken": ""
+  }
 }

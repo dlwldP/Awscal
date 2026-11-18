@@ -153,6 +153,15 @@ npm run validation   # docs/validation.md 다시 만들기
 
 의견 보내기의 구글폼 주소는 `data/settings.json`의 `feedback.googleFormUrl`에 넣으면 메인 화면에 나타납니다.
 
+### 방문 분석
+
+`data/settings.json`의 `analytics`에 값을 넣으면 켜집니다 (비어 있으면 아무것도 불러오지 않음). 둘 다 쿠키를 쓰지 않습니다.
+
+- `goatcounterCode`: [GoatCounter](https://www.goatcounter.com/) 사이트 코드 (예: `awscal` → awscal.goatcounter.com). 해시 화면(`/t/템플릿/규모/리전`, `/calc` …)마다 페이지뷰를 보내고, 유입 경로(`?utm_source=`, referrer)를 같이 기록합니다. 이벤트: `select-template/…`, `setup/…`, `change-preset/…`, `change-region/…`, `calc-add/…`, `share/…`, `copy-summary/…`
+- `cloudflareToken`: [Cloudflare Web Analytics](https://www.cloudflare.com/web-analytics/) 사이트 토큰 (방문 수·국가·성능)
+
+검색엔진용 정적 페이지(`pages/`, `share/`)에도 같은 설정으로 스크립트가 들어갑니다.
+
 ## 라이선스·출처
 
 - 코드: [MIT](LICENSE)

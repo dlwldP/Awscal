@@ -270,3 +270,17 @@ test("Bedrock: 하루 대화 수 × 30일 × 대화당 토큰 × 100만 토큰�
   const labels = choicesFor(fieldDef("model"), p).map(([, label]) => label);
   assert.ok(labels.includes("Claude Haiku 5.5") && labels.includes("Amazon Nova Micro"));
 });
+
+test("분석: 해시 화면 이름에서 직접 바꾼 값(?쿼리)은 빼고, 설정이 비어 있으면 아무것도 보내지 않는다", async () => {
+  const { screenPath, trackEvent, trackPage } = await import("../js/analytics.js");
+  assert.equal(screenPath("#/t/wordpress/personal/ap-northeast-2?ebsGb=30&free=1"), "/t/wordpress/personal/ap-northeast-2");
+  assert.equal(screenPath("#/"), "/");
+  assert.equal(screenPath(""), "/");
+  assert.ok("analytics" in settings, "settings.json에 analytics 설정 자리가 있어야 함");
+  globalThis.window = {};
+  globalThis.location = { hash: "#/calc" };
+  globalThis.document = { title: "t" };
+  trackPage();
+  trackEvent("x"); // initAnalytics 전에는 아무 일도 없어야 한다
+  assert.equal(window.goatcounter, undefined);
+});

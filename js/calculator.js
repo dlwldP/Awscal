@@ -5,6 +5,7 @@ import { SERVICES, fieldDef } from "./schema.js";
 import { afterLaunchHtml, chipsHtml, esc, fieldHtml, fullUrl, keepOpen, linesHtml, readField, regionChipsHtml, shareLink, toast, warningsHtml } from "./ui.js";
 import { decodeCalc, encodeCalc } from "./share.js";
 import { glyph, icon } from "./icons.js";
+import { trackEvent } from "./analytics.js";
 
 const STORAGE_KEY = "aws-eolmaya:calculator";
 let state = null; // { region, freeTier, items: [{ uid, type, values }] }
@@ -227,6 +228,7 @@ export function renderCalculator(app, data, params) {
 
   app.querySelectorAll("[data-add]").forEach((b) =>
     b.addEventListener("click", () => {
+      trackEvent(`calc-add/${b.dataset.add}`, "직접 계산기 서비스 추가");
       state.items.push(newItem(b.dataset.add));
       save();
       keepOpen(app, rerender);
