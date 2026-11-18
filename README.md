@@ -20,7 +20,7 @@ AWS 계정 연동이나 API 키 없이 누구나 무료로 쓸 수 있습니다.
 - 비용 내역 표(항목 · 월 금액 · 합계)와 줄마다 "이 비용은 왜 나오나요?" 설명, 서울(또는 버지니아)이었을 때 금액
 - "이 금액에 포함 안 된 비용" 안내, 도메인(.com + Route 53) 포함 옵션
 - **구성 다이어그램**: 사용자 → 입구 → 서버 → 데이터 흐름과 부분별 비용, 숨은 비용 꼬리표
-- **공유 링크**: 규모·리전·직접 바꾼 값까지 주소에 담겨서 그대로 공유. 견적 이름(선택)을 붙일 수 있고(`&name=`), **요약 복사**로 슬랙·노션·카카오톡에 붙일 요약 글(추천 구성·금액·놓치기 쉬운 비용·링크)을 복사. 공유 링크에는 출처 표시(`?utm_source=share`)가 붙고, 받은 사람에게는 "공유받은 견적 · 내 조건으로 다시 계산" 띠가 보임
+- **공유 링크**: 규모·리전·직접 바꾼 값까지 주소에 담겨서 그대로 공유. 견적 이름(선택)을 붙일 수 있고(`&name=`), **요약 복사**로 슬랙·노션·카카오톡에 붙일 요약 글(추천 구성·금액·놓치기 쉬운 비용·링크)을 복사. 공유 링크에는 출처 표시(`?utm_source=share`)가 붙고, 받은 사람에게는 "공유받은 견적 · 내 조건으로 다시 계산" 띠가 보임. 기본 조건 그대로인 견적은 **공유 랜딩 페이지**(`share/<템플릿>-<규모>.html`) 주소로 공유돼서 카카오톡·슬랙 미리보기 제목에 금액이 보임
 - **놓치기 쉬운 비용** 카드: 추천 구성 바로 아래에 데이터 전송·퍼블릭 IPv4·디스크 등 초보자가 놓치는 항목을 금액과 함께 보여주고, "이 금액에 들어 있어요 / 안 들어 있어요"로 나눔
 - 숨은 비용 경고 (퍼블릭 IPv4, NAT Gateway, 데이터 전송, 상시 실행, Multi-AZ 등)
 - **프리티어(항상 무료) 빼기**: "계산 조건"에서 켜면 매달 무료인 사용량(데이터 전송 100GB, CloudFront 1TB·1,000만 건, Lambda 100만 건·40만 GB-초, DynamoDB 25GB)을 "항상 무료" 줄로 빼서 보여줌. 공유 링크에도 담김(`free=1`). 기간 한정 무료와 신규 계정 크레딧은 정책이 자주 바뀌어서 넣지 않음
@@ -151,7 +151,7 @@ npm run validation   # docs/validation.md 다시 만들기
 
 `main`에 푸시하면 `deploy.yml`이 테스트 후 **GitHub Pages**에 배포합니다. 정적 파일만 있어서 서버, API 키, 운영비가 필요 없습니다.
 
-배포 때 `scripts/build-pages.js`가 템플릿별 소개 페이지(`pages/*.html`), 놓치기 쉬운 비용 안내(`pages/hidden-costs.html`), `sitemap.xml`을 만듭니다. 검색 노출을 원하면 [Google Search Console](https://search.google.com/search-console)에 `https://dlwldp.github.io/Awscal/sitemap.xml`을 등록하세요 (프로젝트 사이트라 robots.txt는 만들지 않습니다).
+배포 때 `scripts/build-pages.js`가 템플릿별 소개 페이지(`pages/*.html`), 놓치기 쉬운 비용 안내(`pages/hidden-costs.html`), 공유 랜딩 페이지(`share/*.html`, 템플릿 × 규모, 기본 리전 · noindex · 사이트맵 제외), `sitemap.xml`을 만듭니다. 가격이 매주 갱신되면 다시 배포되면서 랜딩 페이지 금액도 같이 바뀝니다. 검색 노출을 원하면 [Google Search Console](https://search.google.com/search-console)에 `https://dlwldp.github.io/Awscal/sitemap.xml`을 등록하세요 (프로젝트 사이트라 robots.txt는 만들지 않습니다).
 
 의견 보내기의 구글폼 주소는 `data/settings.json`의 `feedback.googleFormUrl`에 넣으면 메인 화면에 나타납니다.
 
@@ -162,7 +162,7 @@ npm run validation   # docs/validation.md 다시 만들기
 - `goatcounterCode`: [GoatCounter](https://www.goatcounter.com/) 사이트 코드 (예: `awscal` → awscal.goatcounter.com). 해시 화면(`/t/템플릿/규모/리전`, `/calc` …)마다 페이지뷰를 보내고, 유입 경로(`?utm_source=`, referrer)를 같이 기록합니다. 이벤트: `select-template/…`, `setup/…`, `change-preset/…`, `change-region/…`, `calc-add/…`, `share/…`, `copy-summary/…`
 - `cloudflareToken`: [Cloudflare Web Analytics](https://www.cloudflare.com/web-analytics/) 사이트 토큰 (방문 수·국가·성능)
 
-검색엔진용 정적 페이지(`pages/`, `share/`)에도 같은 설정으로 스크립트가 들어갑니다.
+검색엔진용 정적 페이지(`pages/`)에도 같은 설정으로 스크립트가 들어갑니다. 공유 랜딩 페이지(`share/`)는 바로 앱으로 넘어가서 앱에서 한 번만 셉니다.
 
 ## 라이선스·출처
 

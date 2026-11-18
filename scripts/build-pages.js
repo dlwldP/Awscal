@@ -1,4 +1,5 @@
 // 검색엔진용 정적 페이지를 만든다: 템플릿별 소개 페이지, 놓치기 쉬운 비용 안내, sitemap.xml.
+// 공유 랜딩 페이지(share/<템플릿>-<규모>.html)도 만든다: 카카오톡·슬랙 미리보기에 견적 금액이 보이게 하고, 열면 앱 결과로 넘긴다.
 // (GitHub Pages 프로젝트 사이트는 도메인 루트가 아니라서 robots.txt는 검색엔진이 읽지 않는다.
 //  sitemap은 Google Search Console 등에 주소를 직접 등록해서 쓴다.)
 // 앱 화면은 자바스크립트로 그려져서 검색에 잘 잡히지 않으므로, 핵심 내용(구성·비용·장단점)을
@@ -193,9 +194,59 @@ function shell({ title, description, url, main, footer }) {
 `;
 }
 
+/**
+ * 공유 랜딩 페이지: 미리보기 제목·설명에 그 견적의 금액을 넣고, 열리면 앱 결과 화면으로 바로 넘긴다.
+ * 내용은 앱 결과와 같아서 검색에는 내보내지 않는다(noindex, sitemap에도 없음).
+ */
+function shareLandingPage(t, presetId) {
+  const { preset, options } = calculateTemplate(t, presetId, prices, region);
+  const pick = options.find((o) => o.recommended) ?? options.reduce((a, b) => (b.totalUsd < a.totalUsd ? b : a));
+  const won = (usd) => formatKrw(usd, krwPerUsd, vatRate);
+  const regionName = prices.regions[region].name;
+  const title = `${t.name} · ${preset.name} · ${regionName}: 월 ${won(pick.totalUsd)}`;
+  const others = options.filter((o) => o !== pick).map((o) => `${o.name} ${won(o.totalUsd)}`);
+  const description = `처음이라면 ${pick.name} 월 ${won(pick.totalUsd)}(부가세 포함).${
+    others.length ? ` 다른 구성: ${others.join(", ")}.` : ""
+  } 놓치기 쉬운 비용까지 AWS 얼마야?에서 확인해보세요.`;
+  const target = `../?utm_source=share&utm_medium=link#/t/${t.id}/${presetId}/${region}`;
+  return `<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>${esc(title)} | AWS 얼마야?</title>
+  <meta name="description" content="${esc(description)}">
+  <meta name="robots" content="noindex">
+  <link rel="canonical" href="${site}pages/${t.id}.html">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="AWS 얼마야?">
+  <meta property="og:title" content="${esc(title)}">
+  <meta property="og:description" content="${esc(description)}">
+  <meta property="og:url" content="${site}share/${t.id}-${presetId}.html">
+  <meta property="og:image" content="${site}assets/og.png">
+  <meta property="og:locale" content="ko_KR">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+  <meta http-equiv="refresh" content="0; url=${target}">
+  <script>location.replace(${JSON.stringify(target)});</script>
+</head>
+<body>
+  <p><a href="${target}">${esc(title)} — 견적 보기</a></p>
+</body>
+</html>
+`;
+}
+
 mkdirSync(join(outDir, "pages"), { recursive: true });
 for (const t of templates) writeFileSync(join(outDir, "pages", `${t.id}.html`), page(t));
 writeFileSync(join(outDir, "pages", "hidden-costs.html"), hiddenCostsPage());
+mkdirSync(join(outDir, "share"), { recursive: true });
+let shareCount = 0;
+for (const t of templates)
+  for (const p of t.presets) {
+    writeFileSync(join(outDir, "share", `${t.id}-${p.id}.html`), shareLandingPage(t, p.id));
+    shareCount++;
+  }
 
 const urls = [site, ...templates.map((t) => `${site}pages/${t.id}.html`), `${site}pages/hidden-costs.html`];
 writeFileSync(
@@ -206,4 +257,4 @@ ${urls.map((u) => `  <url><loc>${u}</loc><lastmod>${prices.updatedAt}</lastmod><
 </urlset>
 `
 );
-console.log(`wrote ${templates.length + 1} pages and sitemap.xml → ${outDir}`);
+console.log(`wrote ${templates.length + 1} pages, ${shareCount} share pages and sitemap.xml → ${outDir}`);

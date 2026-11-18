@@ -308,3 +308,19 @@ test("견적 이름과 요약: 이름은 정리해서 링크에 담고, 요약 �
   assert.match(c, /직접 계산 견적 · 서울/);
   assert.match(c, /- S3: 입력값 확인 필요/);
 });
+
+test("공유 랜딩 페이지: 템플릿 × 규모마다 만들어지고, 미리보기 제목에 금액이 있고, 앱 결과로 넘긴다", async () => {
+  const { execFileSync } = await import("node:child_process");
+  const { mkdtempSync, readFileSync: rf, readdirSync } = await import("node:fs");
+  const { tmpdir } = await import("node:os");
+  const { join } = await import("node:path");
+  const out = mkdtempSync(join(tmpdir(), "awscal-pages-"));
+  execFileSync(process.execPath, [new URL("../scripts/build-pages.js", import.meta.url).pathname, out]);
+  const files = readdirSync(join(out, "share"));
+  assert.equal(files.length, templates.reduce((n, t) => n + t.presets.length, 0));
+  const html = rf(join(out, "share", "backend-webapp-small.html"), "utf8");
+  assert.match(html, /<meta property="og:title" content="백엔드 웹앱 · 소규모 · 서울: 월 약 [\d,]+원">/);
+  assert.match(html, /<meta name="robots" content="noindex">/);
+  assert.match(html, /location\.replace\("\.\.\/\?utm_source=share&utm_medium=link#\/t\/backend-webapp\/small\/ap-northeast-2"\)/);
+  assert.doesNotMatch(rf(join(out, "sitemap.xml"), "utf8"), /share\//, "공유 랜딩은 사이트맵에 넣지 않는다");
+});

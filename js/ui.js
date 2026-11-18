@@ -172,6 +172,14 @@ export function shareUrl(hash) {
   return `${location.origin}${location.pathname}?utm_source=share&utm_medium=link${hash}`;
 }
 
+/**
+ * 기본 조건 그대로인 견적(기본 리전, 직접 바꾼 값·이름 없음)은 공유 랜딩 페이지 주소를 쓴다.
+ * 랜딩 페이지는 배포 때 만들어지고(scripts/build-pages.js), 미리보기 제목에 금액이 보인 뒤 앱 결과로 넘어간다.
+ */
+export function shareLandingUrl(templateId, presetId) {
+  return `${location.origin}${location.pathname.replace(/[^/]*$/, "")}share/${templateId}-${presetId}.html`;
+}
+
 // 공유 링크(?utm_source=share)로 들어왔는지. 첫 화면에서 한 번만 꺼내 쓴다.
 let sharedArrival = typeof location !== "undefined" && new URLSearchParams(location.search).get("utm_source") === "share";
 export function takeSharedArrival() {

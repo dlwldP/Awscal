@@ -11,7 +11,7 @@
 import { calculateTemplate, formatKrw, formatUsd, HOURS_PER_MONTH, resolveResource } from "./engine.js";
 import { FIELDS, HIDDEN_ADJUST_FIELDS, fieldDef } from "./schema.js";
 import {
-  afterLaunchHtml, chipsHtml, copyText, esc, fieldHtml, fullUrl, installExpandHandlers, shareBoxHtml, shareUrl, sharedBannerHtml, takeSharedArrival, keepOpen, linesHtml, readField, regionChipsHtml, regionList, shareLink,
+  afterLaunchHtml, chipsHtml, copyText, esc, fieldHtml, fullUrl, installExpandHandlers, shareBoxHtml, shareLandingUrl, shareUrl, sharedBannerHtml, takeSharedArrival, keepOpen, linesHtml, readField, regionChipsHtml, regionList, shareLink,
   warningsHtml,
 } from "./ui.js";
 import { cleanName, parseDomain, parseFree, parseName, parseOverrides, resultHash } from "./share.js";
@@ -544,9 +544,16 @@ function renderResult(template, presetId, regionId, params = new URLSearchParams
   adjustEl.addEventListener("change", onField);
   app.querySelector("#adjust-reset").addEventListener("click", () => (location.hash = hashFor(presetId, regionId, {})));
 
+  // 기본 조건 그대로면 미리보기에 금액이 보이는 공유 랜딩 페이지, 아니면 값이 모두 담긴 # 링크
+  const linkToShare = () => {
+    const plain =
+      !Object.keys(adjust.overrides).length && domainOn === Boolean(template.defaultDomain) && !freeOn && !quoteName &&
+      regionId === data.settings.defaultRegion;
+    return plain ? shareLandingUrl(template.id, presetId) : shareUrl(hashFor(presetId, regionId, adjust.overrides));
+  };
   app.querySelector("#share").addEventListener("click", () => {
     trackEvent(`share/result/${template.id}`, "견적 공유");
-    shareLink(shareUrl(hashFor(presetId, regionId, adjust.overrides)), `${quoteName || template.name} AWS 비용 · AWS 얼마야?`);
+    shareLink(linkToShare(), `${quoteName || template.name} AWS 비용 · AWS 얼마야?`);
   });
   app.querySelector("#quote-name").addEventListener("input", (e) => {
     quoteName = cleanName(e.target.value);
@@ -567,7 +574,7 @@ function renderResult(template, presetId, regionId, params = new URLSearchParams
       others: now.filter((o) => o !== main),
       hidden: hiddenCostsOf(main).included.map((h) => (h.usd === null ? `${h.label}(번들 포함)` : h.label)),
       krw: ex(),
-      url: shareUrl(hashFor(presetId, regionId, adjust.overrides)),
+      url: linkToShare(),
     });
     trackEvent(`copy-summary/result/${template.id}`, "견적 요약 복사");
     copyText(text);
