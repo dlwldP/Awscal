@@ -29,7 +29,7 @@ AWS 계정 연동이나 API 키 없이 누구나 무료로 쓸 수 있습니다.
 - 마음에 드는 구성을 **직접 계산기로 가져가서** 더 자세히 조정
 - **이 구성 만들기**: 맨 위 추천 구성의 "만드는 방법" 버튼에서 단계별 가이드(#/guide/…)로 연결. 시작 전 준비(계정·예산 알림) → 만드는 순서 → 다 쓴 뒤 정리 → 공식 문서. 지금은 템플릿별 추천 구성 5개
 - **만든 다음 꼭 할 일**: 예산 알림 켜기 · 안 쓰면 삭제 · 남은 IP·스냅샷·디스크 정리 · 첫 달 청구서 확인
-- **시리즈 연결**: 결과 화면 맨 아래에 [which-ai](https://dlwldp.github.io/which-ai/) 개발자 버전 링크(`?utm_source=awscal`), 푸터에 만든 사람 GitHub 프로필(다른 도구 모음) 링크
+- **시리즈 연결**: 결과 화면 맨 아래에 [which-ai 개발자 버전의 백엔드·배포 목록](https://dlwldp.github.io/which-ai/dev/#/p/devops) 링크(`?utm_source=awscal`), 푸터에 만든 사람 GitHub 프로필(다른 도구 모음) 링크
 
 **직접 계산** — 서비스를 담아서 내 구성 합계를 계산
 - 17종: EC2, EBS, 퍼블릭 IPv4, Lightsail, RDS, DynamoDB, S3, CloudFront, Amplify, Lambda, API Gateway, ECS Fargate, ALB, NAT Gateway, 데이터 전송, 도메인(Route 53), Bedrock(AI 모델: Nova Micro·Lite·Pro, Claude Haiku·Sonnet)

@@ -429,7 +429,8 @@ const FREE_CHOICES = [
 ];
 
 // 같은 시리즈의 다른 도구 (유입 확인용 utm_source=awscal)
-const WHICH_AI_URL = "https://dlwldp.github.io/which-ai/?utm_source=awscal";
+// 개발자 버전의 "백엔드·배포" 목록 (데이터베이스·호스팅·인프라)
+const WHICH_AI_URL = "https://dlwldp.github.io/which-ai/dev/?utm_source=awscal#/p/devops";
 function seriesLinkHtml() {
   return `<a class="more-link series-link" href="${WHICH_AI_URL}" target="_blank" rel="noopener">
       <span class="ico" aria-hidden="true">${icon("sparkles", 20)}</span>
