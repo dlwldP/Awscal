@@ -83,7 +83,7 @@ js/share.js                 공유 링크 (화면 상태 ↔ 주소)
 js/hidden-costs.js          놓치기 쉬운 비용 (결과 카드 항목 고르기, 안내 페이지 본문)
 js/quiz.js                  얼마일까? 퀴즈 문제 만들기 (DOM 없음)
 js/summary.js               견적 요약 글 만들기 (DOM 없음)
-js/analytics.js             방문 분석 (GoatCounter · Cloudflare, 설정이 있을 때만)
+js/analytics.js             방문 분석 (GoatCounter, 설정이 있을 때만)
 data/prices.json            가격 데이터 (자동 생성 — 직접 수정하지 마세요)
 data/price-changes.json     지난 갱신 대비 가격 변동 (자동 생성)
 data/templates.json         템플릿 · 구성안 · 프리셋 · 난이도 · 추천 · 포함 안 된 비용
@@ -157,11 +157,7 @@ npm run validation   # docs/validation.md 다시 만들기
 
 ### 방문 분석
 
-`data/settings.json`의 `analytics`에 값을 넣으면 켜집니다 (비어 있으면 아무것도 불러오지 않음). 둘 다 쿠키를 쓰지 않습니다.
-
-- `goatcounterCode`: [GoatCounter](https://www.goatcounter.com/) 사이트 코드 (예: `awscal` → awscal.goatcounter.com). 해시 화면(`/t/템플릿/규모/리전`, `/calc` …)마다 페이지뷰를 보내고, 유입 경로(`?utm_source=`, referrer)를 같이 기록합니다. 이벤트: `select-template/…`, `setup/…`, `change-preset/…`, `change-region/…`, `calc-add/…`, `share/…`, `copy-summary/…`
-- `cloudflareToken`: [Cloudflare Web Analytics](https://www.cloudflare.com/web-analytics/) 사이트 토큰 (방문 수·국가·성능)
-
+`data/settings.json`의 `analytics.goatcounterCode`에 [GoatCounter](https://www.goatcounter.com/) 사이트 코드(예: `awscal` → awscal.goatcounter.com)를 넣으면 켜집니다 (비어 있으면 아무것도 불러오지 않음). 쿠키를 쓰지 않습니다. 해시 화면(`/t/템플릿/규모/리전`, `/calc` …)마다 페이지뷰를 보내고, 유입 경로(`?utm_source=`, referrer)를 같이 기록합니다. 이벤트: `select-template/…`, `setup/…`, `change-preset/…`, `change-region/…`, `calc-add/…`, `share/…`, `copy-summary/…`
 검색엔진용 정적 페이지(`pages/`)에도 같은 설정으로 스크립트가 들어갑니다. 공유 랜딩 페이지(`share/`)는 바로 앱으로 넘어가서 앱에서 한 번만 셉니다.
 
 ## 라이선스·출처

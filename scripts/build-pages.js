@@ -18,13 +18,10 @@ const { templates } = load("templates.json");
 const settings = load("settings.json");
 const hiddenCosts = load("hidden-costs.json").items;
 // 정적 페이지도 같은 분석 도구로 센다 (설정이 비어 있으면 넣지 않는다)
-const { goatcounterCode, cloudflareToken } = settings.analytics ?? {};
-const analyticsTags = [
-  goatcounterCode && `<script data-goatcounter="https://${goatcounterCode}.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>`,
-  cloudflareToken && `<script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='${JSON.stringify({ token: cloudflareToken })}'></script>`,
-]
-  .filter(Boolean)
-  .join("\n  ");
+const { goatcounterCode } = settings.analytics ?? {};
+const analyticsTags = goatcounterCode
+  ? `<script data-goatcounter="https://${goatcounterCode}.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>`
+  : "";
 const site = settings.siteUrl.replace(/\/?$/, "/");
 const region = settings.defaultRegion;
 const { krwPerUsd, vatRate } = settings.exchangeRate;
@@ -185,7 +182,7 @@ function shell({ title, description, url, main, footer }) {
     <div class="container">${footer}
     <details class="privacy">
       <summary>개인정보 안내</summary>
-      <p>이 사이트는 회원가입이나 개인정보 수집이 없어요. 직접 계산기에 담은 목록은 이 브라우저에만 저장돼요. 방문 통계는 쿠키를 쓰지 않는 GoatCounter와 Cloudflare Web Analytics로 모으고, 개인을 알아볼 수 있는 정보는 저장하지 않아요 (어떤 화면을 봤는지, 어디서 들어왔는지 정도). 의견 보내기 설문은 Google Forms, 사이트 호스팅은 GitHub Pages, 글꼴은 jsDelivr를 쓰고, 각 서비스의 개인정보 정책을 따라요.</p>
+      <p>이 사이트는 회원가입이나 개인정보 수집이 없어요. 직접 계산기에 담은 목록은 이 브라우저에만 저장돼요. 방문 통계는 쿠키를 쓰지 않는 GoatCounter로 모으고, 개인을 알아볼 수 있는 정보는 저장하지 않아요 (어떤 화면을 봤는지, 어디서 들어왔는지 정도). 의견 보내기 설문은 Google Forms, 사이트 호스팅은 GitHub Pages, 글꼴은 jsDelivr를 쓰고, 각 서비스의 개인정보 정책을 따라요.</p>
     </details>
     </div>
   </footer>

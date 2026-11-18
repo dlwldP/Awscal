@@ -1,5 +1,5 @@
-// 방문 분석: GoatCounter(화면·이벤트)와 Cloudflare Web Analytics(방문·성능). 둘 다 쿠키를 쓰지 않는다.
-// data/settings.json의 analytics에 값이 있을 때만 켠다 (비어 있으면 아무것도 불러오지 않는다).
+// 방문 분석: GoatCounter(화면·이벤트, 쿠키 없음).
+// data/settings.json의 analytics.goatcounterCode가 있을 때만 켠다 (비어 있으면 아무것도 불러오지 않는다).
 //   initAnalytics(cfg)      스크립트 불러오기
 //   trackPage()             해시 화면(#/t/...)이 바뀔 때마다 한 번 (직접 바꾼 값 같은 ?쿼리는 빼고 센다)
 //   trackEvent(name, title) 템플릿 선택·규모/리전 변경·계산기 사용·공유 같은 이벤트
@@ -30,12 +30,6 @@ export function initAnalytics(cfg = {}) {
       "data-goatcounter-settings": JSON.stringify({ no_onload: true }),
     });
     s.addEventListener("load", () => queue.splice(0).forEach((v) => window.goatcounter.count(v)));
-  }
-  if (cfg.cloudflareToken) {
-    addScript("https://static.cloudflareinsights.com/beacon.min.js", {
-      defer: "",
-      "data-cf-beacon": JSON.stringify({ token: cfg.cloudflareToken, spa: true }),
-    });
   }
 }
 
