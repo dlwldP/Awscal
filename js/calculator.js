@@ -2,7 +2,7 @@
 // 담은 목록은 이 브라우저에만 저장된다 (localStorage, 실패해도 동작에는 지장 없음).
 import { calculateOption, formatKrw, formatUsd } from "./engine.js";
 import { SERVICES, fieldDef } from "./schema.js";
-import { afterLaunchHtml, chipsHtml, esc, fieldHtml, fullUrl, keepOpen, linesHtml, readField, regionChipsHtml, shareLink, toast, warningsHtml } from "./ui.js";
+import { afterLaunchHtml, chipsHtml, esc, fieldHtml, fullUrl, shareUrl, sharedBannerHtml, takeSharedArrival, keepOpen, linesHtml, readField, regionChipsHtml, shareLink, toast, warningsHtml } from "./ui.js";
 import { decodeCalc, encodeCalc } from "./share.js";
 import { glyph, icon } from "./icons.js";
 import { trackEvent } from "./analytics.js";
@@ -10,6 +10,7 @@ import { trackEvent } from "./analytics.js";
 const STORAGE_KEY = "aws-eolmaya:calculator";
 let state = null; // { region, freeTier, items: [{ uid, type, values }] }
 let nextUid = 1;
+let fromShare = false; // 이번 방문에서 공유받은 견적(#/calc?s=…)을 불러왔으면 띠를 보여준다
 
 const serviceOf = (type) => SERVICES.find((s) => s.type === type);
 const FREE_CHOICES = [
@@ -151,12 +152,16 @@ function applySharedLink(params, data) {
     return;
   }
   const same = encodeCalc(state.region, state.items, state.freeTier) === encodeCalc(shared.region, shared.items, shared.freeTier);
-  if (same) return;
+  if (same) {
+    fromShare = true;
+    return;
+  }
   if (state.items.length && !confirm("받은 구성으로 바꿀까요?\n지금 담아둔 목록은 사라져요.")) return;
   state.region = data.prices.regions[shared.region] ? shared.region : data.settings.defaultRegion;
   state.items = shared.items.map((it) => newItem(it.type, it.values));
   state.freeTier = shared.freeTier;
   save();
+  fromShare = true;
   toast("받은 구성을 불러왔어요");
 }
 
@@ -169,7 +174,9 @@ export function renderCalculator(app, data, params) {
   const { krwPerUsd, vatRate } = data.settings.exchangeRate;
   document.title = "직접 계산하기 · AWS 얼마야?";
 
+  takeSharedArrival(); // 계산기는 공유 링크(s=)를 불러왔는지로 띠를 정한다
   app.innerHTML = `
+    ${fromShare ? sharedBannerHtml("공유받은 견적이에요 · 값을 고치면 내 견적이 돼요", "#/", "구성 추천부터 시작") : ""}
     <div class="page-head">
       <a class="back" href="#/">‹ 처음으로</a>
       <p class="step">${icon("calculator", 16)}직접 계산</p>
@@ -236,9 +243,10 @@ export function renderCalculator(app, data, params) {
     })
   );
 
-  app.querySelector("#share-calc")?.addEventListener("click", () =>
-    shareLink(fullUrl(`#/calc?s=${encodeCalc(state.region, state.items, state.freeTier)}`), "내 AWS 구성 비용 · AWS 얼마야?")
-  );
+  app.querySelector("#share-calc")?.addEventListener("click", () => {
+    trackEvent("share/calc", "견적 공유");
+    shareLink(shareUrl(`#/calc?s=${encodeCalc(state.region, state.items, state.freeTier)}`), "내 AWS 구성 비용 · AWS 얼마야?");
+  });
 
   app.querySelector("[data-clear]")?.addEventListener("click", () => {
     if (!confirm("담은 서비스를 모두 비울까요?")) return;

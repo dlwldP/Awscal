@@ -163,6 +163,30 @@ export function fullUrl(hash) {
   return `${location.origin}${location.pathname}${hash}`;
 }
 
+/**
+ * 공유용 주소: 출처 표시(utm)를 # 앞에 붙인다. 해시(#) 뒤에 붙이면 분석 도구가 읽지 못한다.
+ * 받은 사람이 이 주소로 들어오면 첫 화면에 '공유받은 견적' 띠가 보인다.
+ */
+export function shareUrl(hash) {
+  return `${location.origin}${location.pathname}?utm_source=share&utm_medium=link${hash}`;
+}
+
+// 공유 링크(?utm_source=share)로 들어왔는지. 첫 화면에서 한 번만 꺼내 쓴다.
+let sharedArrival = typeof location !== "undefined" && new URLSearchParams(location.search).get("utm_source") === "share";
+export function takeSharedArrival() {
+  const v = sharedArrival;
+  sharedArrival = false;
+  return v;
+}
+
+/** 공유받은 견적 띠 */
+export function sharedBannerHtml(text, actionHref, actionLabel) {
+  return `<div class="shared-banner" role="note">
+      <span class="sb-text">${icon("share-2", 16)}${text}</span>
+      ${actionHref ? `<a class="sb-action" href="${actionHref}">${actionLabel} ${icon("chevron-right", 14)}</a>` : ""}
+    </div>`;
+}
+
 /** 휴대폰은 공유창(카카오톡 등), 그 외에는 링크 복사. */
 export async function shareLink(url, title) {
   const mobile = matchMedia("(pointer: coarse)").matches;

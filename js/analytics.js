@@ -44,9 +44,15 @@ export function screenPath(hash = location.hash) {
   return "/" + hash.replace(/^#\/?/, "").split("?")[0];
 }
 
+let firstView = true;
+
 export function trackPage() {
-  // 유입 경로는 GoatCounter가 직접 읽는다: 주소의 ?utm_source=(공유 링크) 또는 document.referrer(Velog·검색 등).
-  send({ path: screenPath(), title: document.title });
+  // 유입 경로: 첫 화면만 ?utm_source=(공유 링크 등) 또는 document.referrer(Velog·검색 등)로 기록한다.
+  // 그 뒤 화면 이동은 사이트 안 이동이라 같은 사이트 주소를 넘겨 유입으로 세지 않게 한다.
+  const src = typeof location !== "undefined" ? new URLSearchParams(location.search).get("utm_source") : null;
+  const referrer = firstView ? (src ? `utm:${src}` : document.referrer) : `${location.origin}${location.pathname}`;
+  firstView = false;
+  send({ path: screenPath(), title: document.title, referrer });
 }
 
 export function trackEvent(name, title = name) {

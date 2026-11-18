@@ -11,7 +11,7 @@
 import { calculateTemplate, formatKrw, formatUsd, HOURS_PER_MONTH, resolveResource } from "./engine.js";
 import { FIELDS, HIDDEN_ADJUST_FIELDS, fieldDef } from "./schema.js";
 import {
-  afterLaunchHtml, chipsHtml, esc, fieldHtml, fullUrl, installExpandHandlers, keepOpen, linesHtml, readField, regionChipsHtml, regionList, shareLink,
+  afterLaunchHtml, chipsHtml, esc, fieldHtml, fullUrl, installExpandHandlers, shareUrl, sharedBannerHtml, takeSharedArrival, keepOpen, linesHtml, readField, regionChipsHtml, regionList, shareLink,
   warningsHtml,
 } from "./ui.js";
 import { parseDomain, parseFree, parseOverrides, resultHash } from "./share.js";
@@ -448,9 +448,11 @@ function renderResult(template, presetId, regionId, params = new URLSearchParams
     { id: "on", name: "포함 (.com)" },
   ];
 
+  const shared = takeSharedArrival();
   // 넓은 화면(PC)은 왼쪽에 계산 조건·직접 조정을 펼쳐 두고 오른쪽에 결과를 보여준다.
   const wide = typeof matchMedia === "function" && matchMedia("(min-width: 960px)").matches;
   app.innerHTML = `
+    ${shared ? sharedBannerHtml("공유받은 견적이에요", `#/t/${template.id}`, "내 조건으로 다시 계산") : ""}
     <div class="page-head">
       <a class="back" href="#/t/${template.id}">‹ 다시 고르기</a>
       <p class="step">${glyph(template.icon, 16)}${esc(template.name)}</p>
@@ -542,9 +544,10 @@ function renderResult(template, presetId, regionId, params = new URLSearchParams
   adjustEl.addEventListener("change", onField);
   app.querySelector("#adjust-reset").addEventListener("click", () => (location.hash = hashFor(presetId, regionId, {})));
 
-  app.querySelector("#share").addEventListener("click", () =>
-    shareLink(fullUrl(hashFor(presetId, regionId, adjust.overrides)), `${template.name} AWS 비용 · AWS 얼마야?`)
-  );
+  app.querySelector("#share").addEventListener("click", () => {
+    trackEvent(`share/result/${template.id}`, "견적 공유");
+    shareLink(shareUrl(hashFor(presetId, regionId, adjust.overrides)), `${template.name} AWS 비용 · AWS 얼마야?`);
+  });
 
   optionsEl.addEventListener("click", (e) => {
     const btn = e.target.closest("[data-to-calc]");
@@ -662,7 +665,7 @@ function renderQuiz() {
       renderQuiz();
     } else if (e.target.closest("[data-share]")) {
       const score = quiz.picks.filter((p, i) => p === quiz.questions[i].answer).length;
-      shareLink(fullUrl("#/quiz"), `AWS 비용 퀴즈 ${quiz.questions.length}문제 중 ${score}개 맞혔어요 · AWS 얼마야?`);
+      shareLink(shareUrl("#/quiz"), `AWS 비용 퀴즈 ${quiz.questions.length}문제 중 ${score}개 맞혔어요 · AWS 얼마야?`);
     }
   };
   quizClick = onClick;
@@ -819,6 +822,8 @@ function route() {
   else renderHome();
   window.scrollTo(0, 0);
   trackPage();
+  // 출처 표시(?utm_…)는 첫 화면에서 기록한 뒤 주소에서 지운다 (이후 이동·새로고침에 섞이지 않게).
+  if (location.search) history.replaceState(null, "", location.pathname + location.hash);
 }
 
 async function main() {
