@@ -11,10 +11,11 @@
 import { calculateTemplate, formatKrw, formatUsd, HOURS_PER_MONTH, resolveResource } from "./engine.js";
 import { FIELDS, HIDDEN_ADJUST_FIELDS, fieldDef } from "./schema.js";
 import {
-  afterLaunchHtml, chipsHtml, esc, fieldHtml, fullUrl, installExpandHandlers, shareUrl, sharedBannerHtml, takeSharedArrival, keepOpen, linesHtml, readField, regionChipsHtml, regionList, shareLink,
+  afterLaunchHtml, chipsHtml, copyText, esc, fieldHtml, fullUrl, installExpandHandlers, shareBoxHtml, shareUrl, sharedBannerHtml, takeSharedArrival, keepOpen, linesHtml, readField, regionChipsHtml, regionList, shareLink,
   warningsHtml,
 } from "./ui.js";
-import { parseDomain, parseFree, parseOverrides, resultHash } from "./share.js";
+import { cleanName, parseDomain, parseFree, parseName, parseOverrides, resultHash } from "./share.js";
+import { resultSummary } from "./summary.js";
 import { importResources, renderCalculator } from "./calculator.js";
 import { diagramHtml } from "./diagram.js";
 import { guideHtml, hiddenCostsOf } from "./hidden-costs.js";
@@ -434,7 +435,8 @@ function renderResult(template, presetId, regionId, params = new URLSearchParams
   domainOn = parseDomain(params) ?? domainState[template.id] ?? Boolean(template.defaultDomain);
   domainState[template.id] = domainOn;
   freeOn = parseFree(params) ?? freeOn;
-  const hashFor = (p, r, ov, free = freeOn) => resultHash(template, p, r, ov, domainOn, free);
+  let quoteName = parseName(params); // 견적 이름(선택): 공유 링크에 &name=으로 담긴다
+  const hashFor = (p, r, ov, free = freeOn) => resultHash(template, p, r, ov, domainOn, free, quoteName);
   // 값을 바꿀 때마다 주소도 바꿔둔다 (주소창을 그대로 복사해도 공유되게). 기록은 남기지 않는다.
   const syncUrl = () => history.replaceState(null, "", hashFor(presetId, regionId, adjust.overrides));
   syncUrl();
@@ -452,11 +454,12 @@ function renderResult(template, presetId, regionId, params = new URLSearchParams
   // 넓은 화면(PC)은 왼쪽에 계산 조건·직접 조정을 펼쳐 두고 오른쪽에 결과를 보여준다.
   const wide = typeof matchMedia === "function" && matchMedia("(min-width: 960px)").matches;
   app.innerHTML = `
-    ${shared ? sharedBannerHtml("공유받은 견적이에요", `#/t/${template.id}`, "내 조건으로 다시 계산") : ""}
+    ${shared ? sharedBannerHtml(`공유받은 견적이에요${quoteName ? `: ${esc(quoteName)}` : ""}`, `#/t/${template.id}`, "내 조건으로 다시 계산") : ""}
     <div class="page-head">
       <a class="back" href="#/t/${template.id}">‹ 다시 고르기</a>
       <p class="step">${glyph(template.icon, 16)}${esc(template.name)}</p>
       <h1 class="page-title">예상 월 비용이에요</h1>
+      <p class="quote-name" id="quote-name-line" ${quoteName ? "" : "hidden"}>${icon("tag", 16)}<span>${esc(quoteName)}</span></p>
     </div>
     <div class="result-layout">
     <aside class="result-side">
@@ -476,10 +479,7 @@ function renderResult(template, presetId, regionId, params = new URLSearchParams
     </aside>
     <div class="result-top">
       <div id="options">${optionsHtml(options, compareRegionId, values, regionPrices, template.id)}</div>
-      <div class="share-row">
-        <a class="quiz-link" href="#/quiz">${icon("circle-question-mark", 16)}얼마일까? 퀴즈</a>
-        <button type="button" class="btn btn-soft btn-sm" id="share">${icon("share-2", 16)}공유</button>
-      </div>
+      ${shareBoxHtml(quoteName)}
     </div>
     <div class="result-bottom">
       ${afterLaunchHtml()}
@@ -546,7 +546,31 @@ function renderResult(template, presetId, regionId, params = new URLSearchParams
 
   app.querySelector("#share").addEventListener("click", () => {
     trackEvent(`share/result/${template.id}`, "견적 공유");
-    shareLink(shareUrl(hashFor(presetId, regionId, adjust.overrides)), `${template.name} AWS 비용 · AWS 얼마야?`);
+    shareLink(shareUrl(hashFor(presetId, regionId, adjust.overrides)), `${quoteName || template.name} AWS 비용 · AWS 얼마야?`);
+  });
+  app.querySelector("#quote-name").addEventListener("input", (e) => {
+    quoteName = cleanName(e.target.value);
+    const line = app.querySelector("#quote-name-line");
+    line.hidden = !quoteName;
+    line.querySelector("span").textContent = quoteName;
+    syncUrl();
+  });
+  app.querySelector("#copy-summary").addEventListener("click", () => {
+    const { options: now } = calc();
+    const main = mainOptionOf(now);
+    const text = resultSummary({
+      name: quoteName,
+      templateName: template.name,
+      presetName: preset.name,
+      regionName: regionName(regionId),
+      main,
+      others: now.filter((o) => o !== main),
+      hidden: hiddenCostsOf(main).included.map((h) => (h.usd === null ? `${h.label}(번들 포함)` : h.label)),
+      krw: ex(),
+      url: shareUrl(hashFor(presetId, regionId, adjust.overrides)),
+    });
+    trackEvent(`copy-summary/result/${template.id}`, "견적 요약 복사");
+    copyText(text);
   });
 
   optionsEl.addEventListener("click", (e) => {

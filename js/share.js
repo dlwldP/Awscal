@@ -1,14 +1,24 @@
 // 공유 링크: 화면 상태 ↔ 주소. DOM을 쓰지 않아서 Node 테스트에서도 쓴다.
 //   결과 화면  #/t/<템플릿>/<프리셋>/<리전>?egressGb=100&domain=1&free=1   (사람이 읽을 수 있게 바꾼 값만)
 //   직접 계산  #/calc?s=<담은 목록을 JSON → base64url로 줄인 문자열>
+//   견적 이름(선택)은 결과 화면은 &name=, 직접 계산은 s 안의 n으로 담는다.
 import { FIELDS, HIDDEN_ADJUST_FIELDS, choicesFor, fieldDef } from "./schema.js";
 
+export const NAME_MAX = 40;
+
+/** 견적 이름: 앞뒤 공백·제어 문자를 지우고 40자까지만 쓴다. 이상한 값이면 빈 문자열. */
+export function cleanName(raw) {
+  if (typeof raw !== "string") return "";
+  return raw.replace(/\s+/g, " ").replace(/[\u0000-\u001f\u007f]/g, "").trim().slice(0, NAME_MAX);
+}
+
 /** 결과 화면 주소. 프리셋 기본값과 다른 값, 템플릿 기본과 다른 도메인 설정, 프리티어 적용 여부만 담는다. */
-export function resultHash(template, presetId, regionId, overrides = {}, domainOn = Boolean(template.defaultDomain), freeOn = false) {
+export function resultHash(template, presetId, regionId, overrides = {}, domainOn = Boolean(template.defaultDomain), freeOn = false, name = "") {
   const q = new URLSearchParams();
   for (const [k, v] of Object.entries(overrides)) q.set(k, String(v));
   if (domainOn !== Boolean(template.defaultDomain)) q.set("domain", domainOn ? "1" : "0");
   if (freeOn) q.set("free", "1");
+  if (cleanName(name)) q.set("name", cleanName(name));
   const query = q.toString();
   return `#/t/${template.id}/${presetId}/${regionId}${query ? `?${query}` : ""}`;
 }
@@ -20,7 +30,7 @@ export function resultHash(template, presetId, regionId, overrides = {}, domainO
 export function parseOverrides(preset, regionPrices, params) {
   const out = {};
   for (const [key, raw] of params) {
-    if (key === "domain" || key === "free" || !(key in preset.values) || !FIELDS[key] || HIDDEN_ADJUST_FIELDS.has(key)) continue;
+    if (key === "domain" || key === "free" || key === "name" || !(key in preset.values) || !FIELDS[key] || HIDDEN_ADJUST_FIELDS.has(key)) continue;
     const def = fieldDef(key);
     let value;
     if (def.type === "select") {
@@ -41,6 +51,11 @@ export function parseOverrides(preset, regionPrices, params) {
 export function parseDomain(params) {
   if (!params.has("domain")) return undefined;
   return params.get("domain") === "1";
+}
+
+/** 주소의 name= (견적 이름). 없으면 빈 문자열. */
+export function parseName(params) {
+  return cleanName(params.get("name") ?? "");
 }
 
 /** 주소의 free=0/1 (항상 무료 적용). 없으면 undefined. */
@@ -64,12 +79,13 @@ const fromBase64Url = (s) => {
 };
 
 /** 직접 계산 상태 → 주소에 넣을 문자열. */
-export function encodeCalc(region, items, freeTier = false) {
-  return toBase64Url(JSON.stringify({ r: region, i: items.map((it) => [it.type, it.values]), ...(freeTier ? { f: 1 } : {}) }));
+export function encodeCalc(region, items, freeTier = false, name = "") {
+  const n = cleanName(name);
+  return toBase64Url(JSON.stringify({ r: region, i: items.map((it) => [it.type, it.values]), ...(freeTier ? { f: 1 } : {}), ...(n ? { n } : {}) }));
 }
 
 /**
- * 주소 문자열 → { region, items, freeTier }. 깨졌거나 모르는 서비스만 있으면 null.
+ * 주소 문자열 → { region, items, freeTier, name }. 깨졌거나 모르는 서비스만 있으면 null.
  * validTypes에 없는 서비스와 숫자·문자·불리언이 아닌 값은 버린다.
  */
 export function decodeCalc(s, validTypes) {
@@ -85,7 +101,7 @@ export function decodeCalc(s, validTypes) {
         ),
       }));
     if (!items.length) return null;
-    return { region: typeof data.r === "string" ? data.r : undefined, items, freeTier: data.f === 1 };
+    return { region: typeof data.r === "string" ? data.r : undefined, items, freeTier: data.f === 1, name: cleanName(data.n) };
   } catch {
     return null;
   }

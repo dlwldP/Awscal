@@ -2,8 +2,9 @@
 // 담은 목록은 이 브라우저에만 저장된다 (localStorage, 실패해도 동작에는 지장 없음).
 import { calculateOption, formatKrw, formatUsd } from "./engine.js";
 import { SERVICES, fieldDef } from "./schema.js";
-import { afterLaunchHtml, chipsHtml, esc, fieldHtml, fullUrl, shareUrl, sharedBannerHtml, takeSharedArrival, keepOpen, linesHtml, readField, regionChipsHtml, shareLink, toast, warningsHtml } from "./ui.js";
-import { decodeCalc, encodeCalc } from "./share.js";
+import { afterLaunchHtml, chipsHtml, copyText, esc, fieldHtml, fullUrl, shareBoxHtml, shareUrl, sharedBannerHtml, takeSharedArrival, keepOpen, linesHtml, readField, regionChipsHtml, shareLink, toast, warningsHtml } from "./ui.js";
+import { cleanName, decodeCalc, encodeCalc } from "./share.js";
+import { calcSummary } from "./summary.js";
 import { glyph, icon } from "./icons.js";
 import { trackEvent } from "./analytics.js";
 
@@ -24,12 +25,12 @@ function load(defaultRegion) {
   try {
     const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
     if (saved && Array.isArray(saved.items)) {
-      state = { region: saved.region, freeTier: saved.freeTier === true, items: saved.items.filter((i) => serviceOf(i.type)) };
+      state = { region: saved.region, freeTier: saved.freeTier === true, name: cleanName(saved.name), items: saved.items.filter((i) => serviceOf(i.type)) };
     }
   } catch {
     /* 저장소를 못 쓰는 환경(사생활 보호 모드 등)이면 빈 상태로 시작 */
   }
-  state ??= { region: defaultRegion, freeTier: false, items: [] };
+  state ??= { region: defaultRegion, freeTier: false, name: "", items: [] };
   for (const item of state.items) item.uid = nextUid++;
   return state;
 }
@@ -38,7 +39,7 @@ function save() {
   try {
     localStorage.setItem(
       STORAGE_KEY,
-      JSON.stringify({ region: state.region, freeTier: state.freeTier, items: state.items.map(({ type, values }) => ({ type, values })) })
+      JSON.stringify({ region: state.region, freeTier: state.freeTier, name: state.name, items: state.items.map(({ type, values }) => ({ type, values })) })
     );
   } catch {
     /* 저장 실패는 무시 */
@@ -151,7 +152,8 @@ function applySharedLink(params, data) {
     toast("공유 링크를 읽지 못했어요");
     return;
   }
-  const same = encodeCalc(state.region, state.items, state.freeTier) === encodeCalc(shared.region, shared.items, shared.freeTier);
+  const same =
+    encodeCalc(state.region, state.items, state.freeTier, state.name) === encodeCalc(shared.region, shared.items, shared.freeTier, shared.name);
   if (same) {
     fromShare = true;
     return;
@@ -160,6 +162,7 @@ function applySharedLink(params, data) {
   state.region = data.prices.regions[shared.region] ? shared.region : data.settings.defaultRegion;
   state.items = shared.items.map((it) => newItem(it.type, it.values));
   state.freeTier = shared.freeTier;
+  state.name = shared.name;
   save();
   fromShare = true;
   toast("받은 구성을 불러왔어요");
@@ -182,7 +185,7 @@ export function renderCalculator(app, data, params) {
       <p class="step">${icon("calculator", 16)}직접 계산</p>
       <h1 class="page-title">쓸 서비스를 담아보세요</h1>
     </div>
-    ${state.items.length ? `<div class="share-row"><button type="button" class="btn btn-soft btn-sm" id="share-calc">${icon("share-2", 16)}공유</button></div>` : ""}
+    ${state.items.length ? shareBoxHtml(state.name, "share-calc", false) : ""}
     <div class="controls">
       ${regionChipsHtml(data.prices, state.region, [data.settings.defaultRegion, data.settings.compareRegion])}
       ${chipsHtml("프리티어 (매달 무료 사용량)", FREE_CHOICES, state.freeTier ? "on" : "off").replace(/data-value/g, "data-free")}
@@ -214,6 +217,7 @@ export function renderCalculator(app, data, params) {
     <div class="total-bar" id="total">${totalHtml(regionPrices, krwPerUsd, vatRate, data.freeTier)}</div>`;
 
   const rerender = () => renderCalculator(app, data);
+  const calcHash = () => `#/calc?s=${encodeCalc(state.region, state.items, state.freeTier, state.name)}`;
   const itemsEl = app.querySelector("#items");
   const updateTotal = () => (app.querySelector("#total").innerHTML = totalHtml(regionPrices, krwPerUsd, vatRate, data.freeTier));
 
@@ -245,7 +249,21 @@ export function renderCalculator(app, data, params) {
 
   app.querySelector("#share-calc")?.addEventListener("click", () => {
     trackEvent("share/calc", "견적 공유");
-    shareLink(shareUrl(`#/calc?s=${encodeCalc(state.region, state.items, state.freeTier)}`), "내 AWS 구성 비용 · AWS 얼마야?");
+    shareLink(shareUrl(calcHash()), `${state.name || "내 AWS 구성"} 비용 · AWS 얼마야?`);
+  });
+  app.querySelector("#quote-name")?.addEventListener("input", (e) => {
+    state.name = cleanName(e.target.value);
+    save();
+  });
+  app.querySelector("#copy-summary")?.addEventListener("click", () => {
+    const items = state.items.map((i) => {
+      const r = calcItem(i, regionPrices);
+      return { name: serviceOf(i.type).name, usd: r.error ? null : r.totalUsd };
+    });
+    const freeUsd = freeSavingUsd(regionPrices, data.freeTier);
+    const totalUsd = items.reduce((s, it) => s + (it.usd ?? 0), 0) + freeUsd;
+    trackEvent("copy-summary/calc", "견적 요약 복사");
+    copyText(calcSummary({ name: state.name, regionName: data.prices.regions[state.region].name, items, totalUsd, freeUsd, krw: { krwPerUsd, vatRate }, url: shareUrl(calcHash()) }));
   });
 
   app.querySelector("[data-clear]")?.addEventListener("click", () => {

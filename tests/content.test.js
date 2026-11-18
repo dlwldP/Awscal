@@ -104,7 +104,7 @@ test("직접 계산 공유: 인코딩 → 디코딩하면 같은 목록, 깨진 
   ];
   const s = encodeCalc("ap-northeast-1", items);
   assert.match(s, /^[A-Za-z0-9_-]+$/, "주소에 그대로 넣을 수 있는 문자만");
-  assert.deepEqual(decodeCalc(s, ["ec2", "rds"]), { region: "ap-northeast-1", items, freeTier: false });
+  assert.deepEqual(decodeCalc(s, ["ec2", "rds"]), { region: "ap-northeast-1", items, freeTier: false, name: "" });
   assert.equal(decodeCalc(encodeCalc("ap-northeast-1", items, true), ["ec2"]).freeTier, true, "프리티어 적용 여부도 담는다");
   assert.deepEqual(decodeCalc(s, ["ec2"]).items.length, 1, "모르는 서비스는 버림");
   assert.equal(decodeCalc("not-base64!!", ["ec2"]), null);
@@ -283,4 +283,28 @@ test("분석: 해시 화면 이름에서 직접 바꾼 값(?쿼리)은 빼고, �
   trackPage();
   trackEvent("x"); // initAnalytics 전에는 아무 일도 없어야 한다
   assert.equal(window.goatcounter, undefined);
+});
+
+test("견적 이름과 요약: 이름은 정리해서 링크에 담고, 요약 글에 이름·금액·링크가 들어간다", async () => {
+  const { cleanName, parseName, NAME_MAX } = await import("../js/share.js");
+  const { resultSummary, calcSummary } = await import("../js/summary.js");
+  assert.equal(cleanName("  팀\n프로젝트  백엔드 "), "팀 프로젝트 백엔드");
+  assert.equal(cleanName("가".repeat(60)).length, NAME_MAX);
+  assert.equal(cleanName(42), "");
+  const t = templates.find((x) => x.id === "backend-webapp");
+  const hash = resultHash(t, "small", "ap-northeast-2", { egressGb: 300 }, false, false, "팀 백엔드");
+  const params = new URLSearchParams(hash.split("?")[1]);
+  assert.equal(parseName(params), "팀 백엔드");
+  assert.deepEqual(parseOverrides(t.presets.find((p) => p.id === "small"), prices.regions["ap-northeast-2"], params), { egressGb: 300 });
+  const items = [{ type: "ec2", values: { instance: "t4g.small", count: 1, hours: 730 } }];
+  assert.equal(decodeCalc(encodeCalc("ap-northeast-2", items, false, "  내 견적 "), ["ec2"]).name, "내 견적");
+  const krw = settings.exchangeRate;
+  const r = resultSummary({ name: "팀 백엔드", templateName: "백엔드 웹앱", presetName: "소규모", regionName: "서울", main: { name: "Lightsail", totalUsd: 12 }, others: [{ name: "EC2 + RDS", totalUsd: 45.31 }], hidden: ["데이터 전송(번들 포함)"], krw, url: "https://x/#/t" });
+  assert.match(r, /^\[AWS 얼마야\?\] 팀 백엔드 · 백엔드 웹앱 · 소규모 · 서울/);
+  assert.match(r, /추천: Lightsail 월 약 18,480원 \(부가세 포함, \$12\.00\)/);
+  assert.match(r, /놓치기 쉬운 비용: 데이터 전송\(번들 포함\)/);
+  assert.match(r, /자세히 보기: https:\/\/x\/#\/t$/);
+  const c = calcSummary({ name: "", regionName: "서울", items: [{ name: "EC2", usd: 15.18 }, { name: "S3", usd: null }], totalUsd: 15.18, krw, url: "u" });
+  assert.match(c, /직접 계산 견적 · 서울/);
+  assert.match(c, /- S3: 입력값 확인 필요/);
 });

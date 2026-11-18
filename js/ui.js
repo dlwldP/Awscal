@@ -3,6 +3,7 @@ import { formatUsd } from "./engine.js";
 import { choicesFor } from "./schema.js";
 import { glossarize } from "./glossary.js";
 import { icon } from "./icons.js";
+import { NAME_MAX } from "./share.js";
 
 export const esc = (s) =>
   String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
@@ -226,4 +227,28 @@ export function afterLaunchHtml() {
         </details></li>`
       ).join("")}</ol>
     </section>`;
+}
+
+/** 공유 상자: 견적 이름(선택) + 요약 복사 + 공유. 결과 화면과 직접 계산기가 같이 쓴다. */
+export function shareBoxHtml(name, shareId = "share", quiz = true) {
+  return `<section class="share-box" aria-label="견적 공유">
+      <label class="share-name">${icon("tag", 16)}
+        <input id="quote-name" type="text" maxlength="${NAME_MAX}" value="${esc(name)}" placeholder="견적 이름 (선택) 예: 팀 프로젝트 백엔드" aria-label="견적 이름 (선택)" autocomplete="off">
+      </label>
+      <div class="share-actions">
+        ${quiz ? `<a class="quiz-link" href="#/quiz">${icon("circle-question-mark", 16)}얼마일까? 퀴즈</a>` : ""}
+        <button type="button" class="btn btn-ghost btn-sm" id="copy-summary">${icon("copy", 16)}요약 복사</button>
+        <button type="button" class="btn btn-soft btn-sm" id="${shareId}">${icon("share-2", 16)}공유</button>
+      </div>
+    </section>`;
+}
+
+/** 클립보드에 글 복사 (안 되면 알려준다) */
+export async function copyText(text) {
+  try {
+    await navigator.clipboard.writeText(text);
+    toast("요약을 복사했어요");
+  } catch {
+    toast("복사하지 못했어요");
+  }
 }
