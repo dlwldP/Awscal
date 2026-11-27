@@ -195,6 +195,13 @@ test("이 구성 만들기: 템플릿마다 맨 위 구성(추천, 없으면 최
   }
 });
 
+test("README의 가이드 개수가 실제 가이드 수와 같다 (문서가 낡지 않게)", () => {
+  const { guides } = load("data/build-guides.json");
+  const m = read("README.md").match(/지금은 템플릿별 추천 구성 (\d+)개/);
+  assert.ok(m, "README에서 '지금은 템플릿별 추천 구성 N개' 문장을 찾지 못함");
+  assert.equal(Number(m[1]), Object.keys(guides).length, "README 가이드 개수를 data/build-guides.json에 맞춰 고치세요");
+});
+
 test("항상 무료: 무료 사용량만큼 '항상 무료' 줄(음수)을 붙이고, 같은 한도는 여러 줄이 나눠 쓴다", async () => {
   const { formatUsd } = await import("../js/engine.js");
   const freeTier = load("data/free-tier.json");
