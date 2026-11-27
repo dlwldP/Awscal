@@ -1,0 +1,19 @@
+{
+  "attribution": {
+    "commit": "",
+    "pr": ""
+  },
+  "permissions": {
+    "ask": [
+      "Bash(git push origin main*)",
+      "Bash(git push origin HEAD:main*)",
+      "Edit(data/prices.json)",
+      "Edit(data/price-changes.json)",
+      "Write(data/prices.json)",
+      "Write(data/price-changes.json)",
+      "Edit(.github/**)",
+      "Write(.github/**)",
+      "Edit(assets/icons/aws/**)"
+    ]
+  }
+}

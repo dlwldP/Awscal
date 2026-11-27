@@ -71,6 +71,7 @@ python3 -m unittest discover -s tests -p "test_*.py"  # 가격 수집 스크립�
 ## 구조
 
 ```
+AGENTS.md                   AI 에이전트 작업 규칙 원본 (CLAUDE.md는 @AGENTS.md 한 줄, .claude/settings.json은 확인 질문·공동 작성 표기 끄기)
 index.html                  화면 뼈대
 css/styles.css              스타일 (디자인 토큰: 네이비·오렌지, 글자 크기 5단계)
 js/engine.js                계산 엔진 (DOM 없음, 테스트 대상)
@@ -101,6 +102,7 @@ scripts/fetch_prices.py     가격 수집 + 변동 기록
 scripts/build-pages.js      검색엔진용 템플릿 소개·놓치기 쉬운 비용 페이지 + sitemap.xml 생성 (배포 때 실행)
 scripts/validation-report.js  공식 계산기 교차 검증 체크리스트 생성
 docs/validation.md          교차 검증 체크리스트
+docs/decisions.md           결정 기록 (바뀐 결정은 지우지 않고 '대체됨')
 tests/                      단위 테스트 (*.test.js: Node, test_*.py: Python)
 ```
 
